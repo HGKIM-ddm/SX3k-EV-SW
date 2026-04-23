@@ -1,0 +1,9 @@
+#!gbuild
+[Subproject]
+linkmap\dr7f701695.ld
+iodefine.h
+cpu.h
+device.h
+dr7f701695.dvf.h
+dr7f701695_irq.h
+io_macros_v2.h

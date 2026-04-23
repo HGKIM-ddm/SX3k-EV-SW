@@ -1,0 +1,22 @@
+#!gbuild
+[Subproject]
+	-I.
+fdl_function.c
+fdl_function.h
+fdl_descriptor.c
+fdl_user.c
+fdlapp_control.c
+r_fdl_hw_access.c
+r_fdl_user_if.c
+r_fdl_user_if_init.c
+app.h
+fdl_cfg.h
+fdl_descriptor.h
+fdl_user.h
+r_fdl.h
+r_fdl_env.h
+r_fdl_global.h
+r_fdl_mem_map.h
+r_fdl_types.h
+FDL/r_typedefs.h
+target.h

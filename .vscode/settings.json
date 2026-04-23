@@ -1,0 +1,9 @@
+{
+    "files.associations": {
+        "config_taud0_3.h": "c",
+        "config_stbc.h": "c",
+        "config_adca0.h": "c",
+        "config_intc.h": "c",
+        "r_cg_userdefine.h": "c"
+    }
+}

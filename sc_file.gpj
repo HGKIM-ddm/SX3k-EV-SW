@@ -1,0 +1,109 @@
+#!gbuild
+[Subproject]
+        -Isrc/smc_gen/Config_ADCA0
+        -Isrc/smc_gen/Config_CSIH0
+        -Isrc/smc_gen/Config_INTC
+        -Isrc/smc_gen/Config_PORT
+        -Isrc/smc_gen/Config_STBC
+        -Isrc/smc_gen/Config_TAUD0_13
+        -Isrc/smc_gen/Config_TAUD0_3
+        -Isrc/smc_gen/Config_WDT0
+        -Isrc/smc_gen/general
+        -Isrc/smc_gen/r_pincfg
+	-Isrc/smc_gen/general/App/Config
+	-Isrc/smc_gen/general/App/Driver
+	-Isrc/smc_gen/general/App/Service
+	-Isrc/smc_gen/general/App/Sensing
+	-Isrc/smc_gen/general/App/ISR
+        -object_dir=objs\
+src/smc_gen/Config_ADCA0/Config_ADCA0.c
+src/smc_gen/Config_ADCA0/Config_ADCA0.h
+src/smc_gen/Config_ADCA0/Config_ADCA0_user.c
+src/smc_gen/Config_CSIH0/Config_CSIH0.c
+src/smc_gen/Config_CSIH0/Config_CSIH0.h
+src/smc_gen/Config_CSIH0/Config_CSIH0_user.c
+src/smc_gen/Config_INTC/Config_INTC.c
+src/smc_gen/Config_INTC/Config_INTC.h
+src/smc_gen/Config_INTC/Config_INTC_user.c
+src/smc_gen/Config_PORT/Config_PORT.c
+src/smc_gen/Config_PORT/Config_PORT.h
+src/smc_gen/Config_PORT/Config_PORT_user.c
+src/smc_gen/Config_STBC/Config_STBC.c
+src/smc_gen/Config_STBC/Config_STBC.h
+src/smc_gen/Config_STBC/Config_STBC_user.c
+src/smc_gen/Config_TAUD0_13/Config_TAUD0_13.c
+src/smc_gen/Config_TAUD0_13/Config_TAUD0_13.h
+src/smc_gen/Config_TAUD0_13/Config_TAUD0_13_user.c
+src/smc_gen/Config_TAUD0_3/Config_TAUD0_3.c
+src/smc_gen/Config_TAUD0_3/Config_TAUD0_3.h
+src/smc_gen/Config_TAUD0_3/Config_TAUD0_3_user.c
+src/smc_gen/Config_WDT0/Config_WDT0.c
+src/smc_gen/Config_WDT0/Config_WDT0.h
+src/smc_gen/Config_WDT0/Config_WDT0_user.c
+src/smc_gen/general/r_cg_ad.h
+src/smc_gen/general/r_cg_cgc.c
+src/smc_gen/general/r_cg_cgc.h
+src/smc_gen/general/r_cg_cgc_user.c
+src/smc_gen/general/r_cg_csih.h
+src/smc_gen/general/r_cg_intc.h
+src/smc_gen/general/r_cg_intvector.c
+src/smc_gen/general/r_cg_macrodriver.h
+src/smc_gen/general/r_cg_main.c
+src/smc_gen/general/r_cg_port.h
+src/smc_gen/general/r_cg_stbc.h
+src/smc_gen/general/r_cg_systeminit.c
+src/smc_gen/general/r_cg_taud.h
+src/smc_gen/general/r_cg_userdefine.h
+src/smc_gen/general/r_cg_wdt.h
+src/smc_gen/general/r_smc_entry.h
+src/smc_gen/general/r_smc_interrupt.c
+src/smc_gen/general/r_smc_interrupt.h
+src/smc_gen/general/r_smc_intprg.c
+src/smc_gen/general/App/Config/Config.c
+src/smc_gen/general/App/Config/Config.h
+src/smc_gen/general/App/Config/Define.h
+src/smc_gen/general/App/Driver/Drv8889.c
+src/smc_gen/general/App/Driver/Drv8889.h
+src/smc_gen/general/App/Driver/Dio.c
+src/smc_gen/general/App/Driver/Dio.h
+src/smc_gen/general/App/Driver/Lin_Driver.c
+src/smc_gen/general/App/Driver/Lin_Driver.h
+src/smc_gen/general/App/Service/Fdl.c
+src/smc_gen/general/App/Service/Fdl.h
+src/smc_gen/general/App/Service/Motor.c
+src/smc_gen/general/App/Service/Motor.h
+src/smc_gen/general/App/Service/Error_Check.c
+src/smc_gen/general/App/Service/Error_Check.h
+src/smc_gen/general/App/Service/Re_Init.c
+src/smc_gen/general/App/Service/Re_Init.h
+src/smc_gen/general/App/Service/Service.c
+src/smc_gen/general/App/Service/Service.h
+src/smc_gen/general/App/Service/Limp_Home.c
+src/smc_gen/general/App/Service/Limp_Home.h
+src/smc_gen/general/App/Service/AntiPinch.c
+src/smc_gen/general/App/Service/AntiPinch.h
+src/smc_gen/general/App/Service/FailSafety_Mode.c
+src/smc_gen/general/App/Service/FailSafety_Mode.h
+src/smc_gen/general/App/Service/Init_Move.c
+src/smc_gen/general/App/Service/Init_Move.h
+src/smc_gen/general/App/Service/Lin_Check.c
+src/smc_gen/general/App/Service/Lin_Check.h
+src/smc_gen/general/App/Service/Lin_Sleep.c
+src/smc_gen/general/App/Service/Lin_Sleep.h
+src/smc_gen/general/App/Service/Operating_Mode.c
+src/smc_gen/general/App/Service/Operating_Mode.h
+src/smc_gen/general/App/Service/Protection_Mode.c
+src/smc_gen/general/App/Service/Protection_Mode.h
+src/smc_gen/general/App/Service/Spi_Check.c
+src/smc_gen/general/App/Service/Spi_Check.h
+src/smc_gen/general/App/Service/Lin_Service.c
+src/smc_gen/general/App/Service/Lin_Service.h
+src/smc_gen/general/App/Sensing/Stall_Check.c
+src/smc_gen/general/App/Sensing/Stall_Check.h
+src/smc_gen/general/App/Sensing/Adc_Check.c
+src/smc_gen/general/App/Sensing/Adc_Check.h
+src/smc_gen/general/App/ISR/Lin_Interrupt.c
+src/smc_gen/general/App/ISR/Lin_Interrupt.h
+src/smc_gen/r_pincfg/Pin.c
+src/smc_gen/r_pincfg/Pin.h
+
