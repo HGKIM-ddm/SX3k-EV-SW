@@ -12,3 +12,9 @@
 # 빌드 출력 폴더 전체 제외
 /bin/
 /objs/
+project.bin
+project.dep
+project.gpj
+project.src‘
+project.src��
+.settings/com.renesas.smc.generationsetting.properties
