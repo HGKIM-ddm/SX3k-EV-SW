@@ -126,11 +126,10 @@ void Re_Init(void)
  ***********************************************************************************************************************/
 void Step_InitAndCheck(void)
 {
-    if ((step_check_flag == 0U) && ((EngRunSta == 0x01u) || (HevRdy == 0x01u)))
+    if ((step_check_flag == 0U) && (LDCRdy == 0x01u))
     {
         FDL_Read();
         Step_LoadData();
-
         G_Timer1msFlag.MotorStepCheckFlag = 1U;
 
         if ((G_Timer1ms.MotorStepCheck >= 50U))

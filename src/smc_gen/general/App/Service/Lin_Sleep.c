@@ -62,25 +62,27 @@ static void LinSleep_Delay(void)
  ***********************************************************************************************************************/
 static void LinSleep_ParsingCommand(void)
 {
+    /* LINOut == 0 (정상 종료): 마스터 제어기의 최종 제어 수행 후 Sleep 진입 */
     if (AAF_LINOut == 0x00U)
     {
-        if (lin_aaf_command == OPEN)
+        if ((lin_aaf_command == OPEN) || (lin_aaf_command == OPEN_1ST) || (lin_aaf_command == OPEN_2ND))
         {
             Drv8889_Wakeup();
-            aaf_action = OPEN;
+            aaf_action = lin_aaf_command; // 명령 분리 저장
+            lin_sleep_step = 3U;
         }
         else if (lin_aaf_command == CLOSE)
         {
             Drv8889_Wakeup();
             aaf_action = CLOSE;
+            lin_sleep_step = 3U;
         }
         else 
         { 
-            //invalid 
+            lin_sleep_step = 5U; // 알 수 없는 명령 시 바로 Sleep으로 직행
         }
-        
-        lin_sleep_step = 3U;
     }
+    /* LINOut == 1 (비정상 종료/LIN단선): 사양서 5.3.12 기준 무조건 OPEN 후 Sleep */
     else if (AAF_LINOut == 0x01U)
     {
         Drv8889_Wakeup();
@@ -89,7 +91,7 @@ static void LinSleep_ParsingCommand(void)
     }
     else 
     { 
-        //invalid 
+        lin_sleep_step = 5U;
     }
 }
 
@@ -127,7 +129,7 @@ static void LinSleep_Cycle1(void)
  ***********************************************************************************************************************/
 static void LinSleep_StartMotor(void)
 {
-    if (aaf_action == OPEN)
+    if ((aaf_action == OPEN) || (aaf_action == OPEN_1ST) || (aaf_action == OPEN_2ND))
     {
         Motor_Open2();
         Drv8889_On2(); 
@@ -166,12 +168,18 @@ static void LinSleep_StartMotor(void)
  ***********************************************************************************************************************/
 static void LinSleep_CheckCompletion(void)
 {
-    // 조건 1: OPEN 방향 목표 위치 도착
-    if ((aaf_action == OPEN) && (step_position <= (step_position_open + limit_step_position)))
+    /* EV 1st/2nd Open 타겟 위치 분기 계산 */
+    unsigned int target_pos = step_position_open;
+    if (aaf_action == OPEN_1ST)      target_pos = OPEN_1ST_POSITION;
+    else if (aaf_action == OPEN_2ND) target_pos = OPEN_2ND_POSITION;
+
+    // 조건 1: OPEN 방향 (OPEN, 1st OPEN, 2nd OPEN 공통) 목표 위치 도착
+    if (((aaf_action == OPEN) || (aaf_action == OPEN_1ST) || (aaf_action == OPEN_2ND)) && 
+        (step_position <= (target_pos + limit_step_position)))
     {
         LinSleep_StopMotorAndReset(); // 공통 정지
         
-        AAF_Tx_Position = OPEN;
+        AAF_Tx_Position = aaf_action;
         AAFx_Position_Status = Open_Status;
         Operate_SelectTxPostion();
         aaf_step = FINISHED_OPERATE;
@@ -191,7 +199,7 @@ static void LinSleep_CheckCompletion(void)
         
         lin_sleep_step = 5U;
     }
-    // 조건 3: 스톨 발생
+    // 조건 3: 스톨 발생 (안티핀치/스톨 감지)
     else if (motor_stall_flag == MOTOR_STALL)
     {
         LinSleep_StopMotorAndReset(); // 공통 정지
@@ -204,10 +212,6 @@ static void LinSleep_CheckCompletion(void)
         motor_stall_flag = MOTOR_NORMAL;
         
         lin_sleep_step = 5U;
-    }
-    else
-    {
-        //invalid
     }
 }
 

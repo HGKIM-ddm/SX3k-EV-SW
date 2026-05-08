@@ -286,7 +286,7 @@ static void Error_CheckOpen(void)
  ***********************************************************************************************************************/
 void Error_CheckAfterIGN(void)
 {
-    if ((((EngRunSta == 0x01u) || (HevRdy == 0x01u)) && (G_Timer1ms.IgnCheck <= 500U)) || (IGN_Chk_On == 1U))
+    if (((LDCRdy == 0x01u) && (G_Timer1ms.IgnCheck <= 500U)) || (IGN_Chk_On == 1U)) 
     {
         G_Timer1msFlag.IgnCheckFlag = 1U;
         if (G_Timer1ms.IgnCheck >= 500U)

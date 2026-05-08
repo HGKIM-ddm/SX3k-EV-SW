@@ -33,7 +33,7 @@ static void Lin_Wakeup(void)
 
 /***********************************************************************************************************************
  * Function Name: Lin_HandleReceivedHeader
- * Description  : Check ID on LIN header reception and set send/receive mode
+ * Description  : Check ID on LIN header reception and set send/receive mode (EV Specification)
  * Called By    : Lin_ReceiveComplete_Interrupt
  * Arguments    : void
  * Return Value : void
@@ -43,26 +43,32 @@ void Lin_HandleReceivedHeader(void)
     RLN30.LST = 0x00U; // Clear Status
     GetIDbuffer = RLN30.LIDB; // Get ID
 
-	if (GetIDbuffer == 0x25U)
-	{
-		Lin_SlaveReceive(6U); // 0x25
-	}
-	else if ((GetIDbuffer == 0xA6U) && (AAFx_Index == ReqRespAAFID))
-	{
-		Lin_SlaveTransmit(Slave_TxData, 7U); // 0x26
-	}
-	else if (GetIDbuffer == 0x3CU)
-	{
-		Lin_SlaveReceive(8U); // 0x3C
-	}
-	else if ((GetIDbuffer == 0x7DU) && ((SW_Chk == 1U) || (SW_Chk == 3U)))
-	{
-		Lin_SlaveTransmit(Slave_SwData, 8U); // 0x3D
-	}
-	else
-	{
-		Lin_SlaveNoResponse();
-	}
+    /* EV Control Frame ID: 0x27 (PID: 0xE7) */
+    if (GetIDbuffer == 0xE7U)
+    {
+        Lin_SlaveReceive(8U); // EV 사양 데이터 길이: 8바이트
+    }
+    /* EV Response Frame ID: 0x28 (AAF1), 0x29 (AAF2), 0x2A (AAF3) */
+    else if (((AAFx_Index == 1U) && (GetIDbuffer == 0xA8U)) || // 0x28 PID: 0xA8
+             ((AAFx_Index == 2U) && (GetIDbuffer == 0xE9U)) || // 0x29 PID: 0xE9
+             ((AAFx_Index == 3U) && (GetIDbuffer == 0xAAU)))   // 0x2A PID: 0xAA
+    {
+        Lin_SlaveTransmit(Slave_TxData, 8U); // EV 사양 데이터 길이: 8바이트
+    }
+    /* Master Request Frame ID: 0x3C (PID: 0x3C) */
+    else if (GetIDbuffer == 0x3CU)
+    {
+        Lin_SlaveReceive(8U); 
+    }
+    /* Slave Response Frame ID: 0x3D (PID: 0x7D) */
+    else if ((GetIDbuffer == 0x7DU) && ((SW_Chk == 1U) || (SW_Chk == 3U)))
+    {
+        Lin_SlaveTransmit(Slave_SwData, 8U); 
+    }
+    else
+    {
+        Lin_SlaveNoResponse();
+    }
 
     Lin_Wakeup();
 }
@@ -78,72 +84,55 @@ void Lin_HandleReceivedResponse(void)
 {
     RLN30.LST &= 0xFDu; // Clear successful response reception flag
 
-	switch (GetIDbuffer)
-		{
-	case 0x25u:
-		Lin_GetReponseRxData(Slave_RxData1);
-		lin_rx_chk_flag = ON;
-		break;
-	case 0x3Cu:
-		Lin_GetReponseRxData(Slave_RxSwData1);
-		break;
-	default:
-		break;
-	}
+    switch (GetIDbuffer)
+    {
+    case 0xE7U: // EV Control Frame PID (0x27)
+        Lin_GetReponseRxData(Slave_RxData1);
+        lin_rx_chk_flag = ON;
+        break;
+    case 0x3CU: // Master Request Frame
+        Lin_GetReponseRxData(Slave_RxSwData1);
+        break;
+    default:
+        break;
+    }
 }
 
 /***********************************************************************************************************************
  * Function Name: Lin_CalculateVerifyChecksum
- * Description  : Manage LIMP HOME counts by calculating and validating the checksum of received data
+ * Description  : Manage LIMP HOME counts by validating the checksum of received data
  * Called By    : Lin_ReceiveComplete_Interrupt
  * Arguments    : is_response_received - Response received flag (0: Not received, 2: Received)
  * Return Value : void
  ***********************************************************************************************************************/
 void Lin_CalculateVerifyChecksum(uint8_t is_response_received)
 {
-    unsigned int sum_val = 0U;
-
     ReqRespAAFID = WAIT;
     
-    Req_ChkSum_Rx = (unsigned int)((Slave_RxData1[5] & 0xF0U) >> 4U);
-    Req_Alive_Rx = (unsigned int)(Slave_RxData1[5] & 0x0FU);
-    Req_Alive_Tx = Req_Alive_Rx;
-
-    AAF_LIN_ChkSum_CHK = WAIT;
-
-    // Checksum Calculation Logic
-    sum_val = (unsigned int)((Slave_RxData1[0] >> 4U) + (Slave_RxData1[0] & 0x0FU) +
-                             (Slave_RxData1[1] >> 4U) + (Slave_RxData1[1] & 0x0FU) +
-                             (Slave_RxData1[2] >> 4U) + (Slave_RxData1[2] & 0x0FU) +
-                             (Slave_RxData1[3] >> 4U) + (Slave_RxData1[3] & 0x0FU) +
-                             (Slave_RxData1[4] >> 4U) + (Slave_RxData1[4] & 0x0FU) +
-                             Req_Alive_Rx);
-
-
-    AAF_LIN_ChkSum_CHK_value = (unsigned int)((16U - (sum_val & 0x0FU)) & 0x0FU);
-
-    if ((is_response_received == 0x02U) && (AAF_LIN_ChkSum_CHK_value == Req_ChkSum_Rx))
+    /* * EV 사양은 LIN 2.2A Enhanced Checksum을 사용하며, 이는 Lin_Driver.c의 
+     * RLN30.LDFC = 0x20U 설정에 의해 하드웨어 레벨에서 자동으로 검증됩니다. 
+     * 따라서 소프트웨어에서 별도로 계산할 필요 없이 수신 성공 여부만 확인합니다.
+     */
+    if (is_response_received == 0x02U)
     {
-        AAF_LIN_ChkSum_CHK = PASS;
+        AAF_LIN_ChkSum_CHK = PASS; // 하드웨어 체크섬 검증 통과
+
         if (G_Timer1ms.IgnCheck >= 500U)
-	    {
+        {
             if (LIMP_HOME_Count >= 4U) LIMP_HOME_Count -= 4U; 
             else                       LIMP_HOME_Count = 0U;  
         }
     }
-    else if ((is_response_received == 0x02U) && (AAF_LIN_ChkSum_CHK_value != Req_ChkSum_Rx))
+    else // Checksum Error 또는 통신 타임아웃
     {
         AAF_LIN_ChkSum_CHK = FAIL;
+
         if (G_Timer1ms.IgnCheck >= 500U)
-	    {
+        {
+            /* EV 사양 기준 LIMP HOME 카운트 관리 (Max 160) */
             if (LIMP_HOME_Count <= 158U) LIMP_HOME_Count += 2U; 
             else                         LIMP_HOME_Count = 160U;
         } 
     }
-    else
-    {
-        // Waiting
-    }
 }
-
 

@@ -1,5 +1,12 @@
 #include "Config.h"
 
+/*******************************************************************************
+ * EV Only
+ ******************************************************************************/
+unsigned int LDCRdy = 0U;
+unsigned int CR_Mcu_VehSpdInt_Kph = 0U;
+
+
 /* 2.1 Communication Buffers (LIN / SPI) */
 uint8_t GetIDbuffer;
 uint8_t Slave_RxData1[8]; /*reception data store array*/
@@ -273,62 +280,7 @@ volatile unsigned int AAF_Flap_Fixation_Test_Mode = 0U;
 volatile unsigned int AAF_Flap_Fixation_Test_Mode_tog = 0U;
 volatile unsigned int AAF_Maximum_Torque_Test_Mode_tog = 0U;
 
-/* 3   Only SX3k*/
-// unsigned int OBD1_Close_Check_memory_write = 0;
-// unsigned int OBD1_Close_Check_memory_read = 0;
-// unsigned int OBD1_Open_Check_memory_write = 0;
-// unsigned int OBD1_Open_Check_memory_read = 0;
-// unsigned int OBD2_Close_Check_memory_write = 0;
-// unsigned int OBD2_Close_Check_memory_read = 0;
-// unsigned int OBD2_Open_Check_memory_write = 0;
-// unsigned int OBD2_Open_Check_memory_read = 0;
-// unsigned int OBD3_Close_Check_memory_write = 0;
-// unsigned int OBD3_Close_Check_memory_read = 0;
-// unsigned int OBD3_Open_Check_memory_write = 0;
-// unsigned int OBD3_Open_Check_memory_read = 0;
-// uint16_t OBD1_adc = 0;
-// uint16_t OBD2_adc = 0;
-// uint16_t OBD3_adc = 0;
-// uint16_t OBD4_adc = 0;
-// uint16_t ADC_Stability = 0;
-// unsigned int middle_step_position = 0U;
-// unsigned int SNSR_Position_Ok = 0U;
-// unsigned int SNSR2_Position_Ok = 0U;
-// unsigned int SNSR3_Position_Ok = 0U;
-// unsigned int step_check_ok = 0U;
-// unsigned int step2_check_ok = 0U;
-// unsigned int step3_check_ok = 0U;
-// unsigned int OBD1_Open_Check = 0U;
-// unsigned int OBD1_Close_Check = 0U;
-// unsigned int OBD2_Open_Check = 0U;
-// unsigned int OBD2_Close_Check = 0U;
-// unsigned int SNSR1_Check = 0U;
-// unsigned int SNSR2_Check = 0U;
-// unsigned int OBD1_Open_tolerance = 0U;
-// unsigned int OBD2_Open_tolerance = 0U;
-// unsigned int OBD1_Close_tolerance = 0U;
-// unsigned int OBD2_Close_tolerance = 0U;
-// unsigned int OBD3_Open_Check = 0U;
-// unsigned int OBD3_Close_Check = 0U;
-// unsigned int SNSR3_Check = 0U;
-// unsigned int OBD3_Open_tolerance = 0U;
-// unsigned int OBD3_Close_tolerance = 0U;
 
-// unsigned int OBD_Error_check_flag = 0U;
-// unsigned int OBD_Error_flag = 0U;
-// unsigned int OBD_Return_flag = 0U;
-// unsigned int OBD_Short_Bat = 0U;
-// unsigned int OBD_Short_Gnd = 0U;
-// unsigned int OBD_Open_Circuit = 0U;
-// unsigned int Recovery_Detected = 0U;
-// unsigned char OBD_Error_move = 0U;
-// unsigned int OBD1_adc_threshold_close = 0u;
-// unsigned int OBD1_adc_threshold_open = 0u;
-// unsigned int OBD2_adc_threshold_close = 0u;
-// unsigned int OBD2_adc_threshold_open = 0u;
-// unsigned int OBD3_adc_threshold_close = 0u;
-// unsigned int OBD3_adc_threshold_open = 0u;
-// unsigned char Obd_Position_Turn = 0U;
 
 
 

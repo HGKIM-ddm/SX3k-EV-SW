@@ -16,7 +16,7 @@
 //#define ENABLE_TORQUE_TEST
 
 //Current CodeName
-#define VEHICLE_CODENAME NX5E_STD_AAF1
+#define VEHICLE_CODENAME SX3K_EV_AAF1
 
  /* ==================================================================== */
 
@@ -33,309 +33,38 @@
     }
 
 /* ====================================================================
- * Code Name
+ * Code Name (EV only)
  * ==================================================================== */
-// --- NX5e STD (3ea) ---
-#define NX5E_STD_AAF1 11
-#define NX5E_STD_AAF2 12
-#define NX5E_STD_AAF3 13
-
-// --- NX5e NLINE (2ea) ---
-#define NX5E_NLINE_AAF1 21
-#define NX5E_NLINE_AAF2 22
-
-// --- SX3K STD ICE KR (2ea) ---
-#define SX3K_STD_ICE_KR_AAF1 31
-#define SX3K_STD_ICE_KR_AAF2 32
-
-// --- SX3K STD ICE NA (2ea) ---
-// #define SX3K_STD_ICE_NA_AAF1 41
-// #define SX3K_STD_ICE_NA_AAF2 42
-
-// --- SX3K STD HEV KR (3ea) ---
-#define SX3K_STD_HEV_KR_AAF1 51
-#define SX3K_STD_HEV_KR_AAF2 52
-#define SX3K_STD_HEV_KR_AAF3 53
-
-// --- SX3K STD HEV NA (3ea) ---
-// #define SX3K_STD_HEV_NA_AAF1 61
-// #define SX3K_STD_HEV_NA_AAF2 62
-// #define SX3K_STD_HEV_NA_AAF3 63
-
-// --- SX3K NLINE ICE KR (2ea) ---
-#define SX3K_NLINE_ICE_KR_AAF1 71
-#define SX3K_NLINE_ICE_KR_AAF2 72
-
-// --- SX3K NLINE HEV KR (3ea) ---
-#define SX3K_NLINE_HEV_KR_AAF1 81
-#define SX3K_NLINE_HEV_KR_AAF2 82
-#define SX3K_NLINE_HEV_KR_AAF3 83
-
-// --- SX3K XRT ICE KR  (1ea) ---
-#define SX3K_XRT_ICE_KR_AAF1 91
-
-// --- SX3K XRT HEV KR (1ea) ---
-#define SX3K_XRT_HEV_KR_AAF1 101
-
-// --- SX3K XRT HEV NA (1ea) ---
-// #define SX3K_XRT_HEV_NA_AAF1 111
-
-// --- NQ6E ICE KR (2ea) ---
-#define NQ6E_ICE_KR_AAF1 121
-#define NQ6E_ICE_KR_AAF2 122
-
-// --- NQ6E HEV KR(2ea) ---
-#define NQ6E_HEV_KR_AAF1 131
-#define NQ6E_HEV_KR_AAF2 132
+// --- SX3K EV (3ea) ---
+#define SX3K_EV_AAF1 1
+#define SX3K_EV_AAF2 2
+#define SX3K_EV_AAF3 3
 
 // --------------------------------------------------------------------
-// NX5e STD
+// SX3K EV
 // --------------------------------------------------------------------
-#if (VEHICLE_CODENAME == NX5E_STD_AAF1)
+#if (VEHICLE_CODENAME == SX3K_EV_AAF1)
 #define CONFIG_AAF_ANGLE 90
 #define CONFIG_AAF_TYPE EXTERNAL_TYPE
-#define CONFIG_AAF_LOCATION LH_TYPE
+#define CONFIG_AAF_LOCATION RH_TYPE
 #define CONFIG_AAF_INDEX AAF_1
 #define CONFIG_AAF_TOTAL AAFx3
 #define CONFIG_SENSOR_TOTAL SENSOR_NO
-#elif (VEHICLE_CODENAME == NX5E_STD_AAF2)
+ 
+#elif (VEHICLE_CODENAME == SX3K_EV_AAF2)
 #define CONFIG_AAF_ANGLE 90
 #define CONFIG_AAF_TYPE EXTERNAL_TYPE
 #define CONFIG_AAF_LOCATION RH_TYPE
 #define CONFIG_AAF_INDEX AAF_2
 #define CONFIG_AAF_TOTAL AAFx3
 #define CONFIG_SENSOR_TOTAL SENSOR_NO
-#elif (VEHICLE_CODENAME == NX5E_STD_AAF3)
-#define CONFIG_AAF_ANGLE 90
-#define CONFIG_AAF_TYPE INTERNAL_TYPE
-#define CONFIG_AAF_LOCATION LH_TYPE
-#define CONFIG_AAF_INDEX AAF_3
-#define CONFIG_AAF_TOTAL AAFx3
-#define CONFIG_SENSOR_TOTAL SENSOR_NO
-
-// --------------------------------------------------------------------
-// NX5e NLINE
-// --------------------------------------------------------------------
-#elif (VEHICLE_CODENAME == NX5E_NLINE_AAF1)
-#define CONFIG_AAF_ANGLE 90
-#define CONFIG_AAF_TYPE INTERNAL_TYPE
-#define CONFIG_AAF_LOCATION RH_TYPE
-#define CONFIG_AAF_INDEX AAF_1
-#define CONFIG_AAF_TOTAL AAFx2
-#define CONFIG_SENSOR_TOTAL SENSOR_NO
-#elif (VEHICLE_CODENAME == NX5E_NLINE_AAF2)
-#define CONFIG_AAF_ANGLE 90
-#define CONFIG_AAF_TYPE INTERNAL_TYPE
-#define CONFIG_AAF_LOCATION LH_TYPE
-#define CONFIG_AAF_INDEX AAF_2
-#define CONFIG_AAF_TOTAL AAFx2
-#define CONFIG_SENSOR_TOTAL SENSOR_NO
-
-// --------------------------------------------------------------------
-// SX3K STD ICE
-// --------------------------------------------------------------------
-#elif (VEHICLE_CODENAME == SX3K_STD_ICE_KR_AAF1)
-#define CONFIG_AAF_ANGLE 68
-#define CONFIG_AAF_TYPE EXTERNAL_TYPE
-#define CONFIG_AAF_LOCATION LH_TYPE
-#define CONFIG_AAF_INDEX AAF_1
-#define CONFIG_AAF_TOTAL AAFx2
-#define CONFIG_SENSOR_TOTAL SENSOR_NO
-
-#elif (VEHICLE_CODENAME == SX3K_STD_ICE_KR_AAF2)
-#define CONFIG_AAF_ANGLE 68
-#define CONFIG_AAF_TYPE EXTERNAL_TYPE
-#define CONFIG_AAF_LOCATION RH_TYPE // (CCW)
-#define CONFIG_AAF_INDEX AAF_2
-#define CONFIG_AAF_TOTAL AAFx2
-#define CONFIG_SENSOR_TOTAL SENSOR_NO
-// --------------------------------------------------------------------
-// SX3K STD ICE
-// --------------------------------------------------------------------
-#elif (VEHICLE_CODENAME == SX3K_STD_ICE_NA_AAF1)
-#define CONFIG_AAF_ANGLE 68
-#define CONFIG_AAF_TYPE EXTERNAL_TYPE
-#define CONFIG_AAF_LOCATION LH_TYPE
-#define CONFIG_AAF_INDEX AAF_1
-#define CONFIG_AAF_TOTAL AAFx2
-#define CONFIG_SENSOR_TOTAL SENSOR_X2
-
-#elif (VEHICLE_CODENAME == SX3K_STD_ICE_NA_AAF2)
-#define CONFIG_AAF_ANGLE 68
-#define CONFIG_AAF_TYPE EXTERNAL_TYPE
-#define CONFIG_AAF_LOCATION RH_TYPE // (CCW)
-#define CONFIG_AAF_INDEX AAF_2
-#define CONFIG_AAF_TOTAL AAFx2
-#define CONFIG_SENSOR_TOTAL SENSOR_X2
-
-// --------------------------------------------------------------------
-// SX3K STD HEV KR
-// --------------------------------------------------------------------
-#elif (VEHICLE_CODENAME == SX3K_STD_HEV_KR_AAF1)
-#define CONFIG_AAF_ANGLE 68
-#define CONFIG_AAF_TYPE EXTERNAL_TYPE
-#define CONFIG_AAF_LOCATION LH_TYPE
-#define CONFIG_AAF_INDEX AAF_1
-#define CONFIG_AAF_TOTAL AAFx3
-#define CONFIG_SENSOR_TOTAL SENSOR_NO
-
-#elif (VEHICLE_CODENAME == SX3K_STD_HEV_KR_AAF2)
-#define CONFIG_AAF_ANGLE 68
-#define CONFIG_AAF_TYPE EXTERNAL_TYPE
-#define CONFIG_AAF_LOCATION RH_TYPE
-#define CONFIG_AAF_INDEX AAF_2
-#define CONFIG_AAF_TOTAL AAFx3
-#define CONFIG_SENSOR_TOTAL SENSOR_NO
-
-#elif (VEHICLE_CODENAME == SX3K_STD_HEV_KR_AAF3)
-#define CONFIG_AAF_ANGLE 68
-#define CONFIG_AAF_TYPE EXTERNAL_TYPE
-#define CONFIG_AAF_LOCATION RH_TYPE
-#define CONFIG_AAF_INDEX AAF_3
-#define CONFIG_AAF_TOTAL AAFx3
-#define CONFIG_SENSOR_TOTAL SENSOR_NO
-// --------------------------------------------------------------------
-// SX3K STD HEV NA
-// --------------------------------------------------------------------
-#elif (VEHICLE_CODENAME == SX3K_STD_HEV_NA_AAF1)
-#define CONFIG_AAF_ANGLE 68
-#define CONFIG_AAF_TYPE EXTERNAL_TYPE
-#define CONFIG_AAF_LOCATION LH_TYPE
-#define CONFIG_AAF_INDEX AAF_1
-#define CONFIG_AAF_TOTAL AAFx3
-#define CONFIG_SENSOR_TOTAL SENSOR_X2
-
-#elif (VEHICLE_CODENAME == SX3K_STD_HEV_NA_AAF2)
-#define CONFIG_AAF_ANGLE 68
-#define CONFIG_AAF_TYPE EXTERNAL_TYPE
-#define CONFIG_AAF_LOCATION RH_TYPE
-#define CONFIG_AAF_INDEX AAF_2
-#define CONFIG_AAF_TOTAL AAFx3
-#define CONFIG_SENSOR_TOTAL SENSOR_X2
-
-#elif (VEHICLE_CODENAME == SX3K_STD_HEV_NA_AAF3)
+ 
+#elif (VEHICLE_CODENAME == SX3K_EV_AAF3)
 #define CONFIG_AAF_ANGLE 90
 #define CONFIG_AAF_TYPE EXTERNAL_TYPE
 #define CONFIG_AAF_LOCATION RH_TYPE
 #define CONFIG_AAF_INDEX AAF_3
 #define CONFIG_AAF_TOTAL AAFx3
-#define CONFIG_SENSOR_TOTAL SENSOR_X1
-
-// --------------------------------------------------------------------
-// SX3K NLINE ICE KR
-// --------------------------------------------------------------------
-#elif (VEHICLE_CODENAME == SX3K_NLINE_ICE_KR_AAF1)
-#define CONFIG_AAF_ANGLE 72
-#define CONFIG_AAF_TYPE EXTERNAL_TYPE
-#define CONFIG_AAF_LOCATION LH_TYPE
-#define CONFIG_AAF_INDEX AAF_1
-#define CONFIG_AAF_TOTAL AAFx2
-#define CONFIG_SENSOR_TOTAL SENSOR_NO
-
-#elif (VEHICLE_CODENAME == SX3K_NLINE_ICE_KR_AAF2)
-#define CONFIG_AAF_ANGLE 72
-#define CONFIG_AAF_TYPE EXTERNAL_TYPE
-#define CONFIG_AAF_LOCATION RH_TYPE
-#define CONFIG_AAF_INDEX AAF_2
-#define CONFIG_AAF_TOTAL AAFx2
-#define CONFIG_SENSOR_TOTAL SENSOR_NO
-
-// --------------------------------------------------------------------
-// SX3K NLINE HEV KR
-// --------------------------------------------------------------------
-#elif (VEHICLE_CODENAME == SX3K_NLINE_HEV_KR_AAF1)
-#define CONFIG_AAF_ANGLE 72
-#define CONFIG_AAF_TYPE EXTERNAL_TYPE
-#define CONFIG_AAF_LOCATION LH_TYPE
-#define CONFIG_AAF_INDEX AAF_1
-#define CONFIG_AAF_TOTAL AAFx3
-#define CONFIG_SENSOR_TOTAL SENSOR_NO
-
-#elif (VEHICLE_CODENAME == SX3K_NLINE_HEV_KR_AAF2)
-#define CONFIG_AAF_ANGLE 72
-#define CONFIG_AAF_TYPE EXTERNAL_TYPE
-#define CONFIG_AAF_LOCATION RH_TYPE
-#define CONFIG_AAF_INDEX AAF_2
-#define CONFIG_AAF_TOTAL AAFx3
-#define CONFIG_SENSOR_TOTAL SENSOR_NO
-
-#elif (VEHICLE_CODENAME == SX3K_NLINE_HEV_KR_AAF3)
-#define CONFIG_AAF_ANGLE 90
-#define CONFIG_AAF_TYPE EXTERNAL_TYPE
-#define CONFIG_AAF_LOCATION RH_TYPE
-#define CONFIG_AAF_INDEX AAF_3
-#define CONFIG_AAF_TOTAL AAFx3
-#define CONFIG_SENSOR_TOTAL SENSOR_NO
-
-// --------------------------------------------------------------------
-// SX3K XRT ICE KR
-// --------------------------------------------------------------------
-#elif (VEHICLE_CODENAME == SX3K_XRT_ICE_KR_AAF1)
-#define CONFIG_AAF_ANGLE 90
-#define CONFIG_AAF_TYPE EXTERNAL_TYPE
-#define CONFIG_AAF_LOCATION RH_TYPE
-#define CONFIG_AAF_INDEX AAF_1
-#define CONFIG_AAF_TOTAL AAFx1
-#define CONFIG_SENSOR_TOTAL SENSOR_NO
-
-// --------------------------------------------------------------------
-// SX3K XRT HEV KR
-// --------------------------------------------------------------------
-#elif (VEHICLE_CODENAME == SX3K_XRT_HEV_KR_AAF1)
-#define CONFIG_AAF_ANGLE 90
-#define CONFIG_AAF_TYPE EXTERNAL_TYPE
-#define CONFIG_AAF_LOCATION RH_TYPE
-#define CONFIG_AAF_INDEX AAF_1
-#define CONFIG_AAF_TOTAL AAFx1
-#define CONFIG_SENSOR_TOTAL SENSOR_NO
-
-// --------------------------------------------------------------------
-// SX3K XRT HEV NA
-// --------------------------------------------------------------------
-#elif (VEHICLE_CODENAME == SX3K_XRT_HEV_NA_AAF1)
-#define CONFIG_AAF_ANGLE 90
-#define CONFIG_AAF_TYPE EXTERNAL_TYPE
-#define CONFIG_AAF_LOCATION RH_TYPE
-#define CONFIG_AAF_INDEX AAF_1
-#define CONFIG_AAF_TOTAL AAFx1
-#define CONFIG_SENSOR_TOTAL SENSOR_X3
-
-// --------------------------------------------------------------------
-// NQ6E ICE KR
-// --------------------------------------------------------------------
-#elif (VEHICLE_CODENAME == NQ6E_ICE_KR_AAF1)
-#define CONFIG_AAF_ANGLE 90
-#define CONFIG_AAF_TYPE EXTERNAL_TYPE
-#define CONFIG_AAF_LOCATION RH_TYPE
-#define CONFIG_AAF_INDEX AAF_1
-#define CONFIG_AAF_TOTAL AAFx2
-#define CONFIG_SENSOR_TOTAL SENSOR_NO
-
-#elif (VEHICLE_CODENAME == NQ6E_ICE_KR_AAF2)
-#define CONFIG_AAF_ANGLE 90
-#define CONFIG_AAF_TYPE EXTERNAL_TYPE
-#define CONFIG_AAF_LOCATION LH_TYPE
-#define CONFIG_AAF_INDEX AAF_2
-#define CONFIG_AAF_TOTAL AAFx2
-#define CONFIG_SENSOR_TOTAL SENSOR_NO
-
-// --------------------------------------------------------------------
-// NQ6E HEV KR
-// --------------------------------------------------------------------
-#elif (VEHICLE_CODENAME == NQ6E_HEV_KR_AAF1)
-#define CONFIG_AAF_ANGLE 90
-#define CONFIG_AAF_TYPE EXTERNAL_TYPE
-#define CONFIG_AAF_LOCATION RH_TYPE
-#define CONFIG_AAF_INDEX AAF_1
-#define CONFIG_AAF_TOTAL AAFx2
-#define CONFIG_SENSOR_TOTAL SENSOR_NO
-
-#elif (VEHICLE_CODENAME == NQ6E_HEV_KR_AAF2)
-#define CONFIG_AAF_ANGLE 90
-#define CONFIG_AAF_TYPE EXTERNAL_TYPE
-#define CONFIG_AAF_LOCATION LH_TYPE
-#define CONFIG_AAF_INDEX AAF_2
-#define CONFIG_AAF_TOTAL AAFx2
 #define CONFIG_SENSOR_TOTAL SENSOR_NO
 
 #else
@@ -356,6 +85,16 @@
     #define STEP_POSITION_MINIMUM_RANGE 12000U
     #define STEP_POSITION_MAXIMUM_RANGE 15500U
 #endif
+
+/* ====================================================================
+ * LIN Communication (EV)
+ * ==================================================================== */
+#define LIN_ID_AAFCTRL_RX     0x27U
+#define LIN_ID_AAF1_RESP_TX   0x28U
+#define LIN_ID_AAF2_RESP_TX   0x29U
+#define LIN_ID_AAF3_RESP_TX   0x2AU
+#define LIN_CONTROL_LEN       8U
+#define LIN_RESPONSE_LEN      8U
 
 
 /***********************************************************************************************************************
@@ -664,37 +403,6 @@
 #define ADC_Detect_Time 3000U
 
 
-/***********************************************************************************************************************
- * 9. Only SX3k (OBD Sensor...etc)
-***********************************************************************************************************************/
-// #define ADC_Recovery_Time 500U
-// #define OBD_tolerance 5U // 5%
-// #define OBD_ADC_MAX_LIMIT 3550U
-// #define OBD_ADC_MIN_LIMIT 500U
-
-// #define OBD_BAT_SHORT_LIMIT 3900U
-// #define OBD_GND_SHORT_LIMIT 10U
-// #define OBD_Open_MIN_LIMIT 1U
-// #define OBD_Open_LIMIT 400U
-
-// #define POSITION_CLOSE_THRESHOLD 50U
-// #define POSITION_OPEN_THRESHOLD 55U
-// #define POSITION_OFFSET 5U
-
-// #define NO_SNSR1 0U
-// #define USE_SNSR1 1U
-// #define SNSR1_Open 1U
-// #define SNSR1_Close 2U
-
-// #define NO_SNSR2 0U
-// #define USE_SNSR2 1U
-// #define SNSR2_Open 1U
-// #define SNSR2_Close 2U
-
-// #define NO_SNSR3 0U
-// #define USE_SNSR3 1U
-// #define SNSR3_Open 1U
-// #define SNSR3_Close 2U
 
 
 

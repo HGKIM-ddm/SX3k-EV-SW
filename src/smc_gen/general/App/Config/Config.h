@@ -6,6 +6,13 @@
 #include "r_smc_entry.h"
 
 /*******************************************************************************
+ * EV Only
+ ******************************************************************************/
+extern unsigned int LDCRdy;
+extern unsigned int CR_Mcu_VehSpdInt_Kph;
+
+
+/*******************************************************************************
  * Global Variable Extern Declarations
  ******************************************************************************/
 /* 2.1 Communication Buffers (LIN / SPI) */
@@ -219,14 +226,10 @@ typedef struct {
     unsigned int MotorMovingCheck;
     unsigned int MotorStepCheck;
     unsigned int WatchdogCheck;
-    // unsigned int ObdGndShort;
-    // unsigned int ObdBatShort;
-    // unsigned int ObdOpenCircuit;
     unsigned int ErrorCheck;
     unsigned int MotorShortCheck;
     unsigned int MotorOpenCheck;
     unsigned int IgnCheck;
-    // unsigned int ObdRecoveryCheck;
     unsigned int AdcRecoveryCheck;
     unsigned int LinBusInactive;
     unsigned int External10sCheck;
@@ -260,14 +263,10 @@ typedef struct {
     unsigned int MotorMovingCheckFlag;
     unsigned int MotorStepCheckFlag;
     unsigned int WatchdogCheckFlag;
-    // unsigned int ObdGndShortFlag;
-    // unsigned int ObdBatShortFlag;
-    // unsigned int ObdOpenCircuitFlag;
     unsigned int ErrorCheckFlag;
     unsigned int MotorShortCheckFlag;
     unsigned int MotorOpenCheckFlag;
     unsigned int IgnCheckFlag;
-    // unsigned int ObdRecoveryCheckFlag;
     unsigned int AdcRecoveryCheckFlag;
     unsigned int External10sCheckFlag;
     unsigned int Adc1sCheckFlag;
@@ -308,62 +307,6 @@ extern volatile unsigned int AAF_Flap_Fixation_Test_Mode;
 extern volatile unsigned int AAF_Flap_Fixation_Test_Mode_tog;
 extern volatile unsigned int AAF_Maximum_Torque_Test_Mode_tog;
 
-/* 3   Only SX3k*/
-// extern unsigned int OBD1_Close_Check_memory_write;
-// extern unsigned int OBD1_Close_Check_memory_read;
-// extern unsigned int OBD1_Open_Check_memory_write;
-// extern unsigned int OBD1_Open_Check_memory_read;
-// extern unsigned int OBD2_Close_Check_memory_write;
-// extern unsigned int OBD2_Close_Check_memory_read;
-// extern unsigned int OBD2_Open_Check_memory_write;
-// extern unsigned int OBD2_Open_Check_memory_read;
-// extern unsigned int OBD3_Close_Check_memory_write;
-// extern unsigned int OBD3_Close_Check_memory_read;
-// extern unsigned int OBD3_Open_Check_memory_write;
-// extern unsigned int OBD3_Open_Check_memory_read;
-// extern uint16_t OBD1_adc;
-// extern uint16_t OBD2_adc;
-// extern uint16_t OBD3_adc;
-// extern uint16_t OBD4_adc;
-// extern uint16_t ADC_Stability;
-// extern unsigned int middle_step_position;
-// extern unsigned int SNSR_Position_Ok;
-// extern unsigned int SNSR2_Position_Ok;
-// extern unsigned int SNSR3_Position_Ok;
-// extern unsigned int step_check_ok;
-// extern unsigned int step2_check_ok;
-// extern unsigned int step3_check_ok;
-// extern unsigned int OBD1_Open_Check;
-// extern unsigned int OBD1_Close_Check;
-// extern unsigned int OBD2_Open_Check;
-// extern unsigned int OBD2_Close_Check;
-// extern unsigned int SNSR1_Check;
-// extern unsigned int SNSR2_Check;
-// extern unsigned int OBD1_Open_tolerance;
-// extern unsigned int OBD2_Open_tolerance;
-// extern unsigned int OBD1_Close_tolerance;
-// extern unsigned int OBD2_Close_tolerance;
-// extern unsigned int OBD3_Open_Check;
-// extern unsigned int OBD3_Close_Check;
-// extern unsigned int SNSR3_Check;
-// extern unsigned int OBD3_Open_tolerance;
-// extern unsigned int OBD3_Close_tolerance;
-// extern unsigned int OBD_Error_check_flag;
-// extern unsigned int OBD_Error_flag;
-// extern unsigned int OBD_Return_flag;
-// extern unsigned int OBD_Short_Bat;
-// extern unsigned int OBD_Short_Gnd;
-// extern unsigned int OBD_Open_Circuit;
-// extern unsigned int Recovery_Detected;
-// extern unsigned char OBD_Error_move;
-
-// extern unsigned int OBD1_adc_threshold_close;
-// extern unsigned int OBD1_adc_threshold_open;
-// extern unsigned int OBD2_adc_threshold_close;
-// extern unsigned int OBD2_adc_threshold_open;
-// extern unsigned int OBD3_adc_threshold_close;
-// extern unsigned int OBD3_adc_threshold_open;
-// extern unsigned char Obd_Position_Turn;
 
 
 #endif 
