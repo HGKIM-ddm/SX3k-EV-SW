@@ -180,60 +180,52 @@ static void Operate_Process(void)
  ***********************************************************************************************************************/
 static void Operate_NormalProcess(void)
 {
+    unsigned int target_pos;
+
     if (aaf_action == OPEN)
     {
         if (step_position >= (step_position_open + limit_step_position))
-        {
             Operate_NormalAction(OPEN);
-        }
         else
-        {
             aaf_step = TRAVEL_RANGE_COMPLETE_CHECK;
-        }
     }
     else if (aaf_action == CLOSE)
     {
         if (step_position <= (step_position_close - limit_step_position))
-        {
             Operate_NormalAction(CLOSE);
-        }
         else
-        {
             aaf_step = TRAVEL_RANGE_COMPLETE_CHECK;
-        }
     }
     else if (aaf_action == OPEN_1ST)
     {
-        if (step_position <= (step_position_open + open_1st_step_position))
-        {
-            Operate_NormalAction(CLOSE);
-        }
-        else  
-        {
+        target_pos = step_position_open + (unsigned int)(((unsigned long)(step_position_close - step_position_open) * AAF_1ST_OPEN_ANGLE) / AAF_FULL_ANGLE);
+        
+        if (step_position > (target_pos + ERROR_RANGE)) {
             Operate_NormalAction(OPEN);
+        } else if (step_position < (target_pos - ERROR_RANGE)) {
+            Operate_NormalAction(CLOSE);
+        } else {
+            aaf_step = TRAVEL_RANGE_COMPLETE_CHECK;
         }
-
-		Diag_Mode = 0U;
-        aaf_step = TRAVEL_RANGE_COMPLETE_CHECK;
+        Diag_Mode = 0U;
     }
     else if (aaf_action == OPEN_2ND)
     {
-        if (step_position <= (step_position_open + open_2nd_step_position))
-        {
-            Operate_NormalAction(CLOSE);
-        }
-        else
-        {
+        target_pos = step_position_open + (unsigned int)(((unsigned long)(step_position_close - step_position_open) * AAF_2ST_OPEN_ANGLE) / AAF_FULL_ANGLE);
+        
+        if (step_position > (target_pos + ERROR_RANGE)) {
             Operate_NormalAction(OPEN);
+        } else if (step_position < (target_pos - ERROR_RANGE)) {
+            Operate_NormalAction(CLOSE);
+        } else {
+            aaf_step = TRAVEL_RANGE_COMPLETE_CHECK;
         }
-
-		Diag_Mode = 0U;
-        aaf_step = TRAVEL_RANGE_COMPLETE_CHECK;
+        Diag_Mode = 0U;
     }
-	else
-	{
-		//invalid
-	}
+    else
+    {
+        //invalid
+    }
 }
 
 /***********************************************************************************************************************
@@ -333,54 +325,75 @@ static void Operate_DiagAction(unsigned int direction, unsigned int is_auto)
 static void Operate_CheckRange(void)
 {   
     Operate_SelectAAFxMode();
+    unsigned int target_pos;
 
-	if ((aaf_action == OPEN) && (step_position <= (step_position_open + limit_step_position))) //
-	{
-		AAF_Tx_Position = OPEN;
-		Operate_SelectTxPostion();
-		aaf_step = FINISHED_OPERATE;
-	}
-	else if ((aaf_action == CLOSE) && (step_position >= (step_position_close - limit_step_position)))
-	{
-		AAF_Tx_Position = CLOSE;
-		Operate_SelectTxPostion();
-		aaf_step = FINISHED_OPERATE;
-	}
-	else if ((aaf_action == OPEN_1ST) && ((step_position >= (step_position_open + open_1st_step_position - ERROR_RANGE)) && (step_position <= (step_position_open + open_1st_step_position + ERROR_RANGE))))
-	{
-		AAF_Tx_Position = OPEN_1ST;
-		Operate_SelectTxPostion();
-		aaf_step = FINISHED_OPERATE;
-	}
-	else if ((aaf_action == OPEN_2ND) && ((step_position >= (step_position_open + open_2nd_step_position - ERROR_RANGE)) && (step_position <= (step_position_open + open_2nd_step_position + ERROR_RANGE))))
-	{
-		AAF_Tx_Position = OPEN_2ND;
-		Operate_SelectTxPostion();
-		aaf_step = FINISHED_OPERATE;
-	}
-	else if ((aaf_action == DIAG_MODE_OPEN) && (step_position <= (step_position_open + limit_step_position)))
-	{
-		AAF_Tx_Position = DIAG_MODE_OPEN;
-		aaf_step = FINISHED_OPERATE;
-	}
-	else if ((aaf_action == DIAG_MODE_CLOSE) && (step_position >= (step_position_close - limit_step_position)))
-	{
-		AAF_Tx_Position = DIAG_MODE_CLOSE;
-		aaf_step = FINISHED_OPERATE;
-	}
-	else if ((aaf_action == DIAG_MODE_AUTO) && (diag_mode_auto_dir == OPEN) && (step_position <= (step_position_open + limit_step_position)))
-	{
-		AAF_Tx_Position = DIAG_MODE_AUTO;
-		aaf_step = FINISHED_OPERATE;
-	}
-	else if ((aaf_action == DIAG_MODE_AUTO) && (diag_mode_auto_dir == CLOSE) && (step_position >= (step_position_close - limit_step_position)))
-	{
-		AAF_Tx_Position = DIAG_MODE_AUTO;
-		aaf_step = FINISHED_OPERATE;
-	}
-	else{
-		Operate_HandleStall();
-	}
+    if ((aaf_action == OPEN) && (step_position <= (step_position_open + limit_step_position))) 
+    {
+        AAF_Tx_Position = OPEN;
+        Operate_SelectTxPostion();
+        aaf_step = FINISHED_OPERATE;
+    }
+    else if ((aaf_action == CLOSE) && (step_position >= (step_position_close - limit_step_position)))
+    {
+        AAF_Tx_Position = CLOSE;
+        Operate_SelectTxPostion();
+        aaf_step = FINISHED_OPERATE;
+    }
+    else if (aaf_action == OPEN_1ST)
+    {
+        target_pos = step_position_open + (unsigned int)(((unsigned long)(step_position_close - step_position_open) * AAF_1ST_OPEN_ANGLE) / AAF_FULL_ANGLE);
+        
+        if (((flap_move == OPEN) && (step_position <= target_pos)) || 
+            ((flap_move == CLOSE) && (step_position >= target_pos)))
+        {
+            AAF_Tx_Position = OPEN_1ST;
+            Operate_SelectTxPostion();
+            aaf_step = FINISHED_OPERATE;
+        }
+        else
+        {
+            Operate_HandleStall();
+        }
+    }
+    else if (aaf_action == OPEN_2ND)
+    {
+        target_pos = step_position_open + (unsigned int)(((unsigned long)(step_position_close - step_position_open) * AAF_2ST_OPEN_ANGLE) / AAF_FULL_ANGLE);
+        
+        if (((flap_move == OPEN) && (step_position <= target_pos)) || 
+            ((flap_move == CLOSE) && (step_position >= target_pos)))
+        {
+            AAF_Tx_Position = OPEN_2ND;
+            Operate_SelectTxPostion();
+            aaf_step = FINISHED_OPERATE;
+        }
+        else
+        {
+            Operate_HandleStall();
+        }
+    }
+    else if ((aaf_action == DIAG_MODE_OPEN) && (step_position <= (step_position_open + limit_step_position)))
+    {
+        AAF_Tx_Position = DIAG_MODE_OPEN;
+        aaf_step = FINISHED_OPERATE;
+    }
+    else if ((aaf_action == DIAG_MODE_CLOSE) && (step_position >= (step_position_close - limit_step_position)))
+    {
+        AAF_Tx_Position = DIAG_MODE_CLOSE;
+        aaf_step = FINISHED_OPERATE;
+    }
+    else if ((aaf_action == DIAG_MODE_AUTO) && (diag_mode_auto_dir == OPEN) && (step_position <= (step_position_open + limit_step_position)))
+    {
+        AAF_Tx_Position = DIAG_MODE_AUTO;
+        aaf_step = FINISHED_OPERATE;
+    }
+    else if ((aaf_action == DIAG_MODE_AUTO) && (diag_mode_auto_dir == CLOSE) && (step_position >= (step_position_close - limit_step_position)))
+    {
+        AAF_Tx_Position = DIAG_MODE_AUTO;
+        aaf_step = FINISHED_OPERATE;
+    }
+    else{
+        Operate_HandleStall();
+    }
 }
 
 static void Operate_SelectAAFxMode(void)
