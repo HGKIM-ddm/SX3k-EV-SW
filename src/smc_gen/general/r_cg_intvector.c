@@ -387,7 +387,7 @@ extern void eiint166(void);
 /* Reserved; */
 extern void eiint167(void);
 /* Interrupt for TAUJ1 channel 0; */
-extern void eiint168(void);
+extern void r_Config_TAUJ1_channel0_interrupt(void);
 /* Interrupt for TAUJ1 channel 1; */
 extern void eiint169(void);
 /* Interrupt for TAUJ1 channel 2; */
@@ -1111,7 +1111,7 @@ void * const INT_Vectors[] = {
     /* Reserved; */
     (void *)eiint167,
     /* Interrupt for TAUJ1 channel 0; */
-    (void *)eiint168,
+    (void *)r_Config_TAUJ1_channel0_interrupt,
     /* Interrupt for TAUJ1 channel 1; */
     (void *)eiint169,
     /* Interrupt for TAUJ1 channel 2; */

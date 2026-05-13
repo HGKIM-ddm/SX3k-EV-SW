@@ -7,6 +7,8 @@ static void Motor_SoftStart(void);
 static void Motor_StagedSoftStart(void);
 static void Motor_GenerateStepPulse(void);
 
+static volatile uint8_t pwm_flag = OFF;
+
 /***********************************************************************************************************************
  * Function Name: Motor_Action
  * Description  : Main function for motor control (State, Acceleration, Step Generation).
@@ -153,35 +155,18 @@ static void Motor_GenerateStepPulse(void)
 {
     if ((motor_wait_chk == ON) && (voltage_status_change_complete == COMPLETE))
     {
-        G_Timer1usFlag.MotorFlag = 1U;
-
-        if ((G_Timer1us.Motor >= motor_step_value * 2U) && (step_toggle_flag == 1U))
+        if (pwm_flag == OFF)
         {
-            Drv8889_StepLow();
-            step_toggle_flag = 0U;
-            G_Timer1us.Motor = 0U;
+            R_Config_TAUJ1_Start();
+            pwm_flag = ON;
         }
-        else if ((G_Timer1us.Motor >= motor_step_value) && (step_toggle_flag == 0U))
+    }
+    else
+    {
+        if (pwm_flag == ON)
         {
-            Drv8889_StepHigh();
-            step_toggle_flag = 1U;
-
-            if (dir_state == OPEN)
-            {
-                step_position--;
-            }
-            else if (dir_state == CLOSE)
-            {
-                step_position++;
-            }
-            else
-            {
-                // Invalid
-            }
-        }
-        else
-        {
-            // Invalid
+            R_Config_TAUJ1_Stop();
+            pwm_flag = OFF;
         }
     }
 }

@@ -45,6 +45,7 @@ Macro definitions
 #define _PORT_PM10_DEFAULT_VALUE                  (0xF800U) /* PM10 default value */
 #define _PORT_PIS0_DEFAULT_VALUE                  (0xFFF0U) /* PIS0 default value */
 #define _PORT_PIS8_DEFAULT_VALUE                  (0xFFFCU) /* PIS8 default value */
+#define _PORT_PIS9_DEFAULT_VALUE                  (0xFFFCU) /* PIS9 default value */
 #define _PORT_PIS10_DEFAULT_VALUE                 (0xF800U) /* PIS10 default value */
 
 /***********************************************************************************************************************

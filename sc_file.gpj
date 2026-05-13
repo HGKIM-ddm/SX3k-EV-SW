@@ -7,6 +7,7 @@
         -Isrc/smc_gen/Config_STBC
         -Isrc/smc_gen/Config_TAUD0_13
         -Isrc/smc_gen/Config_TAUD0_3
+        -Isrc/smc_gen/Config_TAUJ1        
         -Isrc/smc_gen/Config_WDT0
         -Isrc/smc_gen/general
         -Isrc/smc_gen/r_pincfg
@@ -37,6 +38,9 @@ src/smc_gen/Config_TAUD0_13/Config_TAUD0_13_user.c
 src/smc_gen/Config_TAUD0_3/Config_TAUD0_3.c
 src/smc_gen/Config_TAUD0_3/Config_TAUD0_3.h
 src/smc_gen/Config_TAUD0_3/Config_TAUD0_3_user.c
+src/smc_gen/Config_TAUJ1/Config_TAUJ1.c
+src/smc_gen/Config_TAUJ1/Config_TAUJ1.h
+src/smc_gen/Config_TAUJ1/Config_TAUJ1_user.c
 src/smc_gen/Config_WDT0/Config_WDT0.c
 src/smc_gen/Config_WDT0/Config_WDT0.h
 src/smc_gen/Config_WDT0/Config_WDT0_user.c
@@ -53,6 +57,7 @@ src/smc_gen/general/r_cg_port.h
 src/smc_gen/general/r_cg_stbc.h
 src/smc_gen/general/r_cg_systeminit.c
 src/smc_gen/general/r_cg_taud.h
+src/smc_gen/general/r_cg_tauj.h
 src/smc_gen/general/r_cg_userdefine.h
 src/smc_gen/general/r_cg_wdt.h
 src/smc_gen/general/r_smc_entry.h
