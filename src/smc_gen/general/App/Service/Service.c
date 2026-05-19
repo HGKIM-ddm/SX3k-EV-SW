@@ -80,7 +80,9 @@ static void Safety_Check(void)
     Lin_BusCheck();
 
     // 4. Protection Mode
-    if ((protection_function == ON) && (lin_bus_inactive_flag == OFF) && (AAF_Maximum_Torque_Test_Mode == OFF))
+    ProtectionMode_Check();
+
+    if (((protection_function == ON) || (protection_Mode_step != 0U)) && (lin_bus_inactive_flag == OFF) && (AAF_Maximum_Torque_Test_Mode == OFF))
     {
         Protection_Mode();
     }

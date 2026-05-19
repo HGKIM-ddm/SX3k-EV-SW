@@ -51,9 +51,9 @@ void Lin_HandleReceivedHeader(void)
     /* EV Response Frame ID: 0x28 (AAF1), 0x29 (AAF2), 0x2A (AAF3) */
     else if (((AAFx_Index == 1U) && (GetIDbuffer == 0xA8U)) || // 0x28 PID: 0xA8
              ((AAFx_Index == 2U) && (GetIDbuffer == 0xE9U)) || // 0x29 PID: 0xE9
-             ((AAFx_Index == 3U) && (GetIDbuffer == 0xAAU)))   // 0x2A PID: 0xAA
+             ((AAFx_Index == 3U) && (GetIDbuffer == 0x6AU)))   // 0x2A PID: 0x6A
     {
-        Lin_SlaveTransmit(Slave_TxData, 8U); // EV 사양 데이터 길이: 8바이트
+        Lin_SlaveTransmit(Slave_TxData, 7U); 
     }
     /* Master Request Frame ID: 0x3C (PID: 0x3C) */
     else if (GetIDbuffer == 0x3CU)
@@ -98,41 +98,4 @@ void Lin_HandleReceivedResponse(void)
     }
 }
 
-/***********************************************************************************************************************
- * Function Name: Lin_CalculateVerifyChecksum
- * Description  : Manage LIMP HOME counts by validating the checksum of received data
- * Called By    : Lin_ReceiveComplete_Interrupt
- * Arguments    : is_response_received - Response received flag (0: Not received, 2: Received)
- * Return Value : void
- ***********************************************************************************************************************/
-void Lin_CalculateVerifyChecksum(uint8_t is_response_received)
-{
-    ReqRespAAFID = WAIT;
-    
-    /* * EV 사양은 LIN 2.2A Enhanced Checksum을 사용하며, 이는 Lin_Driver.c의 
-     * RLN30.LDFC = 0x20U 설정에 의해 하드웨어 레벨에서 자동으로 검증됩니다. 
-     * 따라서 소프트웨어에서 별도로 계산할 필요 없이 수신 성공 여부만 확인합니다.
-     */
-    if (is_response_received == 0x02U)
-    {
-        AAF_LIN_ChkSum_CHK = PASS; // 하드웨어 체크섬 검증 통과
-
-        if (G_Timer1ms.IgnCheck >= 500U)
-        {
-            if (LIMP_HOME_Count >= 4U) LIMP_HOME_Count -= 4U; 
-            else                       LIMP_HOME_Count = 0U;  
-        }
-    }
-    else // Checksum Error 또는 통신 타임아웃
-    {
-        AAF_LIN_ChkSum_CHK = FAIL;
-
-        if (G_Timer1ms.IgnCheck >= 500U)
-        {
-            /* EV 사양 기준 LIMP HOME 카운트 관리 (Max 160) */
-            if (LIMP_HOME_Count <= 158U) LIMP_HOME_Count += 2U; 
-            else                         LIMP_HOME_Count = 160U;
-        } 
-    }
-}
 

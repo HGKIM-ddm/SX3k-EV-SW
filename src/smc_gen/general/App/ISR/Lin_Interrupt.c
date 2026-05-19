@@ -29,7 +29,7 @@ void Lin_ReceiveComplete_Interrupt(void)
     }
 
     // 4. Calculate Checksum & Update Status (Always executed in original logic)
-    Lin_CalculateVerifyChecksum(receive_response_flag);
+    ReqRespAAFID = WAIT;
 
     // 5. Reset Timer & Update Hardware Status
     G_Timer1ms.LinBusInactive = 0U; // Reset LIN timeout timer

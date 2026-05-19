@@ -106,6 +106,16 @@ static void Protection_UpdateFinal(void)
     AAFx_InitStatus = DURING_INITIALIZATION;
     AAFx_Position_Status = Unknown_Status;
     // FDL_Write();
+    if (protection_function == OFF)
+    {
+        protection_Mode_step = 5U;
+    }
+}
+
+static void Protection_WaitOff(void)
+{
+    Re_Init();
+    protection_Mode_step = 0U;
 }
 
 static void Protection_Cycle1(void)
@@ -136,6 +146,9 @@ static void Protection_Cycle2(void)
     case 4:
         Protection_UpdateFinal();
         break;
+    case 5:
+        Protection_WaitOff();
+        break;    
     default:
         break;
     }
@@ -165,4 +178,27 @@ void Protection_Mode(void)
         }
     }
 }
+
+/***********************************************************************************************************************
+ * Function Name: Protection_CheckCondition
+ * Description  : Protection Mode 진입/해제 조건 판단
+ * Called By    : Main Loop (Protection_Mode 호출 전)
+ ***********************************************************************************************************************/
+void ProtectionMode_Check(void)
+{
+    /* Protection ON 요청 수신 시 모드 진입 */
+    if ((AAF_ProtectionMode_Rx == ON) && (protection_function == OFF))
+    {
+        protection_function = ON;
+        AAF_ProtectionMode_Tx = ON;
+        protection_Mode_step = 0U;  /* 시퀀스 재시작 */
+    }
+    /* Protection OFF 요청 수신 시 모드 해제 */
+    else if ((AAF_ProtectionMode_Rx == OFF) && (protection_function == ON))
+    {
+        protection_function = OFF;
+        AAF_ProtectionMode_Tx = OFF;
+    }
+}
+
 

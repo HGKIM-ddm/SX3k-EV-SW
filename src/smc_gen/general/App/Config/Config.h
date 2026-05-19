@@ -18,7 +18,7 @@ extern unsigned int CR_Mcu_VehSpdInt_Kph;
 /* 2.1 Communication Buffers (LIN / SPI) */
 extern uint8_t GetIDbuffer;
 extern uint8_t Slave_RxData1[8];
-extern uint8_t Slave_TxData[8];
+extern uint8_t Slave_TxData[7];
 extern uint8_t ID_chk_rxdata[11];
 extern uint8_t w_buff[30]; //Only SX3k [30]
 extern uint32_t r_buff[8]; //Only SX3k [8]
@@ -116,7 +116,6 @@ extern volatile uint8_t error_status;
 extern unsigned int lin_aaf_command;
 extern unsigned int lin_rx_pass_flag;
 extern unsigned int lin_rx_chk_flag;
-extern unsigned int AAF_LIN_ChkSum_CHK;
 extern unsigned int AAF_LIN_ChkSum_CHK_value;
 extern unsigned char spi_send_flag;
 extern unsigned char spi_receive_flag;

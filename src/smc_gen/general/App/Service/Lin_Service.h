@@ -6,7 +6,6 @@
 
 void Lin_HandleReceivedHeader(void);
 void Lin_HandleReceivedResponse(void);
-void Lin_CalculateVerifyChecksum(uint8_t is_response_received);
 
 #endif
 

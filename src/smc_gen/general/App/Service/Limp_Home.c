@@ -4,7 +4,7 @@
 void Limp_Home(void)
 {
 
-	if ((LIMP_HOME_Count < 80U) && (AAF_LIN_ChkSum_CHK == PASS) && (LIMP_HOME_step == 2U))
+	if ((LIMP_HOME_Count < 80U) && (LIMP_HOME_step == 2U))
 	{
 		LIMP_HOME_Count = 0U;
 		LIMP_HOME_step = 0U;

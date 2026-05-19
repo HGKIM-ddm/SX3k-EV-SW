@@ -88,7 +88,7 @@ static void Lin_ExecuteTorqueTestMode(void)
 }
 #endif
 
-static void Lin_DiagRx(void)
+static void Lin_SwCheck(void)
 {
     if (Slave_RxSwData1[0U] == 0x26u)
     {
@@ -111,7 +111,7 @@ static void Lin_DiagRx(void)
     }
 }
 
-static void Lin_DiagAction(void)
+static void Lin_SwCheckResponse(void)
 {
     if (SW_Chk == 1U)
     {
@@ -209,7 +209,7 @@ static void Lin_TranslateRxData(void)
  * Arguments    : void
  * Return Value : void
  ***********************************************************************************************************************/
-static void Lin_CheckAAF1RxData(void){
+void Lin_CheckAAF1RxData(void){
     
     switch (AAF1_TargetPosition)
     {
@@ -248,7 +248,7 @@ static void Lin_CheckAAF1RxData(void){
  * Arguments    : void
  * Return Value : void
  ***********************************************************************************************************************/
-static void Lin_CheckAAF2RxData(void){
+void Lin_CheckAAF2RxData(void){
     
     switch (AAF2_TargetPosition)
     {
@@ -287,7 +287,7 @@ static void Lin_CheckAAF2RxData(void){
  * Arguments    : void
  * Return Value : void
  ***********************************************************************************************************************/
-static void Lin_CheckAAF3RxData(void){
+void Lin_CheckAAF3RxData(void){
     
     switch (AAF3_TargetPosition)
     {
@@ -320,14 +320,17 @@ static void Lin_CheckAAF3RxData(void){
     Lin_UpdateCommand(AAF3_TargetPosition_select);
 }   
 
+
 /***********************************************************************************************************************
- * Function Name: Protection_OffMode
- * Description  : 보호 기능이 꺼져 있을 때의 EV 전용 데이터 파싱 및 AAF별 로직 분기를 수행함
+ * Function Name: Lin_RxCheck
+ * Description  : LIN 수신 데이터를 검증하고 보호 기능 상태(ON/OFF)에 따라 처리 루틴을 호출하는 메인 함수
  * Arguments    : void
  * Return Value : void
  ***********************************************************************************************************************/
-static void Protection_OffMode(void){
-    
+void Lin_RxCheck(void)
+{
+    Lin_SwCheck();
+
     Lin_TranslateRxData();
 
     if (lin_rx_pass_flag == PASS)
@@ -368,46 +371,10 @@ static void Protection_OffMode(void){
         {
             LDCRdy     = (unsigned int)((ID_chk_rxdata[7U] & 0x30U) >> 4U);
             AAF_LINOut = (unsigned int)((ID_chk_rxdata[7U] & 0x0CU) >> 2U);
+            AAF_ProtectionMode_Rx  = (ID_chk_rxdata[7U] & 0x40U) >> 6U;
         }
     }
-}
-
-/***********************************************************************************************************************
- * Function Name: Protection_OnMode
- * Description  : 보호 기능이 켜져 있을 때 보호 모드 해제 요청 비트만 모니터링함
- * Arguments    : void
- * Return Value : void
- ***********************************************************************************************************************/
-static void Protection_OnMode(void){
-    Lin_TranslateRxData();
-
-    if (lin_rx_pass_flag == PASS)
-    {
-        AAF_ProtectionMode_Rx = (unsigned int)((ID_chk_rxdata[7U] & 0x40U) >> 6U);
-    }
-}
-
-/***********************************************************************************************************************
- * Function Name: Lin_RxCheck
- * Description  : LIN 수신 데이터를 검증하고 보호 기능 상태(ON/OFF)에 따라 처리 루틴을 호출하는 메인 함수
- * Arguments    : void
- * Return Value : void
- ***********************************************************************************************************************/
-void Lin_RxCheck(void)
-{
-    Lin_DiagRx();
-
-    if (AAF_LIN_ChkSum_CHK == PASS)
-    {
-        if (protection_function == OFF) 
-        {
-            Protection_OffMode();
-        }
-        else if (protection_function == ON)
-        {
-            Protection_OnMode();
-        }
-    }
+    
 }
 
 /***********************************************************************************************************************
@@ -463,9 +430,8 @@ void Lin_TxCheck(void)
     Slave_TxData[4U] = 0x00U;
     Slave_TxData[5U] = 0x00U;
     Slave_TxData[6U] = 0x00U;
-    Slave_TxData[7U] = 0x00U;
 
-    Lin_DiagAction();
+    Lin_SwCheckResponse();
 
     lin_rx_pass_flag = WAITING;
 }

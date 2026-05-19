@@ -10,7 +10,7 @@ unsigned int CR_Mcu_VehSpdInt_Kph = 0U;
 /* 2.1 Communication Buffers (LIN / SPI) */
 uint8_t GetIDbuffer;
 uint8_t Slave_RxData1[8]; /*reception data store array*/
-uint8_t Slave_TxData[8] = {
+uint8_t Slave_TxData[7] = {
     0,
 }; /*Transmission data store array*/
 uint8_t ID_chk_rxdata[11] = {
@@ -171,7 +171,6 @@ volatile uint8_t error_status = 0;
 unsigned int lin_aaf_command = 0;
 unsigned int lin_rx_pass_flag = 0;
 unsigned int lin_rx_chk_flag = 0;
-unsigned int AAF_LIN_ChkSum_CHK = 0;
 unsigned int AAF_LIN_ChkSum_CHK_value = 0;
 unsigned char spi_send_flag = 0;
 unsigned char spi_receive_flag = 0;

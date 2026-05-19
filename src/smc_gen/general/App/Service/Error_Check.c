@@ -307,12 +307,7 @@ void Error_Check(void)
 {
     static uint8_t error_step = 0U;
 
-    if (AAF_ProtectionMode_Rx == ON)
-    {
-        protection_function = ON;
-        AAF_ProtectionMode_Tx = ON;
-    }
-    else if ((AAF_ProtectionMode_Rx == OFF) && (stall_test_mode == 0U))
+    if ((stall_test_mode == 0U))
     {
         switch (error_step)
         {
