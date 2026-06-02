@@ -4,6 +4,7 @@
 #include "Config.h"
 #include "Lin_Driver.h"
 #include "Lin_Service.h"
+#include "Lin_Sleep.h"
 
 void Lin_ReceiveComplete_Interrupt(void);
 void Lin_Transmit_Interrupt(void);

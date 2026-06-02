@@ -15,18 +15,16 @@ static uint8_t Error_CheckVoltage(void)
     /* 1. 저전압 (Under Voltage) */
     if (adc_avr <= ADC_UNDER_VOLTAGE_7V)
     {
-        protection_function = ON;
         Error_UnknownStatus();                           
         AAFx_Low_Volt = UNDER_VOLTAGE;
         return 1U;
     }
  
-    if ((AAFx_Low_Volt == UNDER_VOLTAGE) && (protection_function == ON))
+    if ((AAFx_Low_Volt == UNDER_VOLTAGE))
     {
         if (adc_avr >= ADC_UNDER_VOLTAGE_9V)
         {
             AAFx_Low_Volt = NO_ERROR;
-            protection_function = OFF;
             protection_Mode_step = 0U;
             Under_Voltage_Deceted = 0U;
             G_Timer1ms.Adc1sCheck = 0U;
@@ -45,7 +43,6 @@ static uint8_t Error_CheckVoltage(void)
         if ((Under_Voltage_Deceted == 1U) && (G_Timer1ms.Adc1sCheck >= ADC_Detect_Time)) 
         {
             AAFx_Low_Volt = UNDER_VOLTAGE;
-            protection_function = ON;
             DTC_Status |= 0x20u;
             Error_UnknownStatus();                      
             G_Timer1ms.Adc1sCheck = ADC_Detect_Time;       
@@ -65,18 +62,16 @@ static uint8_t Error_CheckVoltage(void)
     /* 2. 과전압 (Over Voltage) */
     if (adc_avr >= ADC_OVER_VOLTAGE_18V)
     {
-        protection_function = ON;
         Error_UnknownStatus();                           
         AAFx_Over_Volt = OVER_VOLTAGE;
         return 1U;
     }
  
-    if ((AAFx_Over_Volt == OVER_VOLTAGE) && (protection_function == ON))
+    if ((AAFx_Over_Volt == OVER_VOLTAGE))
     {
         if (adc_avr <= ADC_OVER_VOLTAGE_16V)
         {
             AAFx_Over_Volt = NO_ERROR;
-            protection_function = OFF;
             protection_Mode_step = 0U;
             Re_Init();
         }
@@ -94,7 +89,6 @@ static uint8_t Error_CheckVoltage(void)
             if ((Over_Voltage_Deceted == 1U) && (G_Timer1ms.Adc1sCheck >= ADC_Detect_Time)) 
             {
                 AAFx_Over_Volt = OVER_VOLTAGE;
-                protection_function = ON;
                 DTC_Status |= 0x40u;
                 Error_UnknownStatus();                   
                 G_Timer1ms.Adc1sCheck = ADC_Detect_Time;   
@@ -335,7 +329,6 @@ void Error_Check(void)
                     if (fdl_fail >= 10U)
                     {
                         AAFx_Circuit_Open = AAF_CIRCUIT_OPEN;
-                        protection_function = ON;
                     }
                     else
                     {

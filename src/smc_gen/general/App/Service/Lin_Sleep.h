@@ -5,6 +5,7 @@
 
 void Lin_Sleep(void);
 void MCU_Sleep(void);
+void Lin_WakeupFromSleep(void);
 
 #endif
 

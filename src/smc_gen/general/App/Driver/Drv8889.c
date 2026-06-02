@@ -67,7 +67,7 @@ static void Drv8889_SpiTransfer(uint16_t * const tx_buf, uint16_t * const rx_buf
 }
 
 
-void Drv8889_Init(void)
+void Drv8889_GpioInit(void)
 {
 	PORT.P10 |= _PORT_Pn0_OUTPUT_HIGH;	// MCU_DRVOFF
 	PORT.P10 |= _PORT_Pn2_OUTPUT_HIGH;	// MCU_DRV_SLEEP_MODE
@@ -136,6 +136,24 @@ void Drv8889_DirCCW(void)   { PORT.P10 &= ~_PORT_Pn4_OUTPUT_HIGH; }
 void Drv8889_SpiInit(void)
 {
     uint8_t i;
+
+    /* === tx_16bit_spi 배열 채우기 (DRV8889A-Q1 레지스터 설정) === */
+    /* Read 전용: 주소만 (응답 데이터 읽기용) */
+    tx_16bit_spi[0]  = ((uint16_t)DRV_FAULT << 8);   /* FAULT Status (R) */
+    tx_16bit_spi[1]  = ((uint16_t)DRV_DIAG1 << 8);   /* DIAG Status 1 (R) */
+    tx_16bit_spi[2]  = ((uint16_t)DRV_DIAG2 << 8);   /* DIAG Status 2 (R) */
+
+    /* Write: CTRL1~6 (enum OR로 의미 명확) */
+    tx_16bit_spi[3]  = ((uint16_t)DRV_CTRL1 << 8) | (TRQ_DAC_75 | SLEW_RATE_10V);
+    tx_16bit_spi[4]  = ((uint16_t)DRV_CTRL2 << 8) | (DIS_OUT_ENABLE | TOFF_16US | DECAY_SMART_RIPPLE);
+    tx_16bit_spi[5]  = ((uint16_t)DRV_CTRL3 << 8) | (SPI_DIR_PIN | SPI_STEP_PIN | MICROSTEP_1_8);
+    tx_16bit_spi[6]  = ((uint16_t)DRV_CTRL4 << 8) | (LOCK_UNLOCK | EN_OL_ON | OCP_RETRY | OTSD_RECOVER);
+    tx_16bit_spi[7]  = ((uint16_t)DRV_CTRL5 << 8) | (EN_STL_ON);
+    tx_16bit_spi[8]  = ((uint16_t)DRV_CTRL6 << 8) | (STALL_TH);   /* STALL_TH = 0 */
+
+    /* Read 전용 */
+    tx_16bit_spi[9]  = ((uint16_t)DRV_CTRL7 << 8);   /* TRQ_COUNT (R) */
+    tx_16bit_spi[10] = ((uint16_t)DRV_CTRL8 << 8);   /* REV_ID (R) */
 
     Drv8889_Wait1ms();
 

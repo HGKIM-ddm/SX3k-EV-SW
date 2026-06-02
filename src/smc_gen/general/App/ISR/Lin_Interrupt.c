@@ -33,6 +33,10 @@ void Lin_ReceiveComplete_Interrupt(void)
 
     // 5. Reset Timer & Update Hardware Status
     G_Timer1ms.LinBusInactive = 0U; // Reset LIN timeout timer
+
+    /* 6. Sleep 상태였다면 Sleep flag 해제 및 상태 복구 */
+    Lin_WakeupFromSleep();
+		
     RLN30.LTRC = 0x01U; // Set FTS bit (Ready for next frame)
 }
 

@@ -60,38 +60,78 @@ static void LinSleep_Delay(void)
  * Arguments    : void
  * Return Value : void
  ***********************************************************************************************************************/
+/***********************************************************************************************************************
+ * Function Name: LinSleep_ParsingCommand
+ * Description  : LIN Sleep 진입 전 마지막 수신 명령을 해석하여 Sleep 전 최종 구동 방향을 결정함
+ *                - AAF_LINOut == 0 : 정상 종료 조건, 마지막 마스터 명령을 수행한 후 Sleep 진입
+ *                - AAF_LINOut == 1 : 비정상 종료/LIN 단선 조건, OPEN 방향으로 이동 후 Sleep 진입
+ * Called By    : LinSleep_Cycle1
+ * Arguments    : void
+ * Return Value : void
+ ***********************************************************************************************************************/
 static void LinSleep_ParsingCommand(void)
 {
-    /* LINOut == 0 (정상 종료): 마스터 제어기의 최종 제어 수행 후 Sleep 진입 */
+    /* LINOut == 0: 정상 종료 조건
+    * 마스터가 마지막으로 요청한 위치로 이동한 뒤 Sleep 진입 준비
+    */
     if (AAF_LINOut == 0x00U)
     {
-        if ((lin_aaf_command == OPEN) || (lin_aaf_command == OPEN_1ST) || (lin_aaf_command == OPEN_2ND))
+        /* EV 명령 체계에서는 OPEN, OPEN_1ST, OPEN_2ND가 모두 OPEN 계열 명령임.
+        * 현재 EV sleep 코드에서는 1st/2nd 위치도 LinSleep_CheckCompletion()에서 별도 목표 위치로 처리함.
+        */
+        if ((lin_aaf_command == OPEN) ||
+            (lin_aaf_command == OPEN_1ST) ||
+            (lin_aaf_command == OPEN_2ND))
         {
             Drv8889_Wakeup();
-            aaf_action = lin_aaf_command; // 명령 분리 저장
+
+            /*
+             * OPEN / OPEN_1ST / OPEN 2ND 명령을 그대로 저장
+             * 뒤쪽 LIN_SLEEP_STARTMOTOR()와 LIN_SLEEP_CHECKCOMPLETION()에서 이 값을 기준으로 처리
+             */
+            aaf_action = lin_aaf_command;
+            /* 모터 구동 시작 단계로 이동*/
             lin_sleep_step = 3U;
         }
         else if (lin_aaf_command == CLOSE)
         {
             Drv8889_Wakeup();
+
+            /*CLOSE 명령 저장*/
             aaf_action = CLOSE;
+            /*모터 구동 시작 단계로 이동*/
             lin_sleep_step = 3U;
         }
-        else 
-        { 
-            lin_sleep_step = 5U; // 알 수 없는 명령 시 바로 Sleep으로 직행
+        else if (lin_aaf_command == UNKOWN_POSITION)
+        {
+            /*
+             * 마지막 명령이 UNKNOWN이면 SLEEP 전 추가 구동을 하지 않음
+             * 현재 위치 신뢰가 낮거나 명령이 불명확한 상태이므로 바로 최종 SLEEP 단계로 이동
+             */
+            lin_sleep_step = 8U;
+        }
+        else
+        {
+  
+            /*정의되지 않은 명령이면 모터를 구동하지 않고 SLEEP 단계로 이동*/
+            lin_sleep_step = 8U;
         }
     }
-    /* LINOut == 1 (비정상 종료/LIN단선): 사양서 5.3.12 기준 무조건 OPEN 후 Sleep */
+    /* LINOut == 1: 비정상 종료 또는 LIN 단선
+    * 사양에 따라 무조건 OPEN 방향으로 이동 후 SLEEP 진
+    */
     else if (AAF_LINOut == 0x01U)
     {
         Drv8889_Wakeup();
+
         aaf_action = OPEN;
+        /*모터 구동 시작 단계로 이동*/
         lin_sleep_step = 3U;
     }
-    else 
-    { 
-        lin_sleep_step = 5U;
+    else
+    {
+        /*AAF_LINOut 값이 유효하지 않으면 모터 구동 없이 최종 Sleep 단계로 이동 */
+        lin_sleep_step = 8U;
     }
 }
 
@@ -155,7 +195,7 @@ static void LinSleep_StartMotor(void)
     }
     else
     {
-        lin_sleep_step = 5U;
+        lin_sleep_step = 8U;
     }
 }
 
@@ -168,52 +208,233 @@ static void LinSleep_StartMotor(void)
  ***********************************************************************************************************************/
 static void LinSleep_CheckCompletion(void)
 {
-    /* EV 1st/2nd Open 타겟 위치 분기 계산 */
-    unsigned int target_pos = step_position_open;
-    if (aaf_action == OPEN_1ST)      target_pos = OPEN_1ST_POSITION;
-    else if (aaf_action == OPEN_2ND) target_pos = OPEN_2ND_POSITION;
+    unsigned int target_pos;
 
-    // 조건 1: OPEN 방향 (OPEN, 1st OPEN, 2nd OPEN 공통) 목표 위치 도착
-    if (((aaf_action == OPEN) || (aaf_action == OPEN_1ST) || (aaf_action == OPEN_2ND)) && 
+    // 기본 OPEN 목표 위치는 FULL OPEN 기준 위치
+    target_pos = step_position_open;
+
+    if (aaf_action == OPEN_1ST)
+    {
+        target_pos = OPEN_1ST_POSITION;
+    }
+    else if (aaf_action == OPEN_2ND)
+    {
+        target_pos = OPEN_2ND_POSITION;
+    }
+    else
+    {
+        // OPEN 또는 CLOSE인 경우 별도 target_pos 변경 없음
+    }
+
+    if (((aaf_action == OPEN) ||
+         (aaf_action == OPEN_1ST) ||
+         (aaf_action == OPEN_2ND)) &&
         (step_position <= (target_pos + limit_step_position)))
     {
-        LinSleep_StopMotorAndReset(); // 공통 정지
-        
+        LinSleep_StopMotorAndReset();
+
+        // 마스터에게 현재 위치 상태를 보고하기 위한 값 설정
         AAF_Tx_Position = aaf_action;
         AAFx_Position_Status = Open_Status;
+        AAFx_InitStatus = NORMAL_FINISHED_INITIALIZATION;
+
+        // LIN Response 위치값 선택/갱신
         Operate_SelectTxPostion();
+
         aaf_step = FINISHED_OPERATE;
-        
+
+        // 최종 Sleep 단계로 이동
+        lin_sleep_step = 8U;
+    }
+
+    else if ((aaf_action == CLOSE) &&
+             (motor_stall_flag == MOTOR_STALL) &&
+             (step_position >= (step_position_close - limit_step_position)) &&
+             (AAFx_Type == EXTERNAL_TYPE))
+    {
+        LinSleep_StopMotorAndReset();
+
+        // close stopper에 도달했다고 판단했으므로 현재 위치를 close 기준 위치로 보정
+        step_position = step_position_close;
+
+        // stall 상태 초기화
+        motor_stall_value = MOTOR_STALL_CHK_NORMAL_VALUE;
+        motor_stall_flag = MOTOR_NORMAL;
+
+        // close stopper 후 800ms 대기 단계로 이동
+        // 다음 단계에서 OPEN 방향으로 약 5도 복귀함
         lin_sleep_step = 5U;
     }
-    // 조건 2: CLOSE 방향 목표 위치 도착
-    else if ((aaf_action == CLOSE) && (step_position >= (step_position_close - limit_step_position)))
+
+    // 조건 3: INTERNAL TYPE CLOSE 목표 위치 도달
+    // Internal Type은 stopper stall을 기다리지 않고 close 위치 근처 도달로 완료 처리함.
+    else if ((aaf_action == CLOSE) &&
+             (step_position >= (step_position_close - limit_step_position)) &&
+             (AAFx_Type == INTERNAL_TYPE))
     {
-        LinSleep_StopMotorAndReset(); // 공통 정지
-        
+        LinSleep_StopMotorAndReset();
+
         AAF_Tx_Position = CLOSE;
         AAFx_Position_Status = Close_Status;
-        AAFx_InitStatus = NORMAL_INITIALIZATION;
+
+        // Sleep 전 CLOSE 도달 완료 상태이므로 정상 초기화 완료 상태로 보고
+        AAFx_InitStatus = NORMAL_FINISHED_INITIALIZATION;
+
         Operate_SelectTxPostion();
+
         aaf_step = FINISHED_OPERATE;
-        
-        lin_sleep_step = 5U;
+
+        // 최종 Sleep 단계로 이동
+        lin_sleep_step = 8U;
     }
-    // 조건 3: 스톨 발생 (안티핀치/스톨 감지)
+
+    // 조건 4: 목표 위치 도달 전 스톨 발생
+    // 목표 위치 도달 조건을 만족하지 못한 상태에서 스톨이 발생하면
+    // 현재 위치를 신뢰할 수 없으므로 UNKNOWN / DURING_INITIALIZATION 상태로 저장함.
     else if (motor_stall_flag == MOTOR_STALL)
     {
-        LinSleep_StopMotorAndReset(); // 공통 정지
-        
+        LinSleep_StopMotorAndReset();
+
         aaf_step = AAF_INITIALIZATION;
         aaf_init_step = WAIT_INITIALIZATION;
+
         AAF_Tx_Position = UNKOWN_POSITION;
         AAFx_Position_Status = Unknown_Status;
         AAFx_InitStatus = DURING_INITIALIZATION;
+
         motor_stall_flag = MOTOR_NORMAL;
-        
-        lin_sleep_step = 5U;
+
+        // 최종 Sleep 단계로 이동
+        lin_sleep_step = 8U;
+    }
+    else
+    {
+        // 아직 목표 위치에 도달하지 않았고 스톨도 아니면 계속 구동 상태 유지
     }
 }
+
+/***********************************************************************************************************************
+ * Function Name: LinSleep_Stall_Delay
+ * Description  : External Type에서 CLOSE stopper 도달 후 OPEN 방향 복귀 전 800ms 대기
+ *                기존 EV 코드에 별도 LinSleepStall 타이머가 없으므로 LinSleepMode 타이머를 재사용함.
+ * Called By    : LinSleep_Cycle2
+ * Arguments    : void
+ * Return Value : void
+ ***********************************************************************************************************************/
+static void LinSleep_Stall_Delay(void)
+{
+    /* CLOSE stopper 도달 후 800ms 대기 타이머 시작 */
+    G_Timer1msFlag.LinSleepModeFlag = 1U;
+
+    /* 800ms 대기 완료 */
+    if (G_Timer1ms.LinSleepMode >= 800U)
+    {
+        /* 대기 타이머 정지 및 초기화 */
+        G_Timer1msFlag.LinSleepModeFlag = 0U;
+        G_Timer1ms.LinSleepMode = 0U;
+
+        /* OPEN 방향 약 5도 복귀 구동 시작 단계로 이동 */
+        lin_sleep_step = 6U;
+    }
+}
+
+/***********************************************************************************************************************
+ * Function Name: LinSleep_Stall_Open
+ * Description  : CLOSE stopper 도달 후 OPEN 방향으로 약 5도 복귀하기 위해 모터 구동 시작
+ *                - External Type에서 stopper 압착 상태를 풀기 위한 back-off 동작
+ * Called By    : LinSleep_Cycle2
+ * Arguments    : void
+ * Return Value : void
+ ***********************************************************************************************************************/
+static void LinSleep_Stall_Open(void)
+{
+    /* OPEN 방향 설정 */
+    Motor_Open2();
+
+    /* 모터 드라이버 ON */
+    Drv8889_On2();
+
+    /* 모터 구동 시작 */
+    motor_start = ON;
+
+        /*
+     * Soft Stop 1단계:
+     * CLOSE stopper 후 OPEN 방향 약 5도 복귀 구간은 짧은 거리이므로
+     * 기존 속도보다 느린 속도로 복귀한다.
+     * 만약 motor_step_value = STEP_TIME_SLEEP_BACKOFF;를 넣었는데도 속도가 안 느려지면, Motor_SoftStart()나 Motor_Action() 쪽에서 motor_step_value를 다시 덮어쓰고 있을 가능성
+     * 0527 우상민
+     */
+    //motor_step_value = STEP_TIME_SLEEP_BACKOFF;
+
+    /* 스톨 상태 및 타이머 초기화 */
+    motor_stall_flag = MOTOR_NORMAL;
+    G_Timer1ms.StallTime = 0U;
+    motor_stall_value = MOTOR_STALL_CHK_NORMAL_VALUE;
+    G_Timer1ms.Spi = 0U;
+
+    /* OPEN 방향 복귀 완료 여부 확인 단계로 이동 */
+    lin_sleep_step = 7U;
+}
+
+/***********************************************************************************************************************
+ * Function Name: LinSleep_Stall_Stop
+ * Description  : CLOSE stopper 후 OPEN 방향으로 약 5도 복귀 완료 여부를 확인하고 정지
+ *                - limit_step_position이 약 5도에 해당하는 step 값으로 사용됨
+ *                - 복귀 완료 후 실제 기구는 stopper에서 살짝 빠지지만, 상태는 CLOSE로 보고함
+ * Called By    : LinSleep_Cycle2
+ * Arguments    : void
+ * Return Value : void
+ ***********************************************************************************************************************/
+//0526 우상민
+static void LinSleep_Stall_Stop(void)
+{
+    /* OPEN 방향으로 약 5도 복귀 완료
+     * CLOSE 위치에서 limit_step_position만큼 OPEN 방향으로 빠지면 완료로 판단
+     */
+
+    unsigned int sleep_backoff_step;
+
+    sleep_backoff_step = step_position_close - (limit_step_position / SLEEP_BACKOFF_DIVIDER);    
+
+    if (step_position <= (sleep_backoff_step))
+    {
+        LinSleep_StopMotorAndReset();
+        
+        /* 실제 위치는 stopper에서 약간 빠졌지만, Sleep 전 최종 상태는 CLOSE로 보고 */
+        AAF_Tx_Position = CLOSE;
+        AAFx_Position_Status = Close_Status;
+        AAFx_InitStatus = NORMAL_FINISHED_INITIALIZATION;
+
+        Operate_SelectTxPostion();
+
+        aaf_step = FINISHED_OPERATE;
+
+        /* 최종 Sleep 단계로 이동 */
+        lin_sleep_step = 8U;
+    }
+    /* OPEN 복귀 중 다시 스톨이 발생하면 위치 신뢰 불가 처리 */
+    else if (motor_stall_flag == MOTOR_STALL)
+    {
+        LinSleep_StopMotorAndReset();
+
+        aaf_step = AAF_INITIALIZATION;
+        aaf_init_step = WAIT_INITIALIZATION;
+
+        AAF_Tx_Position = UNKOWN_POSITION;
+        AAFx_Position_Status = Unknown_Status;
+        AAFx_InitStatus = DURING_INITIALIZATION;
+
+        motor_stall_flag = MOTOR_NORMAL;
+
+        /* 최종 Sleep 단계로 이동 */
+        lin_sleep_step = 8U;
+    }
+    else
+    {
+        /* 아직 약 5도 복귀 완료 전이면 계속 OPEN 방향 구동 유지 */
+    }
+}
+
 
 /***********************************************************************************************************************
  * Function Name: LinSleep_Final
@@ -224,14 +445,42 @@ static void LinSleep_CheckCompletion(void)
  ***********************************************************************************************************************/
 static void LinSleep_Final(void)
 {
-    if ((AAF_Tx_Position == UNKOWN_POSITION) || (AAFx_Position_Status == Unknown_Status) || (AAFx_InitStatus == DURING_INITIALIZATION))
+    /* 위치 정보가 UNKNOWN이거나 초기화 중 상태라면
+     * 다음 WAKE 이후 위치 초기화가 필요하도록 상태 유지
+     */
+    if ((AAF_Tx_Position == UNKOWN_POSITION) ||
+        (AAFx_Position_Status == Unknown_Status) ||
+        (AAFx_InitStatus == DURING_INITIALIZATION))
     {
         aaf_init_step = WAIT_INITIALIZATION;
         AAF_Tx_Position = UNKOWN_POSITION;
         AAFx_Position_Status = Unknown_Status;
         AAFx_InitStatus = DURING_INITIALIZATION;
     }
-    MCU_Sleep();
+
+    /* LIN BUS INACTIVE가 아직 4초 이상이면 MCU Sleep 진입 */
+    if (G_Timer1ms.LinBusInactive >= LIN_BUS_CHK_TIME_4_SEC)
+    {
+        
+        MCU_Sleep();
+        
+    }
+    else
+    {
+        /* Sleep sequence 중 LIN이 다시 수신된 경우
+         * MCU Sleep에 들어가지 않고 Sleep 상태를 해제하여 Normal 동작으로 복귀
+         */
+        lin_bus_inactive_flag = OFF;
+        lin_sleep_step = 0U;
+
+        G_Timer1msFlag.LinSleepModeFlag = 0U;
+        G_Timer1ms.LinSleepMode = 0U;
+
+        aaf_action = FLAP_STOP;
+        aaf_action_complete_chk = FLAP_STOP;
+
+        aaf_step = AAF_WAITING;
+    }
 }
 
 /***********************************************************************************************************************
@@ -245,20 +494,34 @@ static void LinSleep_Cycle2(void)
 {
     switch (lin_sleep_step)
     {
-    case 3: 
-        LinSleep_StartMotor(); 
+    case 3:
+        LinSleep_StartMotor();
         break;
-    case 4: 
-        LinSleep_CheckCompletion(); 
+
+    case 4:
+        LinSleep_CheckCompletion();
         break;
-    case 5: 
-        LinSleep_Final(); 
+
+    case 5:
+        LinSleep_Stall_Delay();
         break;
-    default: 
+
+    case 6:
+        LinSleep_Stall_Open();
+        break;
+
+    case 7:
+        LinSleep_Stall_Stop();
+        break;
+
+    case 8:
+        LinSleep_Final();
+        break;
+
+    default:
         break;
     }
 }
-
 /***********************************************************************************************************************
  * Function Name: McuSleep_ExternalOff
  * Description  : MCU가 슬립 모드로 진입하기 전, 연결된 외부 하드웨어(모터 드라이버, 트랜시버 등)를 끔
@@ -377,6 +640,59 @@ void MCU_Sleep(void)
 
     // 6. Deep Stop 모드 진입 (Wake-up 이벤트 발생 전까지 정지)
     McuSleep_DeepStop();
+}
+
+/***********************************************************************************************************************
+ * Function Name: Lin_WakeupFromSleep
+ * Description  : LIN Sleep 상태에서 LIN 프레임이 다시 수신되었을 때 Sleep 상태를 해제함
+ *                - LIN Bus Inactive flag 해제
+ *                - Sleep 상태머신 초기화
+ *                - Sleep 관련 타이머 초기화
+ *                - Sleep 중 모터가 구동 중이었다면 모터 정지
+ * Called By    : Lin_ReceiveComplete_Interrupt
+ * Arguments    : void
+ * Return Value : void
+ ***********************************************************************************************************************/
+void Lin_WakeupFromSleep(void)
+{
+    if (lin_bus_inactive_flag == ON)
+    {
+        /* LIN 프레임이 다시 들어왔으므로 Sleep 상태 해제 */
+        lin_bus_inactive_flag = OFF;
+
+        /* LIN Sleep 상태머신 초기화 */
+        lin_sleep_step = 0U;
+
+        /* LIN Sleep 대기 타이머 초기화 */
+        G_Timer1msFlag.LinSleepModeFlag = 0U;
+        G_Timer1ms.LinSleepMode = 0U;
+
+        /* Sleep 중 모터 구동 중일 수 있으므로 안전하게 정지 */
+        Drv8889_Off2();
+        motor_start = OFF;
+
+        /* Stall 관련 타이머 초기화 */
+        G_Timer1msFlag.StallTimeFlag = 0U;
+        G_Timer1ms.StallTime = 0U;
+
+        /* Init fail check 타이머 초기화 */
+        G_Timer1msFlag.InitFailCheckFlag = 0U;
+        G_Timer1ms.InitFailCheck = 0U;
+
+        /* Soft start 및 모터 속도 초기화 */
+        softstart_complete = OFF;
+        motor_step_value = STEP_TIME_1000RPM;
+
+        /* Sleep sequence 중 이동 중이었다면 일반 동작 대기로 복귀 */
+        if (AAFx_Position_Status == FlapMoving_Status)
+        {
+            aaf_step = AAF_OPERATE;
+        }
+        else
+        {
+            aaf_step = AAF_WAITING;
+        }
+    }
 }
 
 

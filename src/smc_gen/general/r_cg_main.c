@@ -115,7 +115,7 @@ static void AAF_Init(void)
 	/* lin transceiver on */
 	LinTrcv_On();
 
-	Drv8889_Init();
+	Drv8889_GpioInit();
 
 	AAF_SetType();
 

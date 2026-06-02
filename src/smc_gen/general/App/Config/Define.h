@@ -44,11 +44,11 @@
 // SX3K EV
 // --------------------------------------------------------------------
 #if (VEHICLE_CODENAME == SX3K_EV_AAF1)
-#define CONFIG_AAF_ANGLE 90
+#define CONFIG_AAF_ANGLE 110
 #define CONFIG_AAF_TYPE EXTERNAL_TYPE
 #define CONFIG_AAF_LOCATION RH_TYPE
 #define CONFIG_AAF_INDEX AAF_1
-#define CONFIG_AAF_TOTAL AAFx3
+#define CONFIG_AAF_TOTAL AAFx1
 #define CONFIG_SENSOR_TOTAL SENSOR_NO
  
 #elif (VEHICLE_CODENAME == SX3K_EV_AAF2)
@@ -75,7 +75,7 @@
 #if (CONFIG_AAF_ANGLE == 68)
     #define AAF_FULL_ANGLE              68U
     #define STEP_POSITION_MINIMUM_RANGE 9000U
-    #define STEP_POSITION_MAXIMUM_RANGE 13000U
+    #define STEP_POSITION_MAXIMUM_RANGE 13000U                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           
 #elif (CONFIG_AAF_ANGLE == 72)
     #define AAF_FULL_ANGLE              72U
     #define STEP_POSITION_MINIMUM_RANGE 9000U
@@ -84,6 +84,10 @@
     #define AAF_FULL_ANGLE              90U
     #define STEP_POSITION_MINIMUM_RANGE 12000U
     #define STEP_POSITION_MAXIMUM_RANGE 15500U
+#elif (CONFIG_AAF_ANGLE == 110)
+    #define AAF_FULL_ANGLE              110U
+    #define STEP_POSITION_MINIMUM_RANGE 13000U
+    #define STEP_POSITION_MAXIMUM_RANGE 18000U    
 #endif
 
 /* ====================================================================
@@ -96,6 +100,10 @@
 #define LIN_CONTROL_LEN       8U
 #define LIN_RESPONSE_LEN      8U
 
+#define OPEN_1ST_POSITION 1300U
+#define OPEN_2ND_POSITION 900U
+#define AAF_1ST_OPEN_ANGLE 60U //@@ 기존 83 에서 변경 예정 25% -> 75% 전체 110
+#define AAF_2ST_OPEN_ANGLE 30U // @@ 기존 55에서 변경 예정 50% -> 50% 전체 110
 
 /***********************************************************************************************************************
  * 1. System Defines
@@ -190,8 +198,6 @@
 
 #define REFERENCE_POSITION 30000U // 30000
 #define LIMIT_POSITION 1800U
-#define OPEN_1ST_POSITION 1300U
-#define OPEN_2ND_POSITION 900U
 #define TOLERANCE 100U
 #define ERROR_RANGE 5U
 
@@ -343,8 +349,7 @@
  * 7. AAF Specifics
 ***********************************************************************************************************************/
 #define AAF_ERROR_ANGLE 5U // V
-#define AAF_1ST_OPEN_ANGLE 65U
-#define AAF_2ST_OPEN_ANGLE 45U
+#define SLEEP_BACKOFF_DIVIDER 2U
 
 #define AAF_WAITING 0U
 #define AAF_OPERATE 1U
@@ -401,7 +406,6 @@
 #define Memory_Range_Break 15U
 
 #define ADC_Detect_Time 3000U
-
 
 
 

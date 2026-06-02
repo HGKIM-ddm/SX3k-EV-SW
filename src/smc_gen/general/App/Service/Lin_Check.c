@@ -101,10 +101,6 @@ static void Lin_SwCheck(void)
             SW_Chk = 3U;
         }
     }
-    else if ((Slave_RxSwData1[0U] == 0x00U) && (Slave_RxSwData1[1U] == 0xFFu) && (Slave_RxSwData1[2U] == 0xFFu) && (Slave_RxSwData1[3U] == 0xFFu) && (Slave_RxSwData1[4U] == 0xFFu) && (Slave_RxSwData1[5U] == 0xFFu) && (Slave_RxSwData1[6U] == 0xFFu) && (Slave_RxSwData1[7U] == 0xFFu))
-    {
-        SW_Chk = 2U; // GO TO SLEEP
-    }
     else
     {
         SW_Chk = 0U;
@@ -123,10 +119,6 @@ static void Lin_SwCheckResponse(void)
         Slave_SwData[5] = (uint8_t)(0x03u);
         Slave_SwData[6] = (uint8_t)(0x63u);
         Slave_SwData[7] = (uint8_t)(0xFFu);
-    }
-    else if (SW_Chk == 2U)
-    {
-        MCU_Sleep();
     }
     else if (SW_Chk == 3U)
     {
@@ -441,20 +433,24 @@ void Lin_BusCheck(void)
     if ((G_Timer1ms.LinBusInactive >= LIN_BUS_CHK_TIME_4_SEC) && (lin_bus_inactive_flag == OFF))
     {
         lin_bus_inactive_flag = ON;
+        lin_sleep_step = 0U;
 
         Drv8889_Off2();                           // drv of
         motor_start = OFF;                    // step stop
-        G_Timer1msFlag.External10sCheckFlag = OFF; // 10s chk timer off
-        G_Timer1ms.External10sCheck = 0U;
+
         aaf_action = FLAP_STOP;
         aaf_action_complete_chk = FLAP_STOP;
         softstart_complete = OFF;
         motor_step_value = STEP_TIME_1000RPM;
 
+        G_Timer1msFlag.External10sCheckFlag = OFF; // 10s chk timer off
+        G_Timer1ms.External10sCheck = 0U;
+
         G_Timer1ms.StallCheck = 0U;      // test
         G_Timer1msFlag.StallCheckFlag = 0U; // test
 
-        lin_sleep_step = 0U;
+        G_Timer1msFlag.LinSleepModeFlag = 0U;
+        G_Timer1ms.LinSleepMode = 0U;
 
         wake_up_motor_range_init_chk = 0U;
 

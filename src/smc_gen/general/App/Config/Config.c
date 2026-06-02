@@ -29,24 +29,12 @@ uint8_t Slave_SwData[8] = {
 
 uint8_t Slave_RxSwData1[8] = {0,};
 
-uint16_t tx_16bit_spi[11] = {
-	0x4000, // [0] (R) FAULT Status
-	0x4200, // [1] (R) DIAG Status 1
-	0x4400, // [2] (R) DIAG Status 2
-	0x0690, // [3] ?  瑜섏젣?
-	0x080F, // [4] (RW)CTRL 2
-	0x0A05, // [5] (RW)CTRL 3
-	0x0C3E, // [6] (RW)CTRL 4	3E (open load on) 0C36 0C3A
-	0x0E10, // [7] (RW)CTRL 5
-	0x1000, // [8] (RW)CTRL 6	stall threshold
-	0x5200, // [9] (R) CTRL 7	stall count
-	0x5400	// [10](R) CTRL 8
-};
+uint16_t tx_16bit_spi[11] = {0};
 
 uint16_t tx_16bit_spi_current_limit[16] = {
 	0x0601,
 	0x0611,
-	0x0621,
+	0x0621, 
 	0x0631,
 	0x0641,
 	0x0651,
@@ -63,8 +51,8 @@ uint16_t tx_16bit_spi_current_limit[16] = {
 };
 
 uint16_t tx_16bit_spi_slew_change[2] = {
-    0x0690,
-    0x0691
+    0x0640,
+    0x0641
 };
 
 uint16_t rx_16bit_spi_id[11] = {
