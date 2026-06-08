@@ -216,6 +216,8 @@ void Drv8889_DirCCW(void);
 void Drv8889_SpiInit(void);
 void Drv8889_FaultClear(void);
 
+void Drv8889_WriteCtrl1(Drv_TrqDac_t trq, Drv_SlewRate_t slew);
+
 #endif
 
 

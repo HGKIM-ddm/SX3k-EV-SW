@@ -26,8 +26,6 @@ extern uint8_t Slave_SwData[8];
 extern uint8_t Slave_RxSwData1[8];
 
 extern uint16_t tx_16bit_spi[11];
-extern uint16_t tx_16bit_spi_current_limit[16];
-extern uint16_t tx_16bit_spi_slew_change[2];
 extern uint16_t rx_16bit_spi_id[11];
 extern uint16_t rx_16bit_spi[11];
 extern uint16_t fault_clear[1];

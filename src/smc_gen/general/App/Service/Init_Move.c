@@ -50,7 +50,7 @@ static void Init_StartMotor(uint8_t next_step, uint8_t dir, uint8_t is_case0)
  ***********************************************************************************************************************/
 static void Init_StallCheck(uint8_t next_step, uint8_t retry_step, uint8_t dir)
 {
-    if ((motor_stall_flag == MOTOR_STALL) || (G_Timer1ms.InitCheck >= 4500U))
+    if ((motor_stall_flag == MOTOR_STALL) || (G_Timer1ms.InitCheck >= 8000U))
     {
         Drv8889_Off();
         motor_start = OFF;

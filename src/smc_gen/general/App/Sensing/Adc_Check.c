@@ -121,7 +121,7 @@ void ADC_UpdateVoltStat(void)
 	{
 		if ((bat_adc >= 500U) && (adc_avr < ADC_VOLTAGE_10V) && (motor_start == OFF))
 		{
-			voltage_status_spi = LOW_VOLTAGE_1ST;
+			voltage_status_spi = LOW_VOLTAGE;
 		}
 		else
 		{

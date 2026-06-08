@@ -31,30 +31,6 @@ uint8_t Slave_RxSwData1[8] = {0,};
 
 uint16_t tx_16bit_spi[11] = {0};
 
-uint16_t tx_16bit_spi_current_limit[16] = {
-	0x0601,
-	0x0611,
-	0x0621, 
-	0x0631,
-	0x0641,
-	0x0651,
-	0x0661,
-	0x0671,
-	0x0681,
-	0x0690,
-	0x06A1,
-	0x06B1,
-	0x06C1,
-	0x06D1,
-	0x06E1,
-	0x06F1
-};
-
-uint16_t tx_16bit_spi_slew_change[2] = {
-    0x0640,
-    0x0641
-};
-
 uint16_t rx_16bit_spi_id[11] = {
     0x4000,
     0x4200,

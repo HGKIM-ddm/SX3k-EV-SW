@@ -26,27 +26,21 @@ static void SpiCheck_ExecuteVoltageChange(void)
 {
     Drv8889_ScsActive(); // CS Low
 
-    if (voltage_status_spi == HIGH_VOLTAGE_1ST)
+    if (voltage_status_spi == NORMAL_VOLTAGE)
     {
-        R_Config_CSIH0_Send_Receive(&tx_16bit_spi_current_limit[9], 1U, &rx_16bit_spi[3], _CSIH_SELECT_CHIP_0);
-        motor_cw_stall_value = MOTOR_CW_STALL_CHK_VALUE_HIGH_VOLTAGE_1ST;
-        motor_ccw_stall_value = MOTOR_CCW_STALL_CHK_VALUE_HIGH_VOLTAGE_1ST;
-    }
-    else if (voltage_status_spi == NORMAL_VOLTAGE)
-    {
-        R_Config_CSIH0_Send_Receive(&tx_16bit_spi_slew_change[0], 1U, &rx_16bit_spi[3], _CSIH_SELECT_CHIP_0);
-        motor_cw_stall_value = MOTOR_CW_STALL_CHK_VALUE_NORMAL_VOLTAGE;
+        Drv8889_WriteCtrl1(TRQ_DAC_75, SLEW_RATE_10V);
+        motor_cw_stall_value  = MOTOR_CW_STALL_CHK_VALUE_NORMAL_VOLTAGE;
         motor_ccw_stall_value = MOTOR_CCW_STALL_CHK_VALUE_NORMAL_VOLTAGE;
     }
-    else if (voltage_status_spi == LOW_VOLTAGE_1ST)
+    else if (voltage_status_spi == LOW_VOLTAGE)
     {
-        R_Config_CSIH0_Send_Receive(&tx_16bit_spi_slew_change[1], 1U, &rx_16bit_spi[3], _CSIH_SELECT_CHIP_0);
-        motor_cw_stall_value = MOTOR_CW_STALL_CHK_VALUE_LOW_VOLTAGE_1ST;
-        motor_ccw_stall_value = MOTOR_CCW_STALL_CHK_VALUE_LOW_VOLTAGE_1ST;
+        Drv8889_WriteCtrl1(TRQ_DAC_75, SLEW_RATE_35V);
+        motor_cw_stall_value  = MOTOR_CW_STALL_CHK_VALUE_LOW_VOLTAGE;
+        motor_ccw_stall_value = MOTOR_CCW_STALL_CHK_VALUE_LOW_VOLTAGE;
     }
     else
     {
-        // Invalid
+        /* Invalid (HIGH_VOLTAGE 도달 불가) */
     }
 
     voltage_status_change_complete = WAIT;
@@ -194,7 +188,7 @@ static void SpiCheck_Init(void)
 
 static void SpiCheck_CurrentLimitingSelect(void)
 {
-	if ((voltage_status_spi == LOW_VOLTAGE_1ST) && (Operating_flag == 0U))
+	if ((voltage_status_spi == LOW_VOLTAGE) && (Operating_flag == 0U))
 	{
 		if (adc_avr >= ADC_VOLTAGE_10_5V)
 		{
@@ -206,7 +200,7 @@ static void SpiCheck_CurrentLimitingSelect(void)
 	{
 		if (adc_avr <= ADC_VOLTAGE_10V)
 		{
-			voltage_status_spi = LOW_VOLTAGE_1ST;
+			voltage_status_spi = LOW_VOLTAGE;
 			voltage_status_change = ON;
 		}
 	}

@@ -132,6 +132,12 @@ void Drv8889_StepLow(void)  { PORT.P9 &= ~_PORT_Pn0_OUTPUT_HIGH; }
 void Drv8889_DirCW(void)    { PORT.P10 |= _PORT_Pn4_OUTPUT_HIGH; }
 void Drv8889_DirCCW(void)   { PORT.P10 &= ~_PORT_Pn4_OUTPUT_HIGH; }
 
+void Drv8889_WriteCtrl1(Drv_TrqDac_t trq, Drv_SlewRate_t slew)
+{
+    uint16_t ctrl1_frame = ((uint16_t)DRV_CTRL1 << 8) | (uint16_t)((uint8_t)trq | (uint8_t)slew);
+
+    Drv8889_SpiTransfer(&ctrl1_frame, &rx_16bit_spi[3], 2U);
+}
 
 void Drv8889_SpiInit(void)
 {
