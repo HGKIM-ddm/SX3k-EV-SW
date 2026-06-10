@@ -181,9 +181,10 @@ static void Lin_CheckHighSpeedRelease(unsigned int vehicle_speed)
     }
 }
 
-//0609 우상민 초기 상태 : NORMAL. NORMAL 상태에서 차속 >= 145 -> HIGH_SPEED 진입
-//HIGH_SPEED 상태에서 차속 <135가 10초 유지 -> NORMAL 복귀
-//옵션 OFF 차량 -> 항상 NORMAL
+//차속 판단 = Lin_UpdateDriveMode()
+//명령 변환 = Lin_ApplyHighSpeedCommandOverride()
+//응답 위치 계산 = Lin_GetReportPosition()
+// AAF_DriveMode 상태만 관리
 static void Lin_UpdateDriveMode(unsigned int vehicle_speed)
 {
 #if (AAF_HIGH_SPEED_MODE_ENABLE == ON)
@@ -216,7 +217,53 @@ static void Lin_ParseVehicleSpeed(unsigned int raw_speed)
     Lin_UpdateDriveMode(CR_Mcu_VehSpdInt_Kph);
 }
 
-//0609 우상민 고속 주행모드일 경우, MCU 명령이 CLOSE 또는 1ST OPEN이면 실제 동작은 1ST OPEN 수행
+//차속은 135 미만이지만 아직 10초 전이므로 HIGH_SPEED 상태, 그리고 정상복귀 대기중
+static unsigned int Lin_IsHighSpeedExitWaiting(void)
+{
+    unsigned int waiting_status;
+
+    waiting_status = OFF;
+
+#if (AAF_HIGH_SPEED_MODE_ENABLE == ON)
+
+    if ((AAF_DriveMode == AAF_DRIVE_MODE_HIGH_SPEED) &&
+        (G_Timer1msFlag.HighSpeedExitCheckFlag == ON))
+    {
+        waiting_status = ON;
+    }
+
+#endif
+
+    return waiting_status;
+}
+
+// 새 위치 명령을 바로 수행하지 않음
+// 현재 위치 또는 현재 수행 중인 명령 유지
+// 10초 후 NORMAL 복귀되면 그때 새 명령 수행
+static unsigned int Lin_GetHighSpeedHoldCommand(void)
+{
+    unsigned int hold_command;
+
+    // 동작 완료 상태 -> AAF_Tx_Position 유지, 동작 중 상태 -> 현재 LIN 명령 (lin_aaf_command) 유지
+    hold_command = lin_aaf_command;
+
+    if (aaf_action_complete_chk == FLAP_STOP) // 이 상태는 동작이 완료된 상태이므로, 실제 위치값인 AAF_Tx_Position을 유지
+    {
+        if (AAF_Tx_Position != UNKOWN_POSITION)
+        {
+            hold_command = AAF_Tx_Position;
+        }
+    }
+
+    if (hold_command == UNKOWN_POSITION)
+    {
+        hold_command = OPEN_1ST;
+    }
+
+    return hold_command;
+}
+
+// 고속 주행모드일 경우, MCU 명령이 CLOSE 또는 1ST OPEN이면 실제 동작은 1ST OPEN 수행
 static unsigned int Lin_ApplyHighSpeedCommandOverride(unsigned int requested_command)
 {
     unsigned int effective_command;
@@ -227,9 +274,29 @@ static unsigned int Lin_ApplyHighSpeedCommandOverride(unsigned int requested_com
 
     if (AAF_DriveMode == AAF_DRIVE_MODE_HIGH_SPEED)
     {
-        if ((requested_command == CLOSE) || (requested_command == OPEN_1ST))
+        if (Lin_IsHighSpeedExitWaiting() == ON)
         {
-            effective_command = OPEN_1ST;
+            /*
+             * 차속이 135km/h 미만으로 내려갔지만 10초가 지나지 않은 상태.
+             * 아직 NORMAL 모드가 아니므로 새 위치 명령을 바로 수행하지 않고 현재 실제 상태를 유지한다.
+             */
+            effective_command = Lin_GetHighSpeedHoldCommand();
+        }
+        else
+        {
+            /*
+             * 고속 주행모드 유지 상태.
+             * CLOSE 또는 OPEN_1ST 요청만 OPEN_1ST로 보정하고,
+             * OPEN_2ND / FULL OPEN / DIAG / UNKNOWN은 요청대로 수행한다.
+             */
+            if ((requested_command == CLOSE) || (requested_command == OPEN_1ST))
+            {
+                effective_command = OPEN_1ST;
+            }
+            else
+            {
+                /* Requested command is used without override */
+            }
         }
     }
 
@@ -489,7 +556,7 @@ void Lin_RxCheck(void)
 
     if (lin_rx_pass_flag == PASS)
     {
-        Lin_ParseVehicleSpeed((unsigned int)(ID_chk_rxdata[6U]));
+        Lin_ParseVehicleSpeed((unsigned int)(ID_chk_rxdata[6U])); // 초기화 중에도 차속과 주행모드는 계속 최신 상태로 갱신하기 위하여 뺴놈.
 
         if (AAFx_InitStatus != DURING_INITIALIZATION)
         {
@@ -497,7 +564,7 @@ void Lin_RxCheck(void)
             AAF1_TargetPosition    = (unsigned int)(ID_chk_rxdata[4U] & 0x07U);
             AAF2_TargetPosition    = (unsigned int)((ID_chk_rxdata[4U] & 0x38U) >> 3U);
             AAF3_TargetPosition    = (unsigned int)(ID_chk_rxdata[5U] & 0x07U);
-            // CR_Mcu_VehSpdInt_Kph   = (unsigned int)(ID_chk_rxdata[6U]);
+            // CR_Mcu_VehSpdInt_Kph   = (unsigned int)(ID_chk_rxdata[6U]); // 0xFF를 0으로 처리한 값을 다시 원본값으로 덮어쓰지 않기 위해서 주석처리
             AAF_ProtectionMode_Rx  = (unsigned int)((ID_chk_rxdata[7U] & 0x40U) >> 6U);
             LDCRdy                 = (unsigned int)((ID_chk_rxdata[7U] & 0x30U) >> 4U);
             AAF_LINOut             = (unsigned int)((ID_chk_rxdata[7U] & 0x0CU) >> 2U);
