@@ -408,7 +408,16 @@
 
 #define ADC_Detect_Time 3000U
 
-
+/***********************************************************************************************************************
+ * 9. High Speed Mode (EV)
+***********************************************************************************************************************/
+#define AAF_HIGH_SPEED_MODE_ENABLE        ON //고속 주행모드 적용 여부 , 적용 안하는 차종이면 off로 변경
+#define AAF_DRIVE_MODE_NORMAL             0U // 정상 주행모드 상태값
+#define AAF_DRIVE_MODE_HIGH_SPEED         1U // 고속 주행모드 상태값
+#define AAF_HIGH_SPEED_ENTER_KPH          145U // 145km/h 이상이면 고속 주행모드 진입
+#define AAF_HIGH_SPEED_EXIT_KPH           135U //135km/h 미만이면 정상 복귀 조건 시작
+#define AAF_HIGH_SPEED_EXIT_TIME_MS       10000U //135km/h 미만 상태가 10초 유지되어야 정상 복귀
+#define AAF_VEHICLE_SPEED_ERROR_VALUE     0xFFU // 차속 0xFF는 Error ID라서 0으로 처리
 
 
 #endif

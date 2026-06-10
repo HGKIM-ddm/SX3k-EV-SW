@@ -6,6 +6,8 @@
 unsigned int LDCRdy = 0U;
 unsigned int CR_Mcu_VehSpdInt_Kph = 0U;
 
+unsigned int AAF_DriveMode = AAF_DRIVE_MODE_NORMAL; //현재 주행 모드 저장, 1이면 고속 주행 0이면 정상 주행
+unsigned int lin_aaf_request_command = CLOSE; // MCU가 LIN으로 보낸 원본 위치 명령 저장
 
 /* 2.1 Communication Buffers (LIN / SPI) */
 uint8_t GetIDbuffer;

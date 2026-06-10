@@ -137,43 +137,205 @@ static void Lin_SwCheckResponse(void)
     }
 }
 
-/***********************************************************************************************************************
- * Function Name: Lin_UpdateCommand
- * Description  : 파싱된 타겟 위치(target_select)에 따라 글로벌 제어 명령(lin_aaf_command)을 업데이트함
- * Arguments    : target_select - 결정된 목표 위치 또는 모드
- * Return Value : void
- ***********************************************************************************************************************/
+//0609  우상민 RAW_SPEED == 0XFF -> 0km/h 처리, 0x64 -> 100km/h . 0x91 -> 145km/h, 0xFF -> Error 
+static unsigned int Lin_GetValidVehicleSpeed(unsigned int raw_speed)
+{
+    unsigned int valid_speed;
+
+    if (raw_speed == AAF_VEHICLE_SPEED_ERROR_VALUE)
+    {
+        valid_speed = 0U;
+    }
+    else
+    {
+        valid_speed = raw_speed;
+    }
+
+    return valid_speed;
+}
+
+//0609 우상민 타이머 리셋
+static void Lin_ResetHighSpeedExitTimer(void)
+{
+    G_Timer1ms.HighSpeedExitCheck = 0U;
+    G_Timer1msFlag.HighSpeedExitCheckFlag = OFF;
+}
+
+//0609 우상민 고속 주행 모드에서만 호출,  차속 < 135km/h -> HighSpeedExitCheckFlag ON -> 10초 후 AAF_DRIVE_MODE_NORMAL로 복귀
+//차속이 다시 135km/h 이상 -> 타이머 리셋
+static void Lin_CheckHighSpeedRelease(unsigned int vehicle_speed)
+{
+    if (vehicle_speed < AAF_HIGH_SPEED_EXIT_KPH)
+    {
+        G_Timer1msFlag.HighSpeedExitCheckFlag = ON;
+
+        if (G_Timer1ms.HighSpeedExitCheck >= AAF_HIGH_SPEED_EXIT_TIME_MS)
+        {
+            AAF_DriveMode = AAF_DRIVE_MODE_NORMAL;
+            Lin_ResetHighSpeedExitTimer();
+        }
+    }
+    else
+    {
+        Lin_ResetHighSpeedExitTimer();
+    }
+}
+
+//0609 우상민 초기 상태 : NORMAL. NORMAL 상태에서 차속 >= 145 -> HIGH_SPEED 진입
+//HIGH_SPEED 상태에서 차속 <135가 10초 유지 -> NORMAL 복귀
+//옵션 OFF 차량 -> 항상 NORMAL
+static void Lin_UpdateDriveMode(unsigned int vehicle_speed)
+{
+#if (AAF_HIGH_SPEED_MODE_ENABLE == ON)
+
+    if (AAF_DriveMode == AAF_DRIVE_MODE_NORMAL)
+    {
+        if (vehicle_speed >= AAF_HIGH_SPEED_ENTER_KPH)
+        {
+            AAF_DriveMode = AAF_DRIVE_MODE_HIGH_SPEED;
+            Lin_ResetHighSpeedExitTimer();
+        }
+    }
+    else
+    {
+        Lin_CheckHighSpeedRelease(vehicle_speed);
+    }
+
+#else
+
+    AAF_DriveMode = AAF_DRIVE_MODE_NORMAL;
+    Lin_ResetHighSpeedExitTimer();
+
+#endif
+}
+
+//0609 우상민 LIN에서 받은 BYTE 6 차속을 처리하는 함수, id_chk_rxdata[6] 읽음, 0xFF이면 0으로 반환, CR_MCU_VEHSPDINT_KPG에 저장, 고속 주행모드 상태 업데이트
+static void Lin_ParseVehicleSpeed(unsigned int raw_speed)
+{
+    CR_Mcu_VehSpdInt_Kph = Lin_GetValidVehicleSpeed(raw_speed);
+    Lin_UpdateDriveMode(CR_Mcu_VehSpdInt_Kph);
+}
+
+//0609 우상민 고속 주행모드일 경우, MCU 명령이 CLOSE 또는 1ST OPEN이면 실제 동작은 1ST OPEN 수행
+static unsigned int Lin_ApplyHighSpeedCommandOverride(unsigned int requested_command)
+{
+    unsigned int effective_command;
+
+    effective_command = requested_command;
+
+#if (AAF_HIGH_SPEED_MODE_ENABLE == ON)
+
+    if (AAF_DriveMode == AAF_DRIVE_MODE_HIGH_SPEED)
+    {
+        if ((requested_command == CLOSE) || (requested_command == OPEN_1ST))
+        {
+            effective_command = OPEN_1ST;
+        }
+    }
+
+#endif
+
+    return effective_command;
+}
+
+//0609 우상민 실제 동작 명령인 effective_command 기준으로 step_start_flag를 판단
+static void Lin_RequestStepStart(unsigned int effective_command)
+{
+    if (aaf_action_complete_chk == FLAP_STOP)
+    {
+        if ((effective_command != AAF_Tx_Position) &&
+            (AAF_Tx_Position != UNKOWN_POSITION) &&
+            (effective_command != UNKOWN_POSITION))
+        {
+            step_start_flag = ON;
+        }
+    }
+    else if (aaf_action == DIAG_MODE_AUTO)
+    {
+        if (effective_command != aaf_action)
+        {
+            step_start_flag = ON;
+        }
+    }
+    else
+    {
+        /* No request */
+    }
+}
+
+//0609 우상민 AAF_Tx_Position 자체를 바꾸면 안되고, 응답용 위치만 Lin_GetReportPosition에서 따로 계산
+static unsigned int Lin_GetReportPosition(void)
+{
+    unsigned int report_position;
+
+    report_position = AAF_Tx_Position;
+
+#if (AAF_HIGH_SPEED_MODE_ENABLE == ON)
+
+    if (AAF_DriveMode == AAF_DRIVE_MODE_HIGH_SPEED)
+    {
+        if ((lin_aaf_request_command == CLOSE) || (lin_aaf_request_command == OPEN_1ST))
+        {
+            report_position = lin_aaf_request_command;
+        }
+    }
+
+#endif
+
+    return report_position;
+}
+
 static void Lin_UpdateCommand(unsigned int target_select)
 {
-    switch (target_select)
+    unsigned int effective_command;
+
+    lin_aaf_request_command = target_select;
+    effective_command = Lin_ApplyHighSpeedCommandOverride(target_select);
+
+    switch (effective_command)
     {
     case CLOSE:
         lin_aaf_command = CLOSE;
         break;
+
     case OPEN_1ST:
         lin_aaf_command = OPEN_1ST;
         break;
+
     case OPEN_2ND:
         lin_aaf_command = OPEN_2ND;
         break;
+
     case OPEN:
         lin_aaf_command = OPEN;
         break;
+
     case DIAG_MODE_OPEN:
         lin_aaf_command = DIAG_MODE_OPEN;
         break;
+
     case DIAG_MODE_CLOSE:
         lin_aaf_command = DIAG_MODE_CLOSE;
         break;
+
     case DIAG_MODE_AUTO:
         lin_aaf_command = DIAG_MODE_AUTO;
         break;
+
     case UNKOWN_POSITION:
         lin_aaf_command = UNKOWN_POSITION;
         break;
+
     default:
         break;
     }
+}
+
+//0609 우상민 step start 판단은 close 기준이 아닌 1st open 기준
+static void Lin_ProcessTargetCommand(unsigned int target_select)
+{
+    Lin_RequestStepStart(Lin_ApplyHighSpeedCommandOverride(target_select));
+    Lin_UpdateCommand(target_select);
 }
 
 /***********************************************************************************************************************
@@ -261,22 +423,7 @@ void Lin_CheckAAF1RxData(void){
         default: break;
     }
 
-    if (aaf_action_complete_chk == FLAP_STOP)
-    {
-        if ((AAF1_TargetPosition_select != AAF_Tx_Position) && (AAF_Tx_Position != UNKOWN_POSITION) && (AAF1_TargetPosition_select != UNKOWN_POSITION))
-        {
-            step_start_flag = ON;
-        }
-    }
-    else if (aaf_action == DIAG_MODE_AUTO)
-    {
-        if (AAF1_TargetPosition_select != aaf_action)
-        {
-            step_start_flag = ON;
-        }
-    }
-
-    Lin_UpdateCommand(AAF1_TargetPosition_select);
+    Lin_ProcessTargetCommand(AAF1_TargetPosition_select);
 }
 
 /***********************************************************************************************************************
@@ -300,22 +447,7 @@ void Lin_CheckAAF2RxData(void){
         default: break;
     }
 
-    if (aaf_action_complete_chk == FLAP_STOP)
-    {
-        if ((AAF2_TargetPosition_select != AAF_Tx_Position) && (AAF_Tx_Position != UNKOWN_POSITION) && (AAF2_TargetPosition_select != UNKOWN_POSITION))
-        {
-            step_start_flag = ON;
-        }
-    }
-    else if (aaf_action == DIAG_MODE_AUTO)
-    {
-        if (AAF2_TargetPosition_select != aaf_action)
-        {
-            step_start_flag = ON;
-        }
-    }
-
-    Lin_UpdateCommand(AAF2_TargetPosition_select);
+    Lin_ProcessTargetCommand(AAF2_TargetPosition_select);
 }
 
 /***********************************************************************************************************************
@@ -339,22 +471,7 @@ void Lin_CheckAAF3RxData(void){
         default: break;
     }
 
-    if (aaf_action_complete_chk == FLAP_STOP)
-    {
-        if ((AAF3_TargetPosition_select != AAF_Tx_Position) && (AAF_Tx_Position != UNKOWN_POSITION) && (AAF3_TargetPosition_select != UNKOWN_POSITION))
-        {
-            step_start_flag = ON;
-        }
-    }
-    else if (aaf_action == DIAG_MODE_AUTO)
-    {
-        if (AAF3_TargetPosition_select != aaf_action)
-        {
-            step_start_flag = ON;
-        }
-    }
-
-    Lin_UpdateCommand(AAF3_TargetPosition_select);
+    Lin_ProcessTargetCommand(AAF3_TargetPosition_select);
 }   
 
 
@@ -372,13 +489,15 @@ void Lin_RxCheck(void)
 
     if (lin_rx_pass_flag == PASS)
     {
+        Lin_ParseVehicleSpeed((unsigned int)(ID_chk_rxdata[6U]));
+
         if (AAFx_InitStatus != DURING_INITIALIZATION)
         {
             /* EV Control Frame Mapping (Byte 4 ~ 7) */
             AAF1_TargetPosition    = (unsigned int)(ID_chk_rxdata[4U] & 0x07U);
             AAF2_TargetPosition    = (unsigned int)((ID_chk_rxdata[4U] & 0x38U) >> 3U);
             AAF3_TargetPosition    = (unsigned int)(ID_chk_rxdata[5U] & 0x07U);
-            CR_Mcu_VehSpdInt_Kph   = (unsigned int)(ID_chk_rxdata[6U]);
+            // CR_Mcu_VehSpdInt_Kph   = (unsigned int)(ID_chk_rxdata[6U]);
             AAF_ProtectionMode_Rx  = (unsigned int)((ID_chk_rxdata[7U] & 0x40U) >> 6U);
             LDCRdy                 = (unsigned int)((ID_chk_rxdata[7U] & 0x30U) >> 4U);
             AAF_LINOut             = (unsigned int)((ID_chk_rxdata[7U] & 0x0CU) >> 2U);
@@ -422,7 +541,7 @@ void Lin_RxCheck(void)
  ***********************************************************************************************************************/
 void Lin_TxCheck(void)
 {
-    switch (AAF_Tx_Position)
+    switch (Lin_GetReportPosition())
     {
     case CLOSE:
         AAF_Tx_Position_LIN = 0x00U;

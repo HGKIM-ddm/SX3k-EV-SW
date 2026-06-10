@@ -11,6 +11,8 @@
 extern unsigned int LDCRdy;
 extern unsigned int CR_Mcu_VehSpdInt_Kph;
 
+extern unsigned int AAF_DriveMode;
+extern unsigned int lin_aaf_request_command;
 /*******************************************************************************
  * Drv8889 Register
  ******************************************************************************/
@@ -244,6 +246,7 @@ typedef struct {
     unsigned int Timer3minute;
     unsigned int Timer3minuteSec;
     unsigned int IgnErrorCheck;
+    unsigned int HighSpeedExitCheck;
 } Global_Timer1msType;
 
 typedef struct {
@@ -279,6 +282,7 @@ typedef struct {
     unsigned int Adc1sCheckFlag;
     unsigned int Timer3minuteFlag;
     unsigned int IgnErrorCheckFlag;
+    unsigned int HighSpeedExitCheckFlag;
 } Global_Timer1msFlagType;
 
 extern Global_Timer1msType G_Timer1ms;
