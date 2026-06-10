@@ -11,6 +11,16 @@
 extern unsigned int LDCRdy;
 extern unsigned int CR_Mcu_VehSpdInt_Kph;
 
+/*******************************************************************************
+ * Drv8889 Register
+ ******************************************************************************/
+extern unsigned int TRQ_COUNT;
+
+//for UI test
+extern uint16_t TRQ_COUNT_Buffer[4000U];
+extern unsigned int TRQ_COUNT_Index;
+extern uint8_t TRQ_COUNT_LogEnable;
+extern uint8_t TRQ_COUNT_TxReady;
 
 /*******************************************************************************
  * Global Variable Extern Declarations
@@ -40,7 +50,6 @@ extern unsigned int init_move_step;
 extern unsigned int motor_open_load;
 extern unsigned int motor_step_value;
 extern volatile unsigned int softstart_complete;
-extern unsigned int motor_stall_value;
 extern unsigned int motor_stall_flag;
 extern unsigned int motor_cw_stall_value;
 extern unsigned int motor_ccw_stall_value;
@@ -114,6 +123,7 @@ extern volatile uint8_t error_status;
 extern unsigned int lin_aaf_command;
 extern unsigned int lin_rx_pass_flag;
 extern unsigned int lin_rx_chk_flag;
+extern volatile uint8_t lin_tx_resp_flag;
 extern unsigned int AAF_LIN_ChkSum_CHK_value;
 extern unsigned char spi_send_flag;
 extern unsigned char spi_receive_flag;

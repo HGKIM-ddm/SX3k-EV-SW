@@ -98,7 +98,7 @@ void Re_Init(void)
 	G_Timer1msFlag.DiagAutoModeFlag = OFF;
 	diag_mode_auto_action = OFF;
 	aaf_action = 0U;
-	motor_stall_value = MOTOR_STALL_CHK_NORMAL_VALUE; // stall reset
+	TRQ_COUNT = MOTOR_STALL_CHK_NORMAL_VALUE; // stall reset
 	aaf_step = AAF_INITIALIZATION;					  // MCU is reset, AAF is initialized.
 	aaf_init_step = START_INITIALIZATION;			  // MCU is reset, AAF is initialized.
 	AAFx_Position_Status = Unknown_Status;
@@ -112,11 +112,12 @@ void Re_Init(void)
 	Diag_Mode = 0U;
 	Diag_Mode_chk = 0U;
 	evrdy_on_flag = OFF;
-	//only sx3k
-	// AAFx_SNSR1_Position = Initial_Value;
-	// AAFx_SNSR2_Position = Initial_Value;
-	// AAFx_SNSR3_Position = Initial_Value;
-	// AAFx_SNSR4_Position = Initial_Value;
+
+	#ifdef ENABLE_TORQUE_LIN_COMMUNICATION
+	TRQ_COUNT_Index = 0U;
+    TRQ_COUNT_LogEnable = 1U; 
+    TRQ_COUNT_TxReady = 0U;
+	#endif
 }
 
 /***********************************************************************************************************************

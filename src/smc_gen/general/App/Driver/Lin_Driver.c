@@ -155,6 +155,8 @@ void Lin_SlaveTransmit(uint8_t *databuf, uint8_t Data_length)
 	}
 
 	RLN30.LTRC = 0x02U; /*setting RTS=1;Response transmission start*/
+
+	lin_tx_resp_flag = 1U;
 }
 
 /***********************************************************************************************************************

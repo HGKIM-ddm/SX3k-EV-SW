@@ -244,7 +244,7 @@ static void Operate_NormalAction(unsigned int direction)
     G_Timer1msFlag.External10sCheckFlag = ON; 
     G_Timer1msFlag.StallCheckFlag = ON;
     G_Timer1ms.StallTime = 0U;
-    motor_stall_value = MOTOR_STALL_CHK_NORMAL_VALUE;
+    TRQ_COUNT = MOTOR_STALL_CHK_NORMAL_VALUE;
 
     if (direction == OPEN) flap_move = OPEN;
     else flap_move = CLOSE;
@@ -300,7 +300,7 @@ static void Operate_DiagAction(unsigned int direction, unsigned int is_auto)
     motor_start = ON;
     G_Timer1msFlag.StallCheckFlag = ON;
     G_Timer1ms.StallTime = 0;
-    motor_stall_value = MOTOR_STALL_CHK_NORMAL_VALUE;
+    TRQ_COUNT = MOTOR_STALL_CHK_NORMAL_VALUE;
     Diag_Mode = 1;
 
     if (direction == OPEN) flap_move = OPEN;
@@ -624,7 +624,7 @@ static void Operate_Finish(void)
 	G_Timer1ms.InitCheck = 0U;							  // test
 	G_Timer1msFlag.StallTimeFlag = 0U;								  // stall reset
 	G_Timer1ms.StallTime = 0U;							  // stall reset
-	motor_stall_value = MOTOR_STALL_CHK_NORMAL_VALUE; // stall reset
+	TRQ_COUNT = MOTOR_STALL_CHK_NORMAL_VALUE; // stall reset
     Operating_flag = 0U;
 
 	if (aaf_action == DIAG_MODE_AUTO)

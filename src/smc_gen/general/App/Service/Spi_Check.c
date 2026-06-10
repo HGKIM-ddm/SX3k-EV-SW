@@ -40,7 +40,7 @@ static void SpiCheck_ExecuteVoltageChange(void)
     }
     else
     {
-        /* Invalid (HIGH_VOLTAGE 도달 불가) */
+        /* Invalid (HIGH_VOLTAGE) */
     }
 
     voltage_status_change_complete = WAIT;
@@ -132,9 +132,28 @@ static void SpiCheck_Delay2(void)
  ***********************************************************************************************************************/
 static void SpiCheck_HandleData(void)
 {
-    motor_stall_value = (unsigned int)(rx_16bit_spi[9] & 0xFFU);
+    /* 1. 변수 파싱 */
+    TRQ_COUNT = (unsigned int)(rx_16bit_spi[9] & 0xFFU);
     motor_open_load = (unsigned int)(rx_16bit_spi[9] & 0x100U);
     AAF_OverCurrent = (unsigned int)(rx_16bit_spi[9] & 0x800U);
+
+    #ifdef ENABLE_TORQUE_LIN_COMMUNICATION
+    if (TRQ_COUNT_LogEnable == 1U)
+    {
+        // 모터 구동 중 2ms마다 여기가 호출됨
+        if (TRQ_COUNT_Index < 4000U)
+        {
+            TRQ_COUNT_Buffer[TRQ_COUNT_Index] = TRQ_COUNT;
+            TRQ_COUNT_Index++;
+        }
+        else
+        {
+            // 4000개가 넘어가면(약 8초) 강제 종료
+            TRQ_COUNT_LogEnable = 0U;
+            TRQ_COUNT_TxReady = 1U; 
+        }
+    }
+    #endif
 
     G_Timer1ms.Spi = 0U;
 
@@ -149,7 +168,6 @@ static void SpiCheck_HandleData(void)
 
     spi_action_step = 0U;
 }
-
 /***********************************************************************************************************************
  * Function Name: SpiCheck_Init
  * Description  : Checks conditions to start a new SPI transaction (Step 0 Logic).

@@ -66,7 +66,7 @@ static void Antipinch_PrevOpen(void)
         motor_start = ON; 
 
         G_Timer1ms.StallTime = 0U;                                           
-        motor_stall_value = MOTOR_STALL_CHK_NORMAL_VALUE; 
+        TRQ_COUNT = MOTOR_STALL_CHK_NORMAL_VALUE; 
         motor_stall_flag = MOTOR_NORMAL;                  
         G_Timer1ms.Spi = 0U;
         aaf_action = OPEN;
@@ -232,7 +232,7 @@ static void Antipinch_PrevClose(void)
         motor_stall_flag = MOTOR_NORMAL; 
 
         G_Timer1ms.StallTime = 0U;                                           
-        motor_stall_value = MOTOR_STALL_CHK_NORMAL_VALUE; 
+        TRQ_COUNT = MOTOR_STALL_CHK_NORMAL_VALUE; 
         G_Timer1ms.Spi = 0U;
 
         aaf_action = CLOSE;
@@ -317,7 +317,7 @@ static void Antipinch_PrevClose(void)
         G_Timer1ms.Spi = 0U;
 
         G_Timer1ms.StallTime = 0U;                                           
-        motor_stall_value = MOTOR_STALL_CHK_NORMAL_VALUE; 
+        TRQ_COUNT = MOTOR_STALL_CHK_NORMAL_VALUE; 
 
         antipinch_step = 6U;
         break;
@@ -351,7 +351,7 @@ static void Antipinch_PrevClose(void)
             G_Timer1ms.StallCheck = 0U;      
             G_Timer1msFlag.StallCheckFlag = 0U; 
 
-            motor_stall_value = MOTOR_STALL_CHK_NORMAL_VALUE; 
+            TRQ_COUNT = MOTOR_STALL_CHK_NORMAL_VALUE; 
 
             if (Diag_Mode != 0U)
             {

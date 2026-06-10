@@ -15,6 +15,9 @@
 //For Torque Test
 //#define ENABLE_TORQUE_TEST
 
+//For Torque Lin Communication
+#define ENABLE_TORQUE_LIN_COMMUNICATION
+
 //Current CodeName
 #define VEHICLE_CODENAME SX3K_EV_AAF1
 
@@ -269,29 +272,29 @@
 */
 // AAF V1.2 260123 ADC CHECK PCB VER
 //ADC_UNDER_VOLTAGE
-// #define ADC_UNDER_VOLTAGE_7V 1262U 
-// #define ADC_UNDER_VOLTAGE_8_5V 1566U
-// #define ADC_UNDER_VOLTAGE_9V 1667U
+#define ADC_UNDER_VOLTAGE_7V 1262U 
+#define ADC_UNDER_VOLTAGE_8_5V 1566U
+#define ADC_UNDER_VOLTAGE_9V 1667U
 
-// //ADC_OVER_VOLTAGE
-// #define ADC_OVER_VOLTAGE_16V 3070U
-// #define ADC_OVER_VOLTAGE_16_5V 3170U
-// #define ADC_OVER_VOLTAGE_18V 3480U
+//ADC_OVER_VOLTAGE
+#define ADC_OVER_VOLTAGE_16V 3070U
+#define ADC_OVER_VOLTAGE_16_5V 3170U
+#define ADC_OVER_VOLTAGE_18V 3480U
 
-// //ADC_VOLTAGE
-// #define ADC_VOLTAGE_10V 1850U	// slew change
-// #define ADC_VOLTAGE_10_5V 1950U // slew change
+//ADC_VOLTAGE
+#define ADC_VOLTAGE_10V 1850U	// slew change
+#define ADC_VOLTAGE_10_5V 1950U // slew change
 
 // HW 1.2 ADC 최신
-#define ADC_UNDER_VOLTAGE_7V 618U	 // chk 1267 ~ 1271
-#define ADC_UNDER_VOLTAGE_8_5V 764U	 // chk 1576 ~ 1578
-#define ADC_UNDER_VOLTAGE_9V 814U	 // chk 1679 ~ 1681
-#define ADC_OVER_VOLTAGE_16V 1512U	 // chk 3112 ~ 3115
-#define ADC_OVER_VOLTAGE_16_5V 1561U // chk 3215 ~ 3217
-#define ADC_OVER_VOLTAGE_18V 1710U	 // chk 3521 ~ 3524
+// #define ADC_UNDER_VOLTAGE_7V 618U	 // chk 1267 ~ 1271
+// #define ADC_UNDER_VOLTAGE_8_5V 764U	 // chk 1576 ~ 1578
+// #define ADC_UNDER_VOLTAGE_9V 814U	 // chk 1679 ~ 1681
+// #define ADC_OVER_VOLTAGE_16V 1512U	 // chk 3112 ~ 3115
+// #define ADC_OVER_VOLTAGE_16_5V 1561U // chk 3215 ~ 3217
+// #define ADC_OVER_VOLTAGE_18V 1710U	 // chk 3521 ~ 3524
 
-#define ADC_VOLTAGE_10V 914U   // slew change
-#define ADC_VOLTAGE_10_5V 964U // slew change
+// #define ADC_VOLTAGE_10V 914U   // slew change
+// #define ADC_VOLTAGE_10_5V 964U // slew change
 
 
 
@@ -321,6 +324,7 @@
 /***********************************************************************************************************************
  * 6. Stall Check & Motor Faults
 ***********************************************************************************************************************/
+
 #define MOTOR_STALL_CHK_NORMAL_VALUE 160U
 #define MOTOR_CW_STALL_CHK_HIGH_VALUE 255U  // 180
 #define MOTOR_CCW_STALL_CHK_HIGH_VALUE 255U // 180

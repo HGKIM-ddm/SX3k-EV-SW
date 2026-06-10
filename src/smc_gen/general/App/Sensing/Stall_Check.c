@@ -11,7 +11,7 @@
 static void StallCheck_UpdateCounter(unsigned int low_limit, unsigned int high_limit)
 {
     // Check if the value is out of the normal range (Stall condition)
-    if ((motor_stall_value <= low_limit) || (motor_stall_value >= high_limit))
+    if ((TRQ_COUNT <= low_limit) || (TRQ_COUNT >= high_limit))
     {
         if ((G_Timer1ms.StallTime >= STALL_CHK_WAIT_TIME) || (stall_test_mode == 1U))
         {
@@ -29,13 +29,6 @@ static void StallCheck_UpdateCounter(unsigned int low_limit, unsigned int high_l
     {
         motor_stall_flag = MOTOR_NORMAL;
         stall_cnt = STALL_CNT_DEFAULT;
-        
-        // [Legacy Comment Preserved]
-        // stall_cnt--;
-        // if (stall_cnt < STALL_CNT_DEFAULT)
-        // {
-        //     stall_cnt = STALL_CNT_DEFAULT;
-        // }
     }
 }
 

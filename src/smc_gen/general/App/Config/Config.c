@@ -51,6 +51,19 @@ uint16_t rx_16bit_spi[11] = {
 uint16_t fault_clear[1] = {
     0x0CBA};
 
+/*******************************************************************************
+ * Drv8889 Register
+ ******************************************************************************/
+unsigned int TRQ_COUNT = 0U;
+
+//for UI test
+uint16_t TRQ_COUNT_Buffer[4000U] = {0U,};
+unsigned int TRQ_COUNT_Index = 0U;
+uint8_t TRQ_COUNT_LogEnable = 0U;
+uint8_t TRQ_COUNT_TxReady = 0U;
+
+
+
 /* 2.2 Motor Control Variables */
 unsigned int motor_start = OFF;
 unsigned int motor_wait_chk = 0;
@@ -61,7 +74,7 @@ unsigned int init_move_step = 0;
 unsigned int motor_open_load = 0;
 unsigned int motor_step_value = 0;
 volatile unsigned int softstart_complete = 0;
-unsigned int motor_stall_value = 255;
+
 unsigned int motor_stall_flag = 0;
 unsigned int motor_cw_stall_value = 0;
 unsigned int motor_ccw_stall_value = 0;
@@ -111,8 +124,6 @@ unsigned int ReqRespAAFID = 0;
 unsigned int ReqAAF1DiagMode = 0;
 unsigned int ReqAAF2DiagMode = 0;
 unsigned int ReqAAF3DiagMode = 0;
-unsigned int EngRunSta = 0;
-unsigned int HevRdy = 0;
 unsigned int Req_ChkSum_Rx = 0;
 unsigned int Req_Alive_Rx = 0;
 unsigned int AAFx_Mode = 0;
@@ -135,6 +146,7 @@ volatile uint8_t error_status = 0;
 unsigned int lin_aaf_command = 0;
 unsigned int lin_rx_pass_flag = 0;
 unsigned int lin_rx_chk_flag = 0;
+volatile uint8_t lin_tx_resp_flag = 0;
 unsigned int AAF_LIN_ChkSum_CHK_value = 0;
 unsigned char spi_send_flag = 0;
 unsigned char spi_receive_flag = 0;
