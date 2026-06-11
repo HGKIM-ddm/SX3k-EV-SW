@@ -138,4 +138,23 @@ void R_Config_TAUJ1_Stop(void)
 }
 
 /* Start user code for adding. Do not edit comment generated here */
+/***********************************************************************************************************************
+ * Function Name: R_Config_TAUJ1_SetCompareValue
+ * Description  : TAUJ1 Channel0/1 compare 값을 변경함.
+                Microstep 변경 시 STEP 출력 주기를 맞추기 위해 사용함.
+ ***********************************************************************************************************************/
+void R_Config_TAUJ1_SetCompareValue(uint32_t ch0_compare, uint32_t ch1_compare)
+{
+    /* Stop TAUJ1 channel 0/1 before changing compare values */
+    TAUJ1.TT |= (_TAUJ_CHANNEL1_COUNTER_STOP | _TAUJ_CHANNEL0_COUNTER_STOP);
+
+    g_cg_sync_read = TAUJ1.TT;
+    __syncp();
+
+    TAUJ1.CDR0 = ch0_compare;
+    TAUJ1.CDR1 = ch1_compare;
+
+    g_cg_sync_read = TAUJ1.CDR0;
+    __syncp();
+}
 /* End user code. Do not edit comment generated here */

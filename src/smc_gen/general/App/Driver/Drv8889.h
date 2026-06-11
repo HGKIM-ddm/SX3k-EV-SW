@@ -112,13 +112,13 @@ typedef enum {
 /* MICROSTEP_MODE[3:0] → bit3-0 (<<0) (Table 7-26) */
 typedef enum {
     MICROSTEP_FULL_100  = (0x0U << 0),  /* Full step (2상), 100% 전류 */
-    MICROSTEP_FULL_71   = (0x1U << 0),  /* Full step (2상), 71% 전류 */
+    MICROSTEP_FULL_71   = (0x1U << 0),  /* oFull step (2상), 71% 전류 */
     MICROSTEP_NONCIRC   = (0x2U << 0),  /* Non-circular 1/2 step */
-    MICROSTEP_1_2       = (0x3U << 0),  /* 1/2 step */
-    MICROSTEP_1_4       = (0x4U << 0),  /* 1/4 step */
-    MICROSTEP_1_8       = (0x5U << 0),  /* 1/8 step (현재) */
-    MICROSTEP_1_16      = (0x6U << 0),  /* 1/16 step */
-    MICROSTEP_1_32      = (0x7U << 0),  /* 1/32 step */
+    MICROSTEP_1_2       = (0x3U << 0),  /* o 1/2 step */
+    MICROSTEP_1_4       = (0x4U << 0),  /* o1/4 step */
+    MICROSTEP_1_8       = (0x5U << 0),  /* o 1/8 step (현재) */
+    MICROSTEP_1_16      = (0x6U << 0),  /* o 1/16 step */
+    MICROSTEP_1_32      = (0x7U << 0),  /* o 1/32 step */
     MICROSTEP_1_64      = (0x8U << 0),  /* 1/64 step */
     MICROSTEP_1_128     = (0x9U << 0),  /* 1/128 step */
     MICROSTEP_1_256     = (0xAU << 0)   /* 1/256 step */
@@ -218,6 +218,15 @@ void Drv8889_FaultClear(void);
 
 void Drv8889_WriteCtrl1(Drv_TrqDac_t trq, Drv_SlewRate_t slew);
 
+#endif
+
+#ifdef ENABLE_TORQUE_LIN_COMMUNICATION
+void Drv8889_WriteCtrl1Raw(uint8_t data);
+void Drv8889_WriteCtrl2(uint8_t data);
+void Drv8889_WriteCtrl3(uint8_t data);
+void Drv8889_WriteCtrl4(uint8_t data);
+void Drv8889_WriteCtrl5(uint8_t data);
+void Drv8889_WriteCtrl6(uint8_t data);
 #endif
 
 

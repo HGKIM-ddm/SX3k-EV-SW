@@ -74,6 +74,47 @@
 // error
 #endif
 
+/* ====================================================================
+ * Motor Microstep & TAUJ1 Step Pulse Setting
+ * ==================================================================== */
+
+/* DRV8889 CTRL3 Microstep setting value */
+#define CONFIG_MICROSTEP_FULL_71                 (0x01U)
+#define CONFIG_MICROSTEP_1_2                     (0x03U)
+#define CONFIG_MICROSTEP_1_4                     (0x04U)
+#define CONFIG_MICROSTEP_1_8                     (0x05U)
+#define CONFIG_MICROSTEP_1_16                    (0x06U)
+#define CONFIG_MICROSTEP_1_32                    (0x07U)
+
+/* Current default setting: 1/8 step */
+#define CONFIG_MOTOR_MICROSTEP_DEFAULT           CONFIG_MICROSTEP_1_8
+
+/*
+ * TAUJ1 compare values for same mechanical speed.
+ * Base: 1/8 step = 500pps
+ */
+#define CONFIG_TAUJ1_MICROSTEP_FULL_71_CH0_COMPARE    (0x00004E1FUL) /* Full step 71%, 62.5pps */
+#define CONFIG_TAUJ1_MICROSTEP_FULL_71_CH1_COMPARE    (0x00002710UL)
+
+#define CONFIG_TAUJ1_MICROSTEP_1_2_CH0_COMPARE        (0x0000270FUL) /* 1/2 step, 125pps */
+#define CONFIG_TAUJ1_MICROSTEP_1_2_CH1_COMPARE        (0x00001388UL)
+
+#define CONFIG_TAUJ1_MICROSTEP_1_4_CH0_COMPARE        (0x00001387UL) /* 1/4 step, 250pps */
+#define CONFIG_TAUJ1_MICROSTEP_1_4_CH1_COMPARE        (0x000009C4UL)
+
+#define CONFIG_TAUJ1_MICROSTEP_1_8_CH0_COMPARE        (0x000009C3UL) /* 1/8 step, 500pps */
+#define CONFIG_TAUJ1_MICROSTEP_1_8_CH1_COMPARE        (0x000004E2UL)
+
+#define CONFIG_TAUJ1_MICROSTEP_1_16_CH0_COMPARE       (0x000004E1UL) /* 1/16 step, 1000pps */
+#define CONFIG_TAUJ1_MICROSTEP_1_16_CH1_COMPARE       (0x00000271UL)
+
+#define CONFIG_TAUJ1_MICROSTEP_1_32_CH0_COMPARE       (0x00000270UL) /* 1/32 step, 2000pps */
+#define CONFIG_TAUJ1_MICROSTEP_1_32_CH1_COMPARE       (0x00000138UL)
+
+/* Boot default: 1/8 step, 500pps */
+#define CONFIG_TAUJ1_DEFAULT_CH0_COMPARE              CONFIG_TAUJ1_MICROSTEP_1_8_CH0_COMPARE
+#define CONFIG_TAUJ1_DEFAULT_CH1_COMPARE              CONFIG_TAUJ1_MICROSTEP_1_8_CH1_COMPARE
+
 //Range
 #if (CONFIG_AAF_ANGLE == 68)
     #define AAF_FULL_ANGLE              68U
@@ -418,6 +459,7 @@
 #define AAF_HIGH_SPEED_EXIT_KPH           135U //135km/h 미만이면 정상 복귀 조건 시작
 #define AAF_HIGH_SPEED_EXIT_TIME_MS       10000U //135km/h 미만 상태가 10초 유지되어야 정상 복귀
 #define AAF_VEHICLE_SPEED_ERROR_VALUE     0xFFU // 차속 0xFF는 Error ID라서 0으로 처리
+
 
 
 #endif

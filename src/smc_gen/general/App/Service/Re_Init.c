@@ -92,32 +92,66 @@ static void Step_Check(void)
 	}
 }
 
+// void Re_Init(void)
+// {
+// 	G_Timer1ms.DiagAutoMode = 0U;
+// 	G_Timer1msFlag.DiagAutoModeFlag = OFF;
+// 	diag_mode_auto_action = OFF;
+// 	aaf_action = 0U;
+// 	TRQ_COUNT = MOTOR_STALL_CHK_NORMAL_VALUE; // stall reset
+// 	aaf_step = AAF_INITIALIZATION;					  // MCU is reset, AAF is initialized.
+// 	aaf_init_step = START_INITIALIZATION;			  // MCU is reset, AAF is initialized.
+// 	AAFx_Position_Status = Unknown_Status;
+// 	AAF_Tx_Position = UNKOWN_POSITION;
+// 	init_move_step = 0U;
+// 	AAFx_ErrorStatus = No_ErrorStatus;
+// 	step_position = REFERENCE_POSITION;
+// 	step_position_open = 0U;
+// 	step_position_close = 0U;
+// 	lin_aaf_command = OPEN;
+// 	Diag_Mode = 0U;
+// 	Diag_Mode_chk = 0U;
+// 	evrdy_on_flag = OFF;
+
+// 	#ifdef ENABLE_TORQUE_LIN_COMMUNICATION
+// 	TRQ_COUNT_Index = 0U;
+//     TRQ_COUNT_LogEnable = 1U; 
+//     TRQ_COUNT_TxReady = 0U;
+// 	#endif
+// }
+
+/***********************************************************************************************************************
+ * Function Name: Re_Init
+ * Description  : AAF 초기화가 필요한 경우 초기화 상태 및 관련 변수를 재설정함.
+ ***********************************************************************************************************************/
 void Re_Init(void)
 {
-	G_Timer1ms.DiagAutoMode = 0U;
-	G_Timer1msFlag.DiagAutoModeFlag = OFF;
-	diag_mode_auto_action = OFF;
-	aaf_action = 0U;
-	TRQ_COUNT = MOTOR_STALL_CHK_NORMAL_VALUE; // stall reset
-	aaf_step = AAF_INITIALIZATION;					  // MCU is reset, AAF is initialized.
-	aaf_init_step = START_INITIALIZATION;			  // MCU is reset, AAF is initialized.
-	AAFx_Position_Status = Unknown_Status;
-	AAF_Tx_Position = UNKOWN_POSITION;
-	init_move_step = 0U;
-	AAFx_ErrorStatus = No_ErrorStatus;
-	step_position = REFERENCE_POSITION;
-	step_position_open = 0U;
-	step_position_close = 0U;
-	lin_aaf_command = OPEN;
-	Diag_Mode = 0U;
-	Diag_Mode_chk = 0U;
-	evrdy_on_flag = OFF;
+    G_Timer1ms.DiagAutoMode = 0U;
+    G_Timer1msFlag.DiagAutoModeFlag = OFF;
+    diag_mode_auto_action = OFF;
 
-	#ifdef ENABLE_TORQUE_LIN_COMMUNICATION
-	TRQ_COUNT_Index = 0U;
+    aaf_action = 0U;
+    TRQ_COUNT = MOTOR_STALL_CHK_NORMAL_VALUE;
+
+    aaf_step = AAF_INITIALIZATION;
+    aaf_init_step = START_INITIALIZATION;
+    AAFx_Position_Status = Unknown_Status;
+    AAF_Tx_Position = UNKOWN_POSITION;
+    init_move_step = 0U;
+    AAFx_ErrorStatus = No_ErrorStatus;
+    step_position = REFERENCE_POSITION;
+    step_position_open = 0U;
+    step_position_close = 0U;
+    lin_aaf_command = OPEN;
+    Diag_Mode = 0U;
+    Diag_Mode_chk = 0U;
+    evrdy_on_flag = OFF;
+
+#ifdef ENABLE_TORQUE_LIN_COMMUNICATION
+    TRQ_COUNT_Index = 0U;
     TRQ_COUNT_LogEnable = 1U; 
     TRQ_COUNT_TxReady = 0U;
-	#endif
+#endif
 }
 
 /***********************************************************************************************************************

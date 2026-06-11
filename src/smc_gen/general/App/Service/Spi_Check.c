@@ -16,6 +16,23 @@ static void SpiCheck_Init(void);
 static void SpiCheck_CurrentLimitingSelect(void);
 
 /***********************************************************************************************************************
+ * Function Name: SpiCheck_WriteCtrl1ByVoltage
+ * Description  : 전압 상태에 따른 DRV8889 CTRL1 기본값을 설정함.
+ *                LIN CTRL1 튜닝값이 적용된 경우에는 튜닝값 유지를 위해 CTRL1을 덮어쓰지 않음.
+ ***********************************************************************************************************************/
+// static void SpiCheck_WriteCtrl1ByVoltage(Drv_TrqDac_t trq, Drv_SlewRate_t slew)
+// {
+// #ifdef ENABLE_TORQUE_LIN_COMMUNICATION
+//     if (drv8889_ctrl1_lin_tuning_applied == OFF)
+//     {
+//         Drv8889_WriteCtrl1(trq, slew);
+//     }
+// #else
+//     Drv8889_WriteCtrl1(trq, slew);
+// #endif
+// }
+
+/***********************************************************************************************************************
  * Function Name: SpiCheck_ExecuteVoltageChange
  * Description  : Sends SPI commands to update current limits when voltage status changes (Step 0 Condition 1).
  * Called By    : SpiCheck_Init
@@ -48,6 +65,40 @@ static void SpiCheck_ExecuteVoltageChange(void)
     spi_action_step = 1U;
     voltage_status_change = OFF;
 }
+
+/***********************************************************************************************************************
+ * Function Name: SpiCheck_ExecuteVoltageChange
+ * Description  : 전압 상태 변경에 따라 DRV8889 CTRL1 설정과 Stall 기준값을 갱신함.
+ *                LIN CTRL1 튜닝값이 적용된 경우 CTRL1은 유지하고 Stall 기준값만 갱신함.
+ ***********************************************************************************************************************/
+// static void SpiCheck_ExecuteVoltageChange(void)
+// {
+//     Drv8889_ScsActive(); // CS Low
+
+//     if (voltage_status_spi == NORMAL_VOLTAGE)
+//     {
+//         SpiCheck_WriteCtrl1ByVoltage(TRQ_DAC_75, SLEW_RATE_10V);
+
+//         motor_cw_stall_value  = MOTOR_CW_STALL_CHK_VALUE_NORMAL_VOLTAGE;
+//         motor_ccw_stall_value = MOTOR_CCW_STALL_CHK_VALUE_NORMAL_VOLTAGE;
+//     }
+//     else if (voltage_status_spi == LOW_VOLTAGE)
+//     {
+//         SpiCheck_WriteCtrl1ByVoltage(TRQ_DAC_75, SLEW_RATE_35V);
+
+//         motor_cw_stall_value  = MOTOR_CW_STALL_CHK_VALUE_LOW_VOLTAGE;
+//         motor_ccw_stall_value = MOTOR_CCW_STALL_CHK_VALUE_LOW_VOLTAGE;
+//     }
+//     else
+//     {
+//         /* Invalid (HIGH_VOLTAGE) */
+//     }
+
+//     voltage_status_change_complete = WAIT;
+//     G_Timer1msFlag.VoltStatChangeDelayFlag = 1U;
+//     spi_action_step = 1U;
+//     voltage_status_change = OFF;
+// }
 
 /***********************************************************************************************************************
  * Function Name: SpiCheck_SendCommand
@@ -123,37 +174,34 @@ static void SpiCheck_Delay2(void)
     }
 }
 
+
 /***********************************************************************************************************************
  * Function Name: SpiCheck_HandleData
- * Description  : Processes received SPI data and performs stall checking (Step 3).
- * Called By    : Spi_Check
- * Arguments    : void
- * Return Value : void
+ * Description  : SPI 수신 데이터를 파싱하여 모터 상태값을 갱신하고, TRQ_COUNT 로그 기능이 활성화된 경우
+ *                현재 TRQ_COUNT 값을 버퍼에 저장함.
  ***********************************************************************************************************************/
 static void SpiCheck_HandleData(void)
 {
-    /* 1. 변수 파싱 */
     TRQ_COUNT = (unsigned int)(rx_16bit_spi[9] & 0xFFU);
+
     motor_open_load = (unsigned int)(rx_16bit_spi[9] & 0x100U);
     AAF_OverCurrent = (unsigned int)(rx_16bit_spi[9] & 0x800U);
 
-    #ifdef ENABLE_TORQUE_LIN_COMMUNICATION
+#ifdef ENABLE_TORQUE_LIN_COMMUNICATION
     if (TRQ_COUNT_LogEnable == 1U)
     {
-        // 모터 구동 중 2ms마다 여기가 호출됨
         if (TRQ_COUNT_Index < 4000U)
         {
-            TRQ_COUNT_Buffer[TRQ_COUNT_Index] = TRQ_COUNT;
+            TRQ_COUNT_Buffer[TRQ_COUNT_Index] = (uint16_t)TRQ_COUNT;
             TRQ_COUNT_Index++;
         }
         else
         {
-            // 4000개가 넘어가면(약 8초) 강제 종료
             TRQ_COUNT_LogEnable = 0U;
-            TRQ_COUNT_TxReady = 1U; 
+            TRQ_COUNT_TxReady = 1U;
         }
     }
-    #endif
+#endif
 
     G_Timer1ms.Spi = 0U;
 

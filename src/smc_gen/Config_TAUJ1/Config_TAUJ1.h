@@ -29,8 +29,11 @@ Includes
 ***********************************************************************************************************************/
 #include "r_cg_tauj.h"
 
+#include "Define.h"
+
 #ifndef CFG_Config_TAUJ1_H
 #define CFG_Config_TAUJ1_H
+
 
 /***********************************************************************************************************************
 Macro definitions (Register bit)
@@ -39,8 +42,11 @@ Macro definitions (Register bit)
 /***********************************************************************************************************************
 Macro definitions
 ***********************************************************************************************************************/
-#define _TAUJ1_CHANNEL0_COMPARE_VALUE                            (0x000009C3UL) /* Data register for compare values */ //1/8step 500pps
-#define _TAUJ1_CHANNEL1_COMPARE_VALUE                            (0x000004E2UL) /* Data register for compare values */
+
+#define _TAUJ1_CHANNEL0_COMPARE_VALUE                            CONFIG_TAUJ1_DEFAULT_CH0_COMPARE
+#define _TAUJ1_CHANNEL1_COMPARE_VALUE                            CONFIG_TAUJ1_DEFAULT_CH1_COMPARE
+// #define _TAUJ1_CHANNEL0_COMPARE_VALUE                            (0x000009C3UL) /* Data register for compare values */ //1/8step 500pps
+// #define _TAUJ1_CHANNEL1_COMPARE_VALUE                            (0x000004E2UL) /* Data register for compare values */
 
 // #define _TAUJ1_CHANNEL0_COMPARE_VALUE                            (0x00004E1FUL) /* Data register for compare values */
 // #define _TAUJ1_CHANNEL1_COMPARE_VALUE                            (0x00002710UL) /* Data register for compare values */ //full step 500pps
@@ -60,5 +66,6 @@ void R_Config_TAUJ1_Start(void);
 void R_Config_TAUJ1_Stop(void);
 void R_Config_TAUJ1_Create_UserInit(void);
 /* Start user code for function. Do not edit comment generated here */
+void R_Config_TAUJ1_SetCompareValue(uint32_t ch0_compare, uint32_t ch1_compare);
 /* End user code. Do not edit comment generated here */
 #endif
