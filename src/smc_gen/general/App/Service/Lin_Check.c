@@ -137,176 +137,8 @@ static void Lin_SwCheckResponse(void)
     }
 }
 
-//0609  우상민 RAW_SPEED == 0XFF -> 0km/h 처리, 0x64 -> 100km/h . 0x91 -> 145km/h, 0xFF -> Error 
-static unsigned int Lin_GetValidVehicleSpeed(unsigned int raw_speed)
-{
-    unsigned int valid_speed;
-
-    if (raw_speed == AAF_VEHICLE_SPEED_ERROR_VALUE)
-    {
-        valid_speed = 0U;
-    }
-    else
-    {
-        valid_speed = raw_speed;
-    }
-
-    return valid_speed;
-}
-
-//0609 우상민 타이머 리셋
-static void Lin_ResetHighSpeedExitTimer(void)
-{
-    G_Timer1ms.HighSpeedExitCheck = 0U;
-    G_Timer1msFlag.HighSpeedExitCheckFlag = OFF;
-}
-
-//0609 우상민 고속 주행 모드에서만 호출,  차속 < 135km/h -> HighSpeedExitCheckFlag ON -> 10초 후 AAF_DRIVE_MODE_NORMAL로 복귀
-//차속이 다시 135km/h 이상 -> 타이머 리셋
-static void Lin_CheckHighSpeedRelease(unsigned int vehicle_speed)
-{
-    if (vehicle_speed < AAF_HIGH_SPEED_EXIT_KPH)
-    {
-        G_Timer1msFlag.HighSpeedExitCheckFlag = ON;
-
-        if (G_Timer1ms.HighSpeedExitCheck >= AAF_HIGH_SPEED_EXIT_TIME_MS)
-        {
-            AAF_DriveMode = AAF_DRIVE_MODE_NORMAL;
-            Lin_ResetHighSpeedExitTimer();
-        }
-    }
-    else
-    {
-        Lin_ResetHighSpeedExitTimer();
-    }
-}
-
-//차속 판단 = Lin_UpdateDriveMode()
-//명령 변환 = Lin_ApplyHighSpeedCommandOverride()
-//응답 위치 계산 = Lin_GetReportPosition()
-// AAF_DriveMode 상태만 관리
-static void Lin_UpdateDriveMode(unsigned int vehicle_speed)
-{
-#if (AAF_HIGH_SPEED_MODE_ENABLE == ON)
-
-    if (AAF_DriveMode == AAF_DRIVE_MODE_NORMAL)
-    {
-        if (vehicle_speed >= AAF_HIGH_SPEED_ENTER_KPH)
-        {
-            AAF_DriveMode = AAF_DRIVE_MODE_HIGH_SPEED;
-            Lin_ResetHighSpeedExitTimer();
-        }
-    }
-    else
-    {
-        Lin_CheckHighSpeedRelease(vehicle_speed);
-    }
-
-#else
-
-    AAF_DriveMode = AAF_DRIVE_MODE_NORMAL;
-    Lin_ResetHighSpeedExitTimer();
-
-#endif
-}
-
-//0609 우상민 LIN에서 받은 BYTE 6 차속을 처리하는 함수, id_chk_rxdata[6] 읽음, 0xFF이면 0으로 반환, CR_MCU_VEHSPDINT_KPG에 저장, 고속 주행모드 상태 업데이트
-static void Lin_ParseVehicleSpeed(unsigned int raw_speed)
-{
-    CR_Mcu_VehSpdInt_Kph = Lin_GetValidVehicleSpeed(raw_speed);
-    Lin_UpdateDriveMode(CR_Mcu_VehSpdInt_Kph);
-}
-
-//차속은 135 미만이지만 아직 10초 전이므로 HIGH_SPEED 상태, 그리고 정상복귀 대기중
-static unsigned int Lin_IsHighSpeedExitWaiting(void)
-{
-    unsigned int waiting_status;
-
-    waiting_status = OFF;
-
-#if (AAF_HIGH_SPEED_MODE_ENABLE == ON)
-
-    if ((AAF_DriveMode == AAF_DRIVE_MODE_HIGH_SPEED) &&
-        (G_Timer1msFlag.HighSpeedExitCheckFlag == ON))
-    {
-        waiting_status = ON;
-    }
-
-#endif
-
-    return waiting_status;
-}
-
-// 새 위치 명령을 바로 수행하지 않음
-// 현재 위치 또는 현재 수행 중인 명령 유지
-// 10초 후 NORMAL 복귀되면 그때 새 명령 수행
-static unsigned int Lin_GetHighSpeedHoldCommand(void)
-{
-    unsigned int hold_command;
-
-    // 동작 완료 상태 -> AAF_Tx_Position 유지, 동작 중 상태 -> 현재 LIN 명령 (lin_aaf_command) 유지
-    hold_command = lin_aaf_command;
-
-    if (aaf_action_complete_chk == FLAP_STOP) // 이 상태는 동작이 완료된 상태이므로, 실제 위치값인 AAF_Tx_Position을 유지
-    {
-        if (AAF_Tx_Position != UNKOWN_POSITION)
-        {
-            hold_command = AAF_Tx_Position;
-        }
-    }
-
-    if (hold_command == UNKOWN_POSITION)
-    {
-        hold_command = OPEN_1ST;
-    }
-
-    return hold_command;
-}
-
-// 고속 주행모드일 경우, MCU 명령이 CLOSE 또는 1ST OPEN이면 실제 동작은 1ST OPEN 수행
-static unsigned int Lin_ApplyHighSpeedCommandOverride(unsigned int requested_command)
-{
-    unsigned int effective_command;
-
-    effective_command = requested_command;
-
-#if (AAF_HIGH_SPEED_MODE_ENABLE == ON)
-
-    if (AAF_DriveMode == AAF_DRIVE_MODE_HIGH_SPEED)
-    {
-        if (Lin_IsHighSpeedExitWaiting() == ON)
-        {
-            /*
-             * 차속이 135km/h 미만으로 내려갔지만 10초가 지나지 않은 상태.
-             * 아직 NORMAL 모드가 아니므로 새 위치 명령을 바로 수행하지 않고 현재 실제 상태를 유지한다.
-             */
-            effective_command = Lin_GetHighSpeedHoldCommand();
-        }
-        else
-        {
-            /*
-             * 고속 주행모드 유지 상태.
-             * CLOSE 또는 OPEN_1ST 요청만 OPEN_1ST로 보정하고,
-             * OPEN_2ND / FULL OPEN / DIAG / UNKNOWN은 요청대로 수행한다.
-             */
-            if ((requested_command == CLOSE) || (requested_command == OPEN_1ST))
-            {
-                effective_command = OPEN_1ST;
-            }
-            else
-            {
-                /* Requested command is used without override */
-            }
-        }
-    }
-
-#endif
-
-    return effective_command;
-}
-
 //0609 우상민 실제 동작 명령인 effective_command 기준으로 step_start_flag를 판단
-static void Lin_RequestStepStart(unsigned int effective_command)
+static void Lin_RequestStepStart(uint8_t effective_command)
 {
     if (aaf_action_complete_chk == FLAP_STOP)
     {
@@ -331,33 +163,33 @@ static void Lin_RequestStepStart(unsigned int effective_command)
 }
 
 //0609 우상민 AAF_Tx_Position 자체를 바꾸면 안되고, 응답용 위치만 Lin_GetReportPosition에서 따로 계산
-static unsigned int Lin_GetReportPosition(void)
+static uint8_t Lin_GetReportPosition(void)
 {
-    unsigned int report_position;
+    uint8_t report_position;
 
     report_position = AAF_Tx_Position;
 
-#if (AAF_HIGH_SPEED_MODE_ENABLE == ON)
+    #ifdef AAF_HIGH_SPEED_MODE_ENABLE
 
-    if (AAF_DriveMode == AAF_DRIVE_MODE_HIGH_SPEED)
-    {
-        if ((lin_aaf_request_command == CLOSE) || (lin_aaf_request_command == OPEN_1ST))
+        if (AAF_DriveMode == HIGH_SPEED_DRIVE_MODE)
         {
-            report_position = lin_aaf_request_command;
+            if ((lin_aaf_request_command == CLOSE) || (lin_aaf_request_command == OPEN_1ST))
+            {
+                report_position = lin_aaf_request_command;
+            }
         }
-    }
 
-#endif
+    #endif
 
     return report_position;
 }
 
-static void Lin_UpdateCommand(unsigned int target_select)
+static void Lin_UpdateCommand(uint8_t target_select)
 {
-    unsigned int effective_command;
+    uint8_t effective_command;
 
     lin_aaf_request_command = target_select;
-    effective_command = Lin_ApplyHighSpeedCommandOverride(target_select);
+    effective_command = HighSpeed_1stOpenOverride(target_select);
 
     switch (effective_command)
     {
@@ -399,9 +231,9 @@ static void Lin_UpdateCommand(unsigned int target_select)
 }
 
 //0609 우상민 step start 판단은 close 기준이 아닌 1st open 기준
-static void Lin_ProcessTargetCommand(unsigned int target_select)
+static void Lin_ProcessTargetCommand(uint8_t target_select)
 {
-    Lin_RequestStepStart(Lin_ApplyHighSpeedCommandOverride(target_select));
+    Lin_RequestStepStart(HighSpeed_1stOpenOverride(target_select));
     Lin_UpdateCommand(target_select);
 }
 
@@ -556,15 +388,13 @@ void Lin_RxCheck(void)
 
     if (lin_rx_pass_flag == PASS)
     {
-        Lin_ParseVehicleSpeed((unsigned int)(ID_chk_rxdata[6U])); // 초기화 중에도 차속과 주행모드는 계속 최신 상태로 갱신하기 위하여 뺴놈.
-
         if (AAFx_InitStatus != DURING_INITIALIZATION)
         {
             /* EV Control Frame Mapping (Byte 4 ~ 7) */
             AAF1_TargetPosition    = (unsigned int)(ID_chk_rxdata[4U] & 0x07U);
             AAF2_TargetPosition    = (unsigned int)((ID_chk_rxdata[4U] & 0x38U) >> 3U);
             AAF3_TargetPosition    = (unsigned int)(ID_chk_rxdata[5U] & 0x07U);
-            // CR_Mcu_VehSpdInt_Kph   = (unsigned int)(ID_chk_rxdata[6U]); // 0xFF를 0으로 처리한 값을 다시 원본값으로 덮어쓰지 않기 위해서 주석처리
+            CR_Mcu_VehSpdInt_Kph   = (unsigned int)(ID_chk_rxdata[6U]); 
             AAF_ProtectionMode_Rx  = (unsigned int)((ID_chk_rxdata[7U] & 0x40U) >> 6U);
             LDCRdy                 = (unsigned int)((ID_chk_rxdata[7U] & 0x30U) >> 4U);
             AAF_LINOut             = (unsigned int)((ID_chk_rxdata[7U] & 0x0CU) >> 2U);

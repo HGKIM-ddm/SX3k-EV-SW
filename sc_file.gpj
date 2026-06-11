@@ -103,6 +103,8 @@ src/smc_gen/general/App/Service/Spi_Check.c
 src/smc_gen/general/App/Service/Spi_Check.h
 src/smc_gen/general/App/Service/Lin_Service.c
 src/smc_gen/general/App/Service/Lin_Service.h
+src/smc_gen/general/App/Service/HighSpeed_Mode.c
+src/smc_gen/general/App/Service/HighSpeed_Mode.h
 src/smc_gen/general/App/Sensing/Stall_Check.c
 src/smc_gen/general/App/Sensing/Stall_Check.h
 src/smc_gen/general/App/Sensing/Adc_Check.c

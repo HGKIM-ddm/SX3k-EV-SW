@@ -92,7 +92,7 @@ extern unsigned int AAF3_TargetPosition_select;
 
 extern unsigned int AAF_ProtectionMode_Rx;
 extern volatile unsigned int AAF_ProtectionMode_Tx;
-extern unsigned int AAF_Tx_Position;
+extern uint8_t AAF_Tx_Position;
 extern unsigned int AAF_Tx_Position_LIN;
 extern volatile unsigned int AAF_Maximum_Torque_Test_Mode;
 extern unsigned int torque_test_position;

@@ -10,4 +10,5 @@ primaryTarget=v800_standalone.tgt
 	-I.\device
 	-I.\lowsrc
 	-I.\FDL
+sc_file.gpj
 project.gpj		[Program]

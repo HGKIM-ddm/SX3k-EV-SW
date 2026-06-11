@@ -10,26 +10,6 @@ static void Mode_Check(void)
     if ((protection_function == OFF) && (lin_bus_inactive_flag == OFF) && (AAF_Maximum_Torque_Test_Mode == OFF) && (G_Timer1ms.ProtectionCheck == 550))
     {
         Operating_Mode();
-
-        // if (Obd_Position_Turn == 0U)
-        // {
-        //     Obd_PositionStat1();
-        // }
-        // else if (Obd_Position_Turn == 20U)
-        // {
-        //     Obd_PositionStat2();
-        // }
-        // else if (Obd_Position_Turn == 40U)
-        // {
-        //     Obd_PositionStat3();
-        // }
-
-        // Obd_Position_Turn++;
-        
-        // if (Obd_Position_Turn >= 60U)
-        // {
-        //     Obd_Position_Turn = 0U;
-        // }
     }
     else if (AAF_Maximum_Torque_Test_Mode == ON) 
     {
@@ -43,6 +23,8 @@ static void Mode_Check(void)
     {
         // invalid
     }
+
+    HighSpeed_CheckDriveMode(CR_Mcu_VehSpdInt_Kph);
 }
 
 /***********************************************************************************************************************

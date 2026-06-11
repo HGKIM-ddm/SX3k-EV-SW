@@ -6,7 +6,7 @@
 unsigned int LDCRdy = 0U;
 unsigned int CR_Mcu_VehSpdInt_Kph = 0U;
 
-unsigned int AAF_DriveMode = AAF_DRIVE_MODE_NORMAL; //현재 주행 모드 저장, 1이면 고속 주행 0이면 정상 주행
+unsigned int AAF_DriveMode = NORMAL_DRIVE_MODE; //현재 주행 모드 저장, 1이면 고속 주행 0이면 정상 주행
 unsigned int lin_aaf_request_command = CLOSE; // MCU가 LIN으로 보낸 원본 위치 명령 저장
 
 
@@ -118,7 +118,7 @@ unsigned int AAF3_TargetPosition_select = 0;
 
 unsigned int AAF_ProtectionMode_Rx = 0;
 volatile unsigned int AAF_ProtectionMode_Tx = 0;
-unsigned int AAF_Tx_Position = 0;
+uint8_t AAF_Tx_Position = 0;
 unsigned int AAF_Tx_Position_LIN = 0;
 volatile unsigned int AAF_Maximum_Torque_Test_Mode = 0;
 unsigned int torque_test_position = 0;
