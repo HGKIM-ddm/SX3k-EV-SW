@@ -10,10 +10,13 @@
  * Tuning
  * ==================================================================== */
 //For TC TEST DEFAULT 180 3minute
-#define MINUTE_3 18U 
+#define MINUTE_3 180U 
 
 //For Torque Test
 //#define ENABLE_TORQUE_TEST
+
+//For Bootloader
+#define UDS
 
 //For Torque Lin Communication
 #define ENABLE_TORQUE_LIN_COMMUNICATION

@@ -38,6 +38,9 @@ Includes
 #include "Config_TAUD0_3.h"
 #include "Config.h"
 /* Start user code for include. Do not edit comment generated here */
+#ifdef UDS
+extern char uds_1ms;
+#endif
 /* End user code. Do not edit comment generated here */
 
 /***********************************************************************************************************************
@@ -94,18 +97,17 @@ void r_Config_TAUD0_3_interrupt(void)
     TIMER_1MS(MotorStepCheck);
     TIMER_1MS(WatchdogCheck);
     TIMER_1MS(ErrorCheck);
-    // TIMER_1MS(ObdGndShort);
-    // TIMER_1MS(ObdBatShort);
-    // TIMER_1MS(ObdOpenCircuit);
     TIMER_1MS(MotorShortCheck);
     TIMER_1MS(MotorOpenCheck);
     TIMER_1MS(Adc1sCheck);
     TIMER_1MS(IgnCheck);
-    // TIMER_1MS(ObdRecoveryCheck);
     TIMER_1MS(AdcRecoveryCheck);
     TIMER_1MS(HighSpeedExitCheck);
 
     //Extra Timer
+    #ifdef UDS
+    uds_1ms++;     
+    #endif
 
     G_Timer1ms.LinBusInactive++;
 
