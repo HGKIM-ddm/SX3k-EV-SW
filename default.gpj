@@ -10,5 +10,5 @@ primaryTarget=v800_standalone.tgt
 	-I.\device
 	-I.\lowsrc
 	-I.\FDL
-	{optgroup=GhsCompilerOptions} -srec
+	{optgroup=GhsCompilerOptions} -srec	
 project.gpj		[Program]
