@@ -55,7 +55,11 @@ CONSTANTS
 
 MEMORY
  {
-  iROM_0         : ORIGIN = 0x00000000,  LENGTH = 512k
+  iROM_VECT_0    : ORIGIN = 0x00000000,  LENGTH = 0x400
+  iROM_VECT      : ORIGIN = 0x0000E000,  LENGTH = 0x400
+  iROM_EINTTBL   : ORIGIN = 0x0000E400,  LENGTH = 0xC00
+  iROM_VER       : ORIGIN = 0x0000F000,  LENGTH = 0x100
+  iROM_0         : ORIGIN = 0x0000F100,  LENGTH = 452k
   iROM_1         : ORIGIN = 0x01000000,  LENGTH = 32k
   iRAM_0         : ORIGIN = 0xFEBF0000,  LENGTH = 32k
   iRAM_R         : ORIGIN = 0xFEBF8000,  LENGTH = 32k
@@ -66,13 +70,18 @@ SECTIONS
 
 /* Start of internal ROM area (iROM_0) */
 
-//  .intvect                              :>iROM_0 /* start of interrupt vector */
-//  .intvect_end  0x0798                  :>.      /* end   of interrupt vector */
-  .intvect                              :>iROM_0 /* start of interrupt vector */
-  .intvect_end  0x01FF                  :>.      /* end   of interrupt vector */
-  EIINTTBL align (4)                    :>iROM_0 /* start of EI maskable interrupt vector */
-  EIINTTBL_end  0x0798                  :>.      /* end   of EI maskable interrupt vector */
-  .rozdata                              :>.      /* constant datas in ZDA area */
+  .intvect_org                          :>iROM_VECT_0 
+  .intvect_org_end  0x100               :>.
+
+  .intvect                              :>iROM_VECT /* start of interrupt vector */
+  .intvect_end  0xE1FF                  :>.      /* end   of interrupt vector */
+  EIINTTBL align (4)                    :>iROM_EINTTBL /* start of EI maskable interrupt vector */
+  EIINTTBL_end  0xEFFF                  :>.      /* end   of EI maskable interrupt vector */
+	
+	R_APP_VER align (32)									:>iROM_VER 
+	R_APP_VER_end   0x0000F0FF						:>.
+
+  .rozdata                              :>iROM_0      /* constant datas in ZDA area */
   .robase   align(4)                    :>.      /* initialize textpointer TP for SDA addressing */
   .rosdata  align(4)                    :>.      /* constant datas in SDA area */
   .rodata   align(4)                    :>.      /* constant datas in normal area */

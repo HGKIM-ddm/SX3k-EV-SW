@@ -36,6 +36,14 @@ Includes
 #include "target.h"
 #include "Service.h"
 #include "Lin_Interrupt.h"
+
+#ifdef UDS
+#include "cpu.h"
+#include "..\..\uds\def_lin_uds.h"
+#include "..\..\uds\lin_uds.h"
+#include "..\..\uds\util.h"
+#endif
+
 /* End user code. Do not edit comment generated here */
 
 /***********************************************************************************************************************
@@ -73,6 +81,11 @@ int main(void)
 
 	while (1)
 	{
+
+		#ifdef UDS
+		uds_state_check();
+		#endif
+
 		AAF_App();
 	}
 
@@ -89,6 +102,9 @@ void r_main_userinit(void)
 {
 	DI();
 	/* Start user code for r_main_userinit. Do not edit comment generated here */
+	#ifdef UDS
+	SET_INTBP(0xE400u);  	// interrupt vector base relocation
+	#endif	
 	/* End user code. Do not edit comment generated here */
 	R_Systeminit();
 	EI();
@@ -155,5 +171,17 @@ static void AAF_App(void)
     // 4. Watchdog Refresh
     R_Config_WDT0_Restart(); 
 }
+
+#ifdef UDS
+#pragma ghs startdata
+#pragma ghs section rodata="R_APP_VER"
+const uint32_t ECU_SIGN[4] = {
+	0,0,0,0
+};
+const uint8_t ECU_VER[] = {
+	"SX3K_EV V0.0.1 RH850 2026.6.11\n\r"		// 012 로 VERSION READ 자리변동 금지.
+};
+#pragma ghs enddata
+#endif
 
 /* End user code. Do not edit comment generated here */
