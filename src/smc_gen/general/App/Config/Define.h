@@ -115,24 +115,86 @@
 #define CONFIG_TAUJ1_DEFAULT_CH0_COMPARE              CONFIG_TAUJ1_MICROSTEP_1_8_CH0_COMPARE
 #define CONFIG_TAUJ1_DEFAULT_CH1_COMPARE              CONFIG_TAUJ1_MICROSTEP_1_8_CH1_COMPARE
 
-//Range
+// //Range
+// #if (CONFIG_AAF_ANGLE == 68)
+//     #define AAF_FULL_ANGLE              68U
+//     #define STEP_POSITION_MINIMUM_RANGE 9000U
+//     #define STEP_POSITION_MAXIMUM_RANGE 13000U                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           
+// #elif (CONFIG_AAF_ANGLE == 72)
+//     #define AAF_FULL_ANGLE              72U
+//     #define STEP_POSITION_MINIMUM_RANGE 9000U
+//     #define STEP_POSITION_MAXIMUM_RANGE 13000U
+// #elif (CONFIG_AAF_ANGLE == 90)
+//     #define AAF_FULL_ANGLE              90U
+//     #define STEP_POSITION_MINIMUM_RANGE 12000U
+//     #define STEP_POSITION_MAXIMUM_RANGE 15500U
+// #elif (CONFIG_AAF_ANGLE == 110)
+//     #define AAF_FULL_ANGLE              110U
+//     #define STEP_POSITION_MINIMUM_RANGE 13000U //13000U
+//     #define STEP_POSITION_MAXIMUM_RANGE 18000U    
+// #endif
+
+/* ====================================================================
+ * AAF Angle Range
+ * Description : STEP_POSITION_MINIMUM_RANGE / STEP_POSITION_MAXIMUM_RANGE는
+ *               CONFIG_AAF_ANGLE별 1/8 Microstep 기준 range로 사용함.
+ * ==================================================================== */
 #if (CONFIG_AAF_ANGLE == 68)
     #define AAF_FULL_ANGLE              68U
     #define STEP_POSITION_MINIMUM_RANGE 9000U
-    #define STEP_POSITION_MAXIMUM_RANGE 13000U                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           
+    #define STEP_POSITION_MAXIMUM_RANGE 13000U
+
 #elif (CONFIG_AAF_ANGLE == 72)
     #define AAF_FULL_ANGLE              72U
     #define STEP_POSITION_MINIMUM_RANGE 9000U
     #define STEP_POSITION_MAXIMUM_RANGE 13000U
+
 #elif (CONFIG_AAF_ANGLE == 90)
     #define AAF_FULL_ANGLE              90U
     #define STEP_POSITION_MINIMUM_RANGE 12000U
     #define STEP_POSITION_MAXIMUM_RANGE 15500U
+
 #elif (CONFIG_AAF_ANGLE == 110)
     #define AAF_FULL_ANGLE              110U
-    #define STEP_POSITION_MINIMUM_RANGE 13000U //13000U
-    #define STEP_POSITION_MAXIMUM_RANGE 18000U    
+    #define STEP_POSITION_MINIMUM_RANGE 13000U
+    #define STEP_POSITION_MAXIMUM_RANGE 18000U
+
+#else
+    #error "Unsupported CONFIG_AAF_ANGLE"
 #endif
+
+/* ====================================================================
+ * Microstep Range Conversion
+ * Description : STEP_POSITION_MINIMUM_RANGE / STEP_POSITION_MAXIMUM_RANGE는
+ *               1/8 Microstep 기준값임.
+ *               DRV8889 Microstep 변경 시 초기화 range 판정 기준을
+ *               현재 Microstep 기준으로 변환하기 위한 매크로임.
+ * ==================================================================== */
+#define STEP_RANGE_DIV_ROUND_UP(value, divider)    (((value) + ((divider) - 1U)) / (divider))
+
+/* Full step 71% */
+#define STEP_POSITION_MINIMUM_RANGE_FULL_71        (STEP_POSITION_MINIMUM_RANGE / 8U)
+#define STEP_POSITION_MAXIMUM_RANGE_FULL_71        STEP_RANGE_DIV_ROUND_UP(STEP_POSITION_MAXIMUM_RANGE, 8U)
+
+/* 1/2 step */
+#define STEP_POSITION_MINIMUM_RANGE_1_2            (STEP_POSITION_MINIMUM_RANGE / 4U)
+#define STEP_POSITION_MAXIMUM_RANGE_1_2            STEP_RANGE_DIV_ROUND_UP(STEP_POSITION_MAXIMUM_RANGE, 4U)
+
+/* 1/4 step */
+#define STEP_POSITION_MINIMUM_RANGE_1_4            (STEP_POSITION_MINIMUM_RANGE / 2U)
+#define STEP_POSITION_MAXIMUM_RANGE_1_4            STEP_RANGE_DIV_ROUND_UP(STEP_POSITION_MAXIMUM_RANGE, 2U)
+
+/* 1/8 step */
+#define STEP_POSITION_MINIMUM_RANGE_1_8            (STEP_POSITION_MINIMUM_RANGE)
+#define STEP_POSITION_MAXIMUM_RANGE_1_8            (STEP_POSITION_MAXIMUM_RANGE)
+
+/* 1/16 step */
+#define STEP_POSITION_MINIMUM_RANGE_1_16           (STEP_POSITION_MINIMUM_RANGE * 2U)
+#define STEP_POSITION_MAXIMUM_RANGE_1_16           (STEP_POSITION_MAXIMUM_RANGE * 2U)
+
+/* 1/32 step */
+#define STEP_POSITION_MINIMUM_RANGE_1_32           (STEP_POSITION_MINIMUM_RANGE * 4U)
+#define STEP_POSITION_MAXIMUM_RANGE_1_32           (STEP_POSITION_MAXIMUM_RANGE * 4U)
 
 /* ====================================================================
  * LIN Communication (EV)
@@ -252,8 +314,11 @@
 
 // #define POSITION_MAXIMUM_RANGE 55000U
 // #define LIMITSTEP_MAXIMUM_RANGE 1700U
-#define POSITION_MAXIMUM_RANGE 70000U
-#define LIMITSTEP_MAXIMUM_RANGE 3000U
+// #define POSITION_MAXIMUM_RANGE 70000U
+// #define LIMITSTEP_MAXIMUM_RANGE 3000U
+
+#define POSITION_MAXIMUM_RANGE 120000U
+#define LIMITSTEP_MAXIMUM_RANGE 12000U
 
 #define MOTOR_WAIT_TIME 50U // 30default
 

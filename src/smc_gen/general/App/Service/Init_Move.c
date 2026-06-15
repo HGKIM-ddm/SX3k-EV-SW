@@ -149,26 +149,21 @@ static void Init_MoveLimitPosition(void)
 	}
 }
 
+
 /***********************************************************************************************************************
  * Function Name: Init_CheckLimitArrival
- * Description  : Monitor for target position reach or abnormal stall occurrence on the move
- * Called By    : Init_move (Case 14)
- * Arguments    : void
- * Return Value : void
+ * Description  : 초기화 중 OPEN limit 도달 여부와 Travel Range 최소 기준을 확인함.
+ *                현재 Microstep 설정에 맞는 최소 range 기준을 사용함.
  ***********************************************************************************************************************/
 static void Init_CheckLimitArrival(void)
 {
-    // check stall
-    uint8_t is_stall_error = ((motor_stall_flag == MOTOR_STALL) || 
-                              ((step_position_close - step_position_open) <= STEP_POSITION_MINIMUM_RANGE)) && 
-                             (stall_test_mode == 0U);
+    uint8_t is_stall_error;
 
-    // check obd
-    // uint8_t is_obd_error = (((OBD1_Open_Check >= 3700U) || (OBD1_Close_Check >= 3700U)) && (SNSR1_Check == USE_SNSR1)) || 
-    //                        (((OBD2_Open_Check >= 3700U) || (OBD2_Close_Check >= 3700U)) && (SNSR2_Check == USE_SNSR2));
+    is_stall_error = (uint8_t)(((motor_stall_flag == MOTOR_STALL) ||
+                                ((step_position_close - step_position_open) <= STEP_POSITION_MINIMUM_RANGE)) &&
+                               (stall_test_mode == 0U));
 
-    // stall or obd
-    if (is_stall_error)
+    if (is_stall_error != 0U)
     {
         Drv8889_Off();
         motor_start = OFF;
@@ -176,17 +171,31 @@ static void Init_CheckLimitArrival(void)
         motor_step_value = STEP_TIME_1000RPM;
         G_Timer1msFlag.InitFailCheckFlag = 0U;
         G_Timer1ms.InitFailCheck = 0U;
-        
-        if (fail_safety_step == 0U) { fail_safety_flag = ON; }
-        if (fail_safety_step == 4U) { fail_safety_step = 5U; }
-        else if (fail_safety_step == 9U) { fail_safety_step = 10U; }
+
+        if (fail_safety_step == 0U)
+        {
+            fail_safety_flag = ON;
+        }
+
+        if (fail_safety_step == 4U)
+        {
+            fail_safety_step = 5U;
+        }
+        else if (fail_safety_step == 9U)
+        {
+            fail_safety_step = 10U;
+        }
+        else
+        {
+            /* No fail-safety step transition */
+        }
     }
-    else if (step_position >= step_position_open + limit_step_position)
+    else if (step_position >= (step_position_open + limit_step_position))
     {
         Drv8889_Off();
         motor_start = OFF;
         G_Timer1msFlag.StallTimeFlag = 0U;
-        G_Timer1ms.StallTime = 0U; 
+        G_Timer1ms.StallTime = 0U;
         G_Timer1msFlag.External10sCheckFlag = OFF;
         G_Timer1ms.External10sCheck = 0U;
         softstart_complete = OFF;
@@ -199,6 +208,7 @@ static void Init_CheckLimitArrival(void)
     else
     {
         G_Timer1msFlag.InitFailCheckFlag = 1U;
+
         if (G_Timer1ms.InitFailCheck >= 5000U)
         {
             init_move_step = 0U;

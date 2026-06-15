@@ -13,6 +13,8 @@ extern unsigned int CR_Mcu_VehSpdInt_Kph;
 
 extern unsigned int AAF_DriveMode;
 extern unsigned int lin_aaf_request_command;
+
+
 /*******************************************************************************
  * Drv8889 Register
  ******************************************************************************/

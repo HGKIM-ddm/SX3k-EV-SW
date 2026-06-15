@@ -260,6 +260,3 @@ volatile unsigned int AAF_Maximum_Torque_Test_Mode_tog = 0U;
 
 
 
-
-
-

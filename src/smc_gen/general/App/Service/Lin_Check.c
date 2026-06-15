@@ -29,6 +29,8 @@ static uint8_t lin_drv8889_ctrl_valid_mask = 0U;
 static uint8_t lin_drv8889_setting_seq_prev = 0xFFU;
 
 static uint8_t lin_drv8889_setting_frame_received = OFF;
+static uint8_t lin_drv8889_current_microstep = CONFIG_MOTOR_MICROSTEP_DEFAULT;
+
 
 /* Debug Response Data */
 static uint8_t lin_drv8889_debug_rx_ctrl_id = 0U;
@@ -627,7 +629,7 @@ static void Lin_BufferDrv8889SettingCommand(void)
      * Byte1 = CTRL1 data, TRQ_DAC + SLEW_RATE
      * Byte2 = CTRL3 data, Microstep
      * Byte3 = 5A
-     * Byte4 = normal AAF target command
+     * Byte4 = AAF target command, but ignored in Lin_RxCheck()
      */
     if ((Slave_RxData1[0U] == LIN_DRV8889_BATCH_SETTING_ID) &&
         (Slave_RxData1[3U] == LIN_DRV8889_SETTING_KEY))
@@ -647,7 +649,7 @@ static void Lin_BufferDrv8889SettingCommand(void)
      * Byte1 = CTRL data
      * Byte2 = 5A
      * Byte3 = sequence
-     * Byte4 = normal AAF target command
+     * Byte4 = AAF target command, but ignored in Lin_RxCheck()
      */
     else if (Slave_RxData1[2U] == LIN_DRV8889_SETTING_KEY)
     {
@@ -722,19 +724,117 @@ static void Lin_ApplyMicrostepTimerSetting(uint8_t ctrl3_data)
     }
 }
 
+/***********************************************************************************************************************
+ * Function Name: Lin_GetMicrostepDivider
+ * Description  : DRV8889 Microstep 설정값을 실제 Microstep 분주값으로 변환함.
+ ***********************************************************************************************************************/
+static uint8_t Lin_GetMicrostepDivider(uint8_t microstep)
+{
+    uint8_t divider;
+
+    switch (microstep)
+    {
+    case CONFIG_MICROSTEP_FULL_71:
+        divider = 1U;
+        break;
+
+    case CONFIG_MICROSTEP_1_2:
+        divider = 2U;
+        break;
+
+    case CONFIG_MICROSTEP_1_4:
+        divider = 4U;
+        break;
+
+    case CONFIG_MICROSTEP_1_16:
+        divider = 16U;
+        break;
+
+    case CONFIG_MICROSTEP_1_32:
+        divider = 32U;
+        break;
+
+    case CONFIG_MICROSTEP_1_8:
+    default:
+        divider = 8U;
+        break;
+    }
+
+    return divider;
+}
+
+/***********************************************************************************************************************
+ * Function Name: Lin_ConvertStepCountByMicrostep
+ * Description  : 기존 Microstep 기준 step count를 변경된 Microstep 기준 step count로 환산함.
+ ***********************************************************************************************************************/
+static unsigned int Lin_ConvertStepCountByMicrostep(unsigned int step_count,
+                                                    uint8_t previous_microstep,
+                                                    uint8_t requested_microstep)
+{
+    unsigned long converted_value;
+    unsigned long previous_divider;
+    unsigned long requested_divider;
+
+    previous_divider = (unsigned long)Lin_GetMicrostepDivider(previous_microstep);
+    requested_divider = (unsigned long)Lin_GetMicrostepDivider(requested_microstep);
+
+    if (previous_divider == requested_divider)
+    {
+        converted_value = (unsigned long)step_count;
+    }
+    else
+    {
+        converted_value = (((unsigned long)step_count * requested_divider) +
+                           (previous_divider / 2UL)) /
+                          previous_divider;
+    }
+
+    return (unsigned int)converted_value;
+}
+
+/***********************************************************************************************************************
+ * Function Name: Lin_ConvertPositionDataByMicrostep
+ * Description  : Microstep 변경 시 현재 위치, OPEN/CLOSE 위치, limit 값을 변경된 Microstep 기준으로 환산함.
+ ***********************************************************************************************************************/
+static void Lin_ConvertPositionDataByMicrostep(uint8_t previous_microstep,
+                                               uint8_t requested_microstep)
+{
+    if (previous_microstep != requested_microstep)
+    {
+        step_position = Lin_ConvertStepCountByMicrostep(step_position,
+                                                        previous_microstep,
+                                                        requested_microstep);
+
+        step_position_open = Lin_ConvertStepCountByMicrostep(step_position_open,
+                                                             previous_microstep,
+                                                             requested_microstep);
+
+        step_position_close = Lin_ConvertStepCountByMicrostep(step_position_close,
+                                                              previous_microstep,
+                                                              requested_microstep);
+
+        limit_step_position = Lin_ConvertStepCountByMicrostep(limit_step_position,
+                                                              previous_microstep,
+                                                              requested_microstep);
+    }
+}
 
 /***********************************************************************************************************************
  * Function Name: Lin_ApplyBufferedDrv8889Setting
  * Description  : 버퍼에 저장된 DRV8889 CTRL1~6 설정값을 모터 정지 상태에서만 SPI로 반영함.
- *                모터 동작 중에는 pending 상태를 유지하고 반영하지 않음.
+ *                Microstep 변경 시 위치 관련 step count를 변경된 Microstep 기준으로 환산함.
  ***********************************************************************************************************************/
 static void Lin_ApplyBufferedDrv8889Setting(void)
 {
+    uint8_t previous_microstep;
+    uint8_t requested_microstep;
+
+    previous_microstep = lin_drv8889_current_microstep;
+    requested_microstep = lin_drv8889_current_microstep;
+
     if ((lin_drv8889_ctrl_pending_mask != 0U) &&
         (motor_start == OFF))
     {
-        Drv8889_ScsActive();
-
         if ((lin_drv8889_ctrl_pending_mask & LIN_DRV8889_CTRL1_PENDING_MASK) != 0U)
         {
             Drv8889_WriteCtrl1Raw(lin_drv8889_ctrl_buffer[0U]);
@@ -751,8 +851,14 @@ static void Lin_ApplyBufferedDrv8889Setting(void)
 
         if ((lin_drv8889_ctrl_pending_mask & LIN_DRV8889_CTRL3_PENDING_MASK) != 0U)
         {
+            previous_microstep = lin_drv8889_current_microstep;
+            requested_microstep = (uint8_t)(lin_drv8889_ctrl_buffer[2U] & LIN_DRV8889_MICROSTEP_MASK);
+
             Drv8889_WriteCtrl3(lin_drv8889_ctrl_buffer[2U]);
             Lin_ApplyMicrostepTimerSetting(lin_drv8889_ctrl_buffer[2U]);
+
+            Lin_ConvertPositionDataByMicrostep(previous_microstep, requested_microstep);
+            lin_drv8889_current_microstep = requested_microstep;
 
             lin_drv8889_ctrl_pending_mask &= (uint8_t)(~LIN_DRV8889_CTRL3_PENDING_MASK);
             lin_drv8889_debug_apply_count++;
@@ -789,6 +895,14 @@ static void Lin_ApplyBufferedDrv8889Setting(void)
  ***********************************************************************************************************************/
 void Lin_RxCheck(void)
 {
+#ifdef ENABLE_TORQUE_LIN_COMMUNICATION
+    uint8_t process_position_command;
+#endif
+
+#ifdef ENABLE_TORQUE_LIN_COMMUNICATION
+    process_position_command = ON;
+#endif
+
     Lin_SwCheck();
 
     Lin_TranslateRxData();
@@ -804,11 +918,24 @@ void Lin_RxCheck(void)
 #ifdef ENABLE_TORQUE_LIN_COMMUNICATION
         Lin_BufferDrv8889SettingCommand();
         Lin_ApplyBufferedDrv8889Setting();
+
+        if (lin_drv8889_setting_frame_received == ON)
+        {
+            /*
+            * DRV8889 설정 프레임에서는 BYTE4 위치 명령을 항상 무시
+            * 위치 명령은 설정 완료 후 다음 일반 프레임에서 처리
+            */
+            process_position_command = OFF;
+        }
 #endif
 
+#ifdef ENABLE_TORQUE_LIN_COMMUNICATION
+        if ((AAFx_InitStatus != DURING_INITIALIZATION) &&
+            (process_position_command == ON))
+#else
         if (AAFx_InitStatus != DURING_INITIALIZATION)
+#endif
         {
-            /* EV Control Frame Mapping (Byte 4 ~ 7) */
             AAF1_TargetPosition = (unsigned int)(Slave_RxData1[4U] & 0x07U);
             AAF2_TargetPosition = (unsigned int)((Slave_RxData1[4U] & 0x38U) >> 3U);
             AAF3_TargetPosition = (unsigned int)(Slave_RxData1[5U] & 0x07U);
@@ -854,7 +981,7 @@ void Lin_RxCheck(void)
         }
         else
         {
-            /* 초기화 중에는 위치 명령 처리는 하지 않고, LDCRdy / LINOut / 토크 설정만 반영함 */
+            /* 초기화 중이거나 DRV8889 설정 프레임이면 위치 명령 처리를 하지 않음 */
         }
     }
 }
@@ -914,10 +1041,21 @@ void Lin_TxCheck(void)
     Slave_TxData[6U] = 0x00U;
 
 #ifdef ENABLE_TORQUE_LIN_COMMUNICATION
-    Slave_TxData[3U] = lin_drv8889_debug_rx_ctrl_id;
-    Slave_TxData[4U] = lin_drv8889_debug_rx_data;
-    Slave_TxData[5U] = lin_drv8889_debug_rx_ctrl3_data;
-    Slave_TxData[6U] = lin_drv8889_debug_apply_count;
+    {
+        unsigned long step_range;
+
+        step_range = 0UL;
+
+        if (step_position_close >= step_position_open)
+        {
+            step_range = (unsigned long)(step_position_close - step_position_open);
+        }
+
+        Slave_TxData[3U] = lin_drv8889_current_microstep;
+        Slave_TxData[4U] = (uint8_t)(step_range & 0xFFUL);
+        Slave_TxData[5U] = (uint8_t)((step_range >> 8U) & 0xFFUL);
+        Slave_TxData[6U] = (uint8_t)((step_range >> 16U) & 0xFFUL);
+    }
 #endif
 
     // #ifdef ENABLE_TORQUE_LIN_COMMUNICATION
