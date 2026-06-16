@@ -162,10 +162,9 @@ static void Lin_RequestStepStart(uint8_t effective_command)
     }
 }
 
-//0609 우상민 AAF_Tx_Position 자체를 바꾸면 안되고, 응답용 위치만 Lin_GetReportPosition에서 따로 계산
 static uint8_t Lin_GetReportPosition(void)
 {
-    uint8_t report_position;
+    static uint8_t report_position;
 
     report_position = AAF_Tx_Position;
 
@@ -176,7 +175,23 @@ static uint8_t Lin_GetReportPosition(void)
             if ((lin_aaf_request_command == CLOSE) || (lin_aaf_request_command == OPEN_1ST))
             {
                 report_position = lin_aaf_request_command;
+                highspeed_command_hold_flag = 1U;
             }
+        }
+        else if (highspeed_command_hold_flag == 1U)
+        {
+            /* NORMAL 복귀 후에도, 실제 위치가 마스터 명령과 일치할 때까지 계속 명령값 보고 */
+            report_position = lin_aaf_request_command;
+
+            /* 실제 위치가 명령값에 도달하면 그때 hold 해제 */
+            if (AAF_Tx_Position == lin_aaf_request_command)
+            {
+                highspeed_command_hold_flag = 0U;
+            }
+        }
+        else
+        {
+            /* hold 아님: 실제 위치 그대로 보고 (위에서 이미 설정됨) */
         }
 
     #endif
