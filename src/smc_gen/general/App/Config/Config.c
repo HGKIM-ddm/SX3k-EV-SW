@@ -8,7 +8,11 @@ unsigned int CR_Mcu_VehSpdInt_Kph = 0U;
 
 unsigned int AAF_DriveMode = NORMAL_DRIVE_MODE; //현재 주행 모드 저장, 1이면 고속 주행 0이면 정상 주행
 unsigned int lin_aaf_request_command = CLOSE; // MCU가 LIN으로 보낸 원본 위치 명령 저장
+uint8_t  highspeed_command_hold_flag = 0U; // 고속 주행모드에서 명령 홀드 여부 저장 (0: 홀드 안함, 1: 홀드)
 
+ /*******************************************************************************
+  * Drv8889 Register
+  ******************************************************************************/
 
 /* 2.1 Communication Buffers (LIN / SPI) */
 uint8_t GetIDbuffer;
