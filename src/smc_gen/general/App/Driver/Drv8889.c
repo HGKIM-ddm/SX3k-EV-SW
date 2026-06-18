@@ -54,12 +54,16 @@ static void Drv8889_WaitUs(uint16_t us_delay)
 }
 
 /* SPi Comunication (txbuf, rxbuf, us_delay) */
-static void Drv8889_SpiTransfer(uint16_t * const tx_buf, uint16_t * const rx_buf, uint16_t us_delay)
+static void Drv8889_SpiTransfer(uint16_t * const tx_buf,
+                                uint16_t * const rx_buf,
+                                uint16_t us_delay)
 {
-  
     Drv8889_ScsActive();
 
-    (void)R_Config_CSIH0_Send_Receive(tx_buf, 1U, rx_buf, _CSIH_SELECT_CHIP_0);
+    (void)R_Config_CSIH0_Send_Receive(tx_buf,
+                                     1U,
+                                     rx_buf,
+                                     _CSIH_SELECT_CHIP_0);
 
     (void)Drv8889_WaitSpiComplete();
 
@@ -67,7 +71,6 @@ static void Drv8889_SpiTransfer(uint16_t * const tx_buf, uint16_t * const rx_buf
 
     Drv8889_WaitUs(us_delay);
 }
-
 
 void Drv8889_GpioInit(void)
 {
@@ -152,13 +155,17 @@ void Drv8889_WriteCtrl1(Drv_TrqDac_t trq, Drv_SlewRate_t slew)
  * Function Name: Drv8889_WriteRegisterRaw
  * Description  : DRV8889 레지스터 주소와 8bit data를 조합하여 16bit SPI frame으로 전송함.
  ***********************************************************************************************************************/
-static void Drv8889_WriteRegisterRaw(uint8_t reg_addr, uint8_t data, uint8_t rx_index)
+static void Drv8889_WriteRegisterRaw(uint8_t reg_addr,
+                                     uint8_t data,
+                                     uint8_t rx_index)
 {
     uint16_t frame;
 
     frame = ((uint16_t)reg_addr << 8U) | (uint16_t)data;
 
-    Drv8889_SpiTransfer(&frame, &rx_16bit_spi[rx_index], 2U);
+    Drv8889_SpiTransfer(&frame,
+                        &rx_16bit_spi[rx_index],
+                        2U);
 }
 
 /***********************************************************************************************************************
@@ -167,7 +174,9 @@ static void Drv8889_WriteRegisterRaw(uint8_t reg_addr, uint8_t data, uint8_t rx_
  ***********************************************************************************************************************/
 void Drv8889_WriteCtrl1Raw(uint8_t data)
 {
-    Drv8889_WriteRegisterRaw((uint8_t)DRV_CTRL1, data, 3U);
+    Drv8889_WriteRegisterRaw((uint8_t)DRV_CTRL1,
+                             data,
+                             3U);
 }
 
 /***********************************************************************************************************************
@@ -189,11 +198,13 @@ void Drv8889_WriteCtrl3(uint8_t data)
 {
     uint8_t ctrl3_data;
 
-    ctrl3_data = (uint8_t)(SPI_DIR_PIN | SPI_STEP_PIN | (data & 0x0FU));
+    ctrl3_data =
+        (uint8_t)(SPI_DIR_PIN | SPI_STEP_PIN | (data & 0x0FU));
 
-    Drv8889_WriteRegisterRaw((uint8_t)DRV_CTRL3, ctrl3_data, 5U);
+    Drv8889_WriteRegisterRaw((uint8_t)DRV_CTRL3,
+                             ctrl3_data,
+                             5U);
 }
-
 /***********************************************************************************************************************
  * Function Name: Drv8889_WriteCtrl4
  * Description  : DRV8889 CTRL4 레지스터에 8bit raw data를 SPI로 전송함.

@@ -1,4 +1,5 @@
 #include "Service.h"
+#include "Trqchange.h"
 
 /***********************************************************************************************************************
  * Function Name: Mode_Check
@@ -56,6 +57,37 @@ static void Communication_Check(void)
     Lin_TxCheck();
     Spi_Check();
 }
+
+#ifdef ENABLE_TORQUE_LIN_COMMUNICATION
+/***********************************************************************************************************************
+ * Function Name: MotorSetting_Check
+ * Description  : Checks the motor setting request state.
+ * Called By    : App_SwLogic
+ ***********************************************************************************************************************/
+static void MotorSetting_Check(void)
+{
+    if ((AAFx_InitStatus != NORMAL_FINISHED_INITIALIZATION) ||
+        (protection_function == ON) ||
+        (protection_Mode_step != 0U) ||
+        (lin_bus_inactive_flag == ON) ||
+        (AAF_Maximum_Torque_Test_Mode == ON))
+    {
+        TrqChange_ClearPending();
+    }
+    else if ((motor_start == OFF) &&
+             (aaf_action == FLAP_STOP) &&
+             (aaf_action_complete_chk == FLAP_STOP) &&
+             (aaf_step == AAF_WAITING))
+    {
+        TrqChange_Apply();
+    }
+    else
+    {
+        /* Keep pending */
+    }
+}
+#endif
+
 
 /***********************************************************************************************************************
  * Function Name: Safety_Check
@@ -134,6 +166,11 @@ void App_SwLogic(void)
 
     // [Sequence 5] Step Initialization Check
     Step_InitAndCheck();
+
+#ifdef ENABLE_TORQUE_LIN_COMMUNICATION
+    // [Sequence 6] Motor Setting Check
+    MotorSetting_Check();
+#endif
 }
 
 

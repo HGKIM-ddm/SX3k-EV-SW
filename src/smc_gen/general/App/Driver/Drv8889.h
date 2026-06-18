@@ -221,12 +221,13 @@ void Drv8889_WriteCtrl1(Drv_TrqDac_t trq, Drv_SlewRate_t slew);
 #endif
 
 #ifdef ENABLE_TORQUE_LIN_COMMUNICATION
+
 void Drv8889_WriteCtrl1Raw(uint8_t data);
 void Drv8889_WriteCtrl2(uint8_t data);
 void Drv8889_WriteCtrl3(uint8_t data);
 void Drv8889_WriteCtrl4(uint8_t data);
 void Drv8889_WriteCtrl5(uint8_t data);
 void Drv8889_WriteCtrl6(uint8_t data);
-#endif
 
+#endif
 

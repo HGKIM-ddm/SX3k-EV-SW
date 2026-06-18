@@ -1,5 +1,6 @@
 #include "Spi_Check.h"
 #include "Service.h"
+#include "Trqchange.h"
 
 /* =========================================================================================
  * SPI Communication & Stall Check Functions
@@ -36,22 +37,39 @@ static void SpiCheck_CurrentLimitingSelect(void);
  * Function Name: SpiCheck_ExecuteVoltageChange
  * Description  : Sends SPI commands to update current limits when voltage status changes (Step 0 Condition 1).
  * Called By    : SpiCheck_Init
- * Arguments    : void
- * Return Value : void
  ***********************************************************************************************************************/
 static void SpiCheck_ExecuteVoltageChange(void)
 {
-    Drv8889_ScsActive(); // CS Low
+    uint8_t ctrl1_write_enable;
+
+    ctrl1_write_enable = ON;
+
+#ifdef ENABLE_TORQUE_LIN_COMMUNICATION
+    if (TrqChange_IsCtrl1Active() == ON)
+    {
+        ctrl1_write_enable = OFF;
+    }
+#endif
 
     if (voltage_status_spi == NORMAL_VOLTAGE)
     {
-        Drv8889_WriteCtrl1(TRQ_DAC_75, SLEW_RATE_10V);
+        if (ctrl1_write_enable == ON)
+        {
+            Drv8889_ScsActive(); // CS Low
+            Drv8889_WriteCtrl1(TRQ_DAC_75, SLEW_RATE_10V);
+        }
+
         motor_cw_stall_value  = MOTOR_CW_STALL_CHK_VALUE_NORMAL_VOLTAGE;
         motor_ccw_stall_value = MOTOR_CCW_STALL_CHK_VALUE_NORMAL_VOLTAGE;
     }
     else if (voltage_status_spi == LOW_VOLTAGE)
     {
-        Drv8889_WriteCtrl1(TRQ_DAC_75, SLEW_RATE_35V);
+        if (ctrl1_write_enable == ON)
+        {
+            Drv8889_ScsActive(); // CS Low
+            Drv8889_WriteCtrl1(TRQ_DAC_75, SLEW_RATE_35V);
+        }
+
         motor_cw_stall_value  = MOTOR_CW_STALL_CHK_VALUE_LOW_VOLTAGE;
         motor_ccw_stall_value = MOTOR_CCW_STALL_CHK_VALUE_LOW_VOLTAGE;
     }
@@ -62,43 +80,18 @@ static void SpiCheck_ExecuteVoltageChange(void)
 
     voltage_status_change_complete = WAIT;
     G_Timer1msFlag.VoltStatChangeDelayFlag = 1U;
-    spi_action_step = 1U;
+
+    if (ctrl1_write_enable == ON)
+    {
+        spi_action_step = 1U;
+    }
+    else
+    {
+        spi_action_step = 0U;
+    }
+
     voltage_status_change = OFF;
 }
-
-/***********************************************************************************************************************
- * Function Name: SpiCheck_ExecuteVoltageChange
- * Description  : 전압 상태 변경에 따라 DRV8889 CTRL1 설정과 Stall 기준값을 갱신함.
- *                LIN CTRL1 튜닝값이 적용된 경우 CTRL1은 유지하고 Stall 기준값만 갱신함.
- ***********************************************************************************************************************/
-// static void SpiCheck_ExecuteVoltageChange(void)
-// {
-//     Drv8889_ScsActive(); // CS Low
-
-//     if (voltage_status_spi == NORMAL_VOLTAGE)
-//     {
-//         SpiCheck_WriteCtrl1ByVoltage(TRQ_DAC_75, SLEW_RATE_10V);
-
-//         motor_cw_stall_value  = MOTOR_CW_STALL_CHK_VALUE_NORMAL_VOLTAGE;
-//         motor_ccw_stall_value = MOTOR_CCW_STALL_CHK_VALUE_NORMAL_VOLTAGE;
-//     }
-//     else if (voltage_status_spi == LOW_VOLTAGE)
-//     {
-//         SpiCheck_WriteCtrl1ByVoltage(TRQ_DAC_75, SLEW_RATE_35V);
-
-//         motor_cw_stall_value  = MOTOR_CW_STALL_CHK_VALUE_LOW_VOLTAGE;
-//         motor_ccw_stall_value = MOTOR_CCW_STALL_CHK_VALUE_LOW_VOLTAGE;
-//     }
-//     else
-//     {
-//         /* Invalid (HIGH_VOLTAGE) */
-//     }
-
-//     voltage_status_change_complete = WAIT;
-//     G_Timer1msFlag.VoltStatChangeDelayFlag = 1U;
-//     spi_action_step = 1U;
-//     voltage_status_change = OFF;
-// }
 
 /***********************************************************************************************************************
  * Function Name: SpiCheck_SendCommand

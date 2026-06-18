@@ -93,6 +93,8 @@ src/smc_gen/general/App/Service/Init_Move.c
 src/smc_gen/general/App/Service/Init_Move.h
 src/smc_gen/general/App/Service/Lin_Check.c
 src/smc_gen/general/App/Service/Lin_Check.h
+src/smc_gen/general/App/Service/Trqchange.c
+src/smc_gen/general/App/Service/Trqchange.h
 src/smc_gen/general/App/Service/Lin_Sleep.c
 src/smc_gen/general/App/Service/Lin_Sleep.h
 src/smc_gen/general/App/Service/Operating_Mode.c

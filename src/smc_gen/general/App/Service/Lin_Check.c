@@ -1,43 +1,10 @@
 #include "Lin_CHeck.h"
 #include "Service.h"
-#include "Config_TAUJ1.h"
+#include "Trqchange.h"
 
 #ifdef ENABLE_TORQUE_LIN_COMMUNICATION
-
-#define LIN_DRV8889_SETTING_KEY          0x5AU
-#define LIN_DRV8889_CTRL_MIN             1U
-#define LIN_DRV8889_CTRL_MAX             6U
-#define LIN_DRV8889_CTRL_COUNT           6U
-#define LIN_DRV8889_SEQ_MASK             0x0FU
-
-#define LIN_DRV8889_CTRL1_PENDING_MASK   0x01U
-#define LIN_DRV8889_CTRL2_PENDING_MASK   0x02U
-#define LIN_DRV8889_CTRL3_PENDING_MASK   0x04U
-#define LIN_DRV8889_CTRL4_PENDING_MASK   0x08U
-#define LIN_DRV8889_CTRL5_PENDING_MASK   0x10U
-#define LIN_DRV8889_CTRL6_PENDING_MASK   0x20U
-
-#define LIN_DRV8889_BATCH_SETTING_ID     0xF0U
-#define LIN_DRV8889_CTRL1_ID             1U
-#define LIN_DRV8889_CTRL3_ID             3U
-
-#define LIN_DRV8889_MICROSTEP_MASK       0x0FU
-
-static uint8_t lin_drv8889_ctrl_buffer[LIN_DRV8889_CTRL_COUNT] = {0U, 0U, 0U, 0U, 0U, 0U};
-static uint8_t lin_drv8889_ctrl_pending_mask = 0U;
-static uint8_t lin_drv8889_ctrl_valid_mask = 0U;
-static uint8_t lin_drv8889_setting_seq_prev = 0xFFU;
-
-static uint8_t lin_drv8889_setting_frame_received = OFF;
-static uint8_t lin_drv8889_current_microstep = CONFIG_MOTOR_MICROSTEP_DEFAULT;
-
-
-/* Debug Response Data */
-static uint8_t lin_drv8889_debug_rx_ctrl_id = 0U;
-static uint8_t lin_drv8889_debug_rx_data = 0U;
-static uint8_t lin_drv8889_debug_rx_ctrl3_data = 0U;
-static uint8_t lin_drv8889_debug_apply_count = 0U;
-
+#define LIN_TRQCHANGE_SETTING_KEY      0x5AU
+#define LIN_TRQCHANGE_SETTING_FRAME_ID 0xF0U
 #endif
 
 
@@ -583,405 +550,98 @@ void Lin_CheckAAF3RxData(void){
 
 #ifdef ENABLE_TORQUE_LIN_COMMUNICATION
 /***********************************************************************************************************************
- * Function Name: Lin_SetDrv8889PendingValue
- * Description  : LIN으로 수신한 DRV8889 CTRL 설정값을 버퍼에 저장하고 pending 상태로 설정함.
- *                동일 설정값이 반복 수신되는 경우에는 불필요한 SPI 재전송을 방지함.
+ * Function Name: Lin_CheckTrqSettingFrame
+ * Description  : F0 설정 프레임을 확인하고 설정값을 전달함.
  ***********************************************************************************************************************/
-static void Lin_SetDrv8889PendingValue(uint8_t ctrl_id, uint8_t ctrl_data)
+static uint8_t Lin_CheckTrqSettingFrame(void)
 {
-    uint8_t ctrl_index;
-    uint8_t ctrl_mask;
+    uint8_t result;
 
-    if ((ctrl_id >= LIN_DRV8889_CTRL_MIN) &&
-        (ctrl_id <= LIN_DRV8889_CTRL_MAX))
+    result = OFF;
+
+    if (ID_chk_rxdata[0U] == LIN_TRQCHANGE_SETTING_FRAME_ID)
     {
-        ctrl_index = (uint8_t)(ctrl_id - 1U);
-        ctrl_mask = (uint8_t)(1U << ctrl_index);
+        result = ON;
 
-        if (((lin_drv8889_ctrl_valid_mask & ctrl_mask) == 0U) ||
-            (lin_drv8889_ctrl_buffer[ctrl_index] != ctrl_data))
+        if (ID_chk_rxdata[3U] == LIN_TRQCHANGE_SETTING_KEY)
         {
-            lin_drv8889_ctrl_buffer[ctrl_index] = ctrl_data;
-            lin_drv8889_ctrl_pending_mask |= ctrl_mask;
-            lin_drv8889_ctrl_valid_mask |= ctrl_mask;
+            (void)TrqChange_Set(ID_chk_rxdata[1U],
+                                ID_chk_rxdata[2U]);
         }
     }
-}
 
-
-
-/***********************************************************************************************************************
- * Function Name: Lin_BufferDrv8889SettingCommand
- * Description  : LIN AAFCtrl 미사용 Byte에서 DRV8889 설정값을 수신하여 버퍼에 저장함.
- *                F0 Batch 명령과 단일 CTRL 명령을 모두 지원함.
- ***********************************************************************************************************************/
-static void Lin_BufferDrv8889SettingCommand(void)
-{
-    uint8_t ctrl_id;
-    uint8_t ctrl_data;
-    uint8_t seq;
-
-    lin_drv8889_setting_frame_received = OFF;
-
-    /*
-     * Batch command:
-     * Byte0 = F0
-     * Byte1 = CTRL1 data, TRQ_DAC + SLEW_RATE
-     * Byte2 = CTRL3 data, Microstep
-     * Byte3 = 5A
-     * Byte4 = AAF target command, but ignored in Lin_RxCheck()
-     */
-    if ((Slave_RxData1[0U] == LIN_DRV8889_BATCH_SETTING_ID) &&
-        (Slave_RxData1[3U] == LIN_DRV8889_SETTING_KEY))
-    {
-        lin_drv8889_setting_frame_received = ON;
-
-        Lin_SetDrv8889PendingValue(LIN_DRV8889_CTRL1_ID, Slave_RxData1[1U]);
-        Lin_SetDrv8889PendingValue(LIN_DRV8889_CTRL3_ID, Slave_RxData1[2U]);
-
-        lin_drv8889_debug_rx_ctrl_id = LIN_DRV8889_BATCH_SETTING_ID;
-        lin_drv8889_debug_rx_data = Slave_RxData1[1U];
-        lin_drv8889_debug_rx_ctrl3_data = Slave_RxData1[2U];
-    }
-    /*
-     * Single command:
-     * Byte0 = CTRL ID
-     * Byte1 = CTRL data
-     * Byte2 = 5A
-     * Byte3 = sequence
-     * Byte4 = AAF target command, but ignored in Lin_RxCheck()
-     */
-    else if (Slave_RxData1[2U] == LIN_DRV8889_SETTING_KEY)
-    {
-        lin_drv8889_setting_frame_received = ON;
-
-        ctrl_id = Slave_RxData1[0U];
-        ctrl_data = Slave_RxData1[1U];
-        seq = (uint8_t)(Slave_RxData1[3U] & LIN_DRV8889_SEQ_MASK);
-
-        lin_drv8889_debug_rx_ctrl_id = ctrl_id;
-        lin_drv8889_debug_rx_data = ctrl_data;
-        lin_drv8889_debug_rx_ctrl3_data = 0U;
-
-        if (seq != lin_drv8889_setting_seq_prev)
-        {
-            Lin_SetDrv8889PendingValue(ctrl_id, ctrl_data);
-            lin_drv8889_setting_seq_prev = seq;
-        }
-    }
-    else
-    {
-        /* Normal AAF control frame */
-    }
-}
-
-
-/***********************************************************************************************************************
- * Function Name: Lin_ApplyMicrostepTimerSetting
- * Description  : DRV8889 CTRL3 Microstep 값에 따라 TAUJ1 STEP 출력 주기를 변경함.
- ***********************************************************************************************************************/
-static void Lin_ApplyMicrostepTimerSetting(uint8_t ctrl3_data)
-{
-    uint8_t microstep;
-
-    microstep = (uint8_t)(ctrl3_data & LIN_DRV8889_MICROSTEP_MASK);
-
-    switch (microstep)
-    {
-    case CONFIG_MICROSTEP_FULL_71:
-        R_Config_TAUJ1_SetCompareValue(CONFIG_TAUJ1_MICROSTEP_FULL_71_CH0_COMPARE,
-                                       CONFIG_TAUJ1_MICROSTEP_FULL_71_CH1_COMPARE);
-        break;
-
-    case CONFIG_MICROSTEP_1_2:
-        R_Config_TAUJ1_SetCompareValue(CONFIG_TAUJ1_MICROSTEP_1_2_CH0_COMPARE,
-                                       CONFIG_TAUJ1_MICROSTEP_1_2_CH1_COMPARE);
-        break;
-
-    case CONFIG_MICROSTEP_1_4:
-        R_Config_TAUJ1_SetCompareValue(CONFIG_TAUJ1_MICROSTEP_1_4_CH0_COMPARE,
-                                       CONFIG_TAUJ1_MICROSTEP_1_4_CH1_COMPARE);
-        break;
-
-    case CONFIG_MICROSTEP_1_8:
-        R_Config_TAUJ1_SetCompareValue(CONFIG_TAUJ1_MICROSTEP_1_8_CH0_COMPARE,
-                                       CONFIG_TAUJ1_MICROSTEP_1_8_CH1_COMPARE);
-        break;
-
-    case CONFIG_MICROSTEP_1_16:
-        R_Config_TAUJ1_SetCompareValue(CONFIG_TAUJ1_MICROSTEP_1_16_CH0_COMPARE,
-                                       CONFIG_TAUJ1_MICROSTEP_1_16_CH1_COMPARE);
-        break;
-
-    case CONFIG_MICROSTEP_1_32:
-        R_Config_TAUJ1_SetCompareValue(CONFIG_TAUJ1_MICROSTEP_1_32_CH0_COMPARE,
-                                       CONFIG_TAUJ1_MICROSTEP_1_32_CH1_COMPARE);
-        break;
-
-    default:
-        /* Unsupported microstep setting */
-        break;
-    }
-}
-
-/***********************************************************************************************************************
- * Function Name: Lin_GetMicrostepDivider
- * Description  : DRV8889 Microstep 설정값을 실제 Microstep 분주값으로 변환함.
- ***********************************************************************************************************************/
-static uint8_t Lin_GetMicrostepDivider(uint8_t microstep)
-{
-    uint8_t divider;
-
-    switch (microstep)
-    {
-    case CONFIG_MICROSTEP_FULL_71:
-        divider = 1U;
-        break;
-
-    case CONFIG_MICROSTEP_1_2:
-        divider = 2U;
-        break;
-
-    case CONFIG_MICROSTEP_1_4:
-        divider = 4U;
-        break;
-
-    case CONFIG_MICROSTEP_1_16:
-        divider = 16U;
-        break;
-
-    case CONFIG_MICROSTEP_1_32:
-        divider = 32U;
-        break;
-
-    case CONFIG_MICROSTEP_1_8:
-    default:
-        divider = 8U;
-        break;
-    }
-
-    return divider;
-}
-
-/***********************************************************************************************************************
- * Function Name: Lin_ConvertStepCountByMicrostep
- * Description  : 기존 Microstep 기준 step count를 변경된 Microstep 기준 step count로 환산함.
- ***********************************************************************************************************************/
-static unsigned int Lin_ConvertStepCountByMicrostep(unsigned int step_count,
-                                                    uint8_t previous_microstep,
-                                                    uint8_t requested_microstep)
-{
-    unsigned long converted_value;
-    unsigned long previous_divider;
-    unsigned long requested_divider;
-
-    previous_divider = (unsigned long)Lin_GetMicrostepDivider(previous_microstep);
-    requested_divider = (unsigned long)Lin_GetMicrostepDivider(requested_microstep);
-
-    if (previous_divider == requested_divider)
-    {
-        converted_value = (unsigned long)step_count;
-    }
-    else
-    {
-        converted_value = (((unsigned long)step_count * requested_divider) +
-                           (previous_divider / 2UL)) /
-                          previous_divider;
-    }
-
-    return (unsigned int)converted_value;
-}
-
-/***********************************************************************************************************************
- * Function Name: Lin_ConvertPositionDataByMicrostep
- * Description  : Microstep 변경 시 현재 위치, OPEN/CLOSE 위치, limit 값을 변경된 Microstep 기준으로 환산함.
- ***********************************************************************************************************************/
-static void Lin_ConvertPositionDataByMicrostep(uint8_t previous_microstep,
-                                               uint8_t requested_microstep)
-{
-    if (previous_microstep != requested_microstep)
-    {
-        step_position = Lin_ConvertStepCountByMicrostep(step_position,
-                                                        previous_microstep,
-                                                        requested_microstep);
-
-        step_position_open = Lin_ConvertStepCountByMicrostep(step_position_open,
-                                                             previous_microstep,
-                                                             requested_microstep);
-
-        step_position_close = Lin_ConvertStepCountByMicrostep(step_position_close,
-                                                              previous_microstep,
-                                                              requested_microstep);
-
-        limit_step_position = Lin_ConvertStepCountByMicrostep(limit_step_position,
-                                                              previous_microstep,
-                                                              requested_microstep);
-    }
-}
-
-/***********************************************************************************************************************
- * Function Name: Lin_ApplyBufferedDrv8889Setting
- * Description  : 버퍼에 저장된 DRV8889 CTRL1~6 설정값을 모터 정지 상태에서만 SPI로 반영함.
- *                Microstep 변경 시 위치 관련 step count를 변경된 Microstep 기준으로 환산함.
- ***********************************************************************************************************************/
-static void Lin_ApplyBufferedDrv8889Setting(void)
-{
-    uint8_t previous_microstep;
-    uint8_t requested_microstep;
-
-    previous_microstep = lin_drv8889_current_microstep;
-    requested_microstep = lin_drv8889_current_microstep;
-
-    if ((lin_drv8889_ctrl_pending_mask != 0U) &&
-        (motor_start == OFF))
-    {
-        if ((lin_drv8889_ctrl_pending_mask & LIN_DRV8889_CTRL1_PENDING_MASK) != 0U)
-        {
-            Drv8889_WriteCtrl1Raw(lin_drv8889_ctrl_buffer[0U]);
-            lin_drv8889_ctrl_pending_mask &= (uint8_t)(~LIN_DRV8889_CTRL1_PENDING_MASK);
-            lin_drv8889_debug_apply_count++;
-        }
-
-        if ((lin_drv8889_ctrl_pending_mask & LIN_DRV8889_CTRL2_PENDING_MASK) != 0U)
-        {
-            Drv8889_WriteCtrl2(lin_drv8889_ctrl_buffer[1U]);
-            lin_drv8889_ctrl_pending_mask &= (uint8_t)(~LIN_DRV8889_CTRL2_PENDING_MASK);
-            lin_drv8889_debug_apply_count++;
-        }
-
-        if ((lin_drv8889_ctrl_pending_mask & LIN_DRV8889_CTRL3_PENDING_MASK) != 0U)
-        {
-            previous_microstep = lin_drv8889_current_microstep;
-            requested_microstep = (uint8_t)(lin_drv8889_ctrl_buffer[2U] & LIN_DRV8889_MICROSTEP_MASK);
-
-            Drv8889_WriteCtrl3(lin_drv8889_ctrl_buffer[2U]);
-            Lin_ApplyMicrostepTimerSetting(lin_drv8889_ctrl_buffer[2U]);
-
-            Lin_ConvertPositionDataByMicrostep(previous_microstep, requested_microstep);
-            lin_drv8889_current_microstep = requested_microstep;
-
-            lin_drv8889_ctrl_pending_mask &= (uint8_t)(~LIN_DRV8889_CTRL3_PENDING_MASK);
-            lin_drv8889_debug_apply_count++;
-        }
-
-        if ((lin_drv8889_ctrl_pending_mask & LIN_DRV8889_CTRL4_PENDING_MASK) != 0U)
-        {
-            Drv8889_WriteCtrl4(lin_drv8889_ctrl_buffer[3U]);
-            lin_drv8889_ctrl_pending_mask &= (uint8_t)(~LIN_DRV8889_CTRL4_PENDING_MASK);
-            lin_drv8889_debug_apply_count++;
-        }
-
-        if ((lin_drv8889_ctrl_pending_mask & LIN_DRV8889_CTRL5_PENDING_MASK) != 0U)
-        {
-            Drv8889_WriteCtrl5(lin_drv8889_ctrl_buffer[4U]);
-            lin_drv8889_ctrl_pending_mask &= (uint8_t)(~LIN_DRV8889_CTRL5_PENDING_MASK);
-            lin_drv8889_debug_apply_count++;
-        }
-
-        if ((lin_drv8889_ctrl_pending_mask & LIN_DRV8889_CTRL6_PENDING_MASK) != 0U)
-        {
-            Drv8889_WriteCtrl6(lin_drv8889_ctrl_buffer[5U]);
-            lin_drv8889_ctrl_pending_mask &= (uint8_t)(~LIN_DRV8889_CTRL6_PENDING_MASK);
-            lin_drv8889_debug_apply_count++;
-        }
-    }
+    return result;
 }
 #endif
 
-
 /***********************************************************************************************************************
  * Function Name: Lin_RxCheck
- * Description  : LIN 수신 데이터를 파싱하고, DRV8889 설정 명령 및 AAF 위치 명령을 처리함.
+ * Description  : LIN 수신 프레임을 확인하고 해당 명령을 처리함.
  ***********************************************************************************************************************/
 void Lin_RxCheck(void)
 {
 #ifdef ENABLE_TORQUE_LIN_COMMUNICATION
-    uint8_t process_position_command;
-#endif
-
-#ifdef ENABLE_TORQUE_LIN_COMMUNICATION
-    process_position_command = ON;
+    uint8_t setting_frame;
 #endif
 
     Lin_SwCheck();
-
     Lin_TranslateRxData();
 
     if (lin_rx_pass_flag == PASS)
     {
-        Lin_ParseVehicleSpeed((unsigned int)(Slave_RxData1[6U]));
-
-        AAF_ProtectionMode_Rx = (unsigned int)((Slave_RxData1[7U] & 0x40U) >> 6U);
-        LDCRdy                = (unsigned int)((Slave_RxData1[7U] & 0x30U) >> 4U);
-        AAF_LINOut            = (unsigned int)((Slave_RxData1[7U] & 0x0CU) >> 2U);
-
 #ifdef ENABLE_TORQUE_LIN_COMMUNICATION
-        Lin_BufferDrv8889SettingCommand();
-        Lin_ApplyBufferedDrv8889Setting();
+        setting_frame = Lin_CheckTrqSettingFrame();
 
-        if (lin_drv8889_setting_frame_received == ON)
-        {
-            /*
-            * DRV8889 설정 프레임에서는 BYTE4 위치 명령을 항상 무시
-            * 위치 명령은 설정 완료 후 다음 일반 프레임에서 처리
-            */
-            process_position_command = OFF;
-        }
-#endif
-
-#ifdef ENABLE_TORQUE_LIN_COMMUNICATION
-        if ((AAFx_InitStatus != DURING_INITIALIZATION) &&
-            (process_position_command == ON))
-#else
-        if (AAFx_InitStatus != DURING_INITIALIZATION)
+        if (setting_frame == OFF)
 #endif
         {
-            AAF1_TargetPosition = (unsigned int)(Slave_RxData1[4U] & 0x07U);
-            AAF2_TargetPosition = (unsigned int)((Slave_RxData1[4U] & 0x38U) >> 3U);
-            AAF3_TargetPosition = (unsigned int)(Slave_RxData1[5U] & 0x07U);
+            Lin_ParseVehicleSpeed((unsigned int)ID_chk_rxdata[6U]);
+
+            AAF_ProtectionMode_Rx =
+                (unsigned int)((ID_chk_rxdata[7U] & 0x40U) >> 6U);
+
+            LDCRdy =
+                (unsigned int)((ID_chk_rxdata[7U] & 0x30U) >> 4U);
+
+            AAF_LINOut =
+                (unsigned int)((ID_chk_rxdata[7U] & 0x0CU) >> 2U);
+
+            if (AAFx_InitStatus != DURING_INITIALIZATION)
+            {
+                AAF1_TargetPosition =
+                    (unsigned int)(ID_chk_rxdata[4U] & 0x07U);
+
+                AAF2_TargetPosition =
+                    (unsigned int)((ID_chk_rxdata[4U] & 0x38U) >> 3U);
+
+                AAF3_TargetPosition =
+                    (unsigned int)(ID_chk_rxdata[5U] & 0x07U);
 
 #ifdef ENABLE_TORQUE_TEST
-#ifdef ENABLE_TORQUE_LIN_COMMUNICATION
-            if (lin_drv8889_setting_frame_received == OFF)
-            {
                 Lin_ParseTorqueTestMode();
-            }
-#else
-            Lin_ParseTorqueTestMode();
-#endif
 #endif
 
-            if (AAFx_Index == AAF_1)
-            {
-                Lin_CheckAAF1RxData();
-            }
-            else if (AAFx_Index == AAF_2)
-            {
-                Lin_CheckAAF2RxData();
-            }
-            else if (AAFx_Index == AAF_3)
-            {
-                Lin_CheckAAF3RxData();
-            }
-            else
-            {
-                /* Invalid AAF index */
-            }
+                if (AAFx_Index == AAF_1)
+                {
+                    Lin_CheckAAF1RxData();
+                }
+                else if (AAFx_Index == AAF_2)
+                {
+                    Lin_CheckAAF2RxData();
+                }
+                else if (AAFx_Index == AAF_3)
+                {
+                    Lin_CheckAAF3RxData();
+                }
+                else
+                {
+                    /* Invalid AAF index */
+                }
 
 #ifdef ENABLE_TORQUE_TEST
-#ifdef ENABLE_TORQUE_LIN_COMMUNICATION
-            if (lin_drv8889_setting_frame_received == OFF)
-            {
                 Lin_ExecuteTorqueTestMode();
+#endif
             }
-#else
-            Lin_ExecuteTorqueTestMode();
-#endif
-#endif
-        }
-        else
-        {
-            /* 초기화 중이거나 DRV8889 설정 프레임이면 위치 명령 처리를 하지 않음 */
         }
     }
 }
@@ -1051,7 +711,7 @@ void Lin_TxCheck(void)
             step_range = (unsigned long)(step_position_close - step_position_open);
         }
 
-        Slave_TxData[3U] = lin_drv8889_current_microstep;
+        Slave_TxData[3U] = TrqChange_GetMicrostep();
         Slave_TxData[4U] = (uint8_t)(step_range & 0xFFUL);
         Slave_TxData[5U] = (uint8_t)((step_range >> 8U) & 0xFFUL);
         Slave_TxData[6U] = (uint8_t)((step_range >> 16U) & 0xFFUL);
@@ -1061,15 +721,7 @@ void Lin_TxCheck(void)
     // #ifdef ENABLE_TORQUE_LIN_COMMUNICATION
     // Lin_TxTrqCount();
     // #endif
-
-    // #ifdef ENABLE_TORQUE_LIN_COMMUNICATION
-    // Slave_TxData[3U] = lin_drv8889_debug_rx_ctrl_id;
-    // Slave_TxData[4U] = lin_drv8889_debug_rx_data;
-    // Slave_TxData[5U] = lin_drv8889_debug_pending_mask;
-    // Slave_TxData[6U] = lin_drv8889_debug_apply_count;
-    // #endif
-
-    
+   
     Lin_SwCheckResponse();
 
     lin_rx_pass_flag = WAITING;
