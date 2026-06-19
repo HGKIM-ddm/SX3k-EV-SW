@@ -69,9 +69,6 @@ void HighSpeed_CheckDriveMode(uint8_t speed)
 
 }
 
-// 새 위치 명령을 바로 수행하지 않음
-// 현재 위치 또는 현재 수행 중인 명령 유지
-// 10초 후 NORMAL 복귀되면 그때 새 명령 수행
 static uint8_t HighSpeed_HoldCommand(void)
 {
     uint8_t hold_command;
