@@ -3,8 +3,12 @@
 #include "Trqchange.h"
 
 #ifdef ENABLE_TORQUE_LIN_COMMUNICATION
-#define LIN_TRQCHANGE_SETTING_KEY      0x5AU
 #define LIN_TRQCHANGE_SETTING_FRAME_ID 0xF0U
+#define LIN_TRQCHANGE_SETTING_KEY      0x5AU
+#define LIN_TRQCHANGE_BYTE4_VALUE      0x07U
+#define LIN_TRQCHANGE_BYTE5_VALUE      0x00U
+#define LIN_TRQCHANGE_BYTE6_VALUE      0x00U
+#define LIN_TRQCHANGE_BYTE7_VALUE      0x10U
 #endif
 
 
@@ -563,11 +567,17 @@ static uint8_t Lin_CheckTrqSettingFrame(void)
     {
         result = ON;
 
-        if (ID_chk_rxdata[3U] == LIN_TRQCHANGE_SETTING_KEY)
+        if ((ID_chk_rxdata[3U] == LIN_TRQCHANGE_SETTING_KEY) &&
+            (ID_chk_rxdata[4U] == LIN_TRQCHANGE_BYTE4_VALUE) &&
+            (ID_chk_rxdata[5U] == LIN_TRQCHANGE_BYTE5_VALUE) &&
+            (ID_chk_rxdata[6U] == LIN_TRQCHANGE_BYTE6_VALUE) &&
+            (ID_chk_rxdata[7U] == LIN_TRQCHANGE_BYTE7_VALUE))
         {
             (void)TrqChange_Set(ID_chk_rxdata[1U],
                                 ID_chk_rxdata[2U]);
         }
+
+        lin_rx_pass_flag = WAITING;
     }
 
     return result;
@@ -654,6 +664,7 @@ void Lin_RxCheck(void)
  ***********************************************************************************************************************/
 void Lin_TxCheck(void)
 {
+
     switch (Lin_GetReportPosition())
     {
     case CLOSE:
@@ -699,24 +710,6 @@ void Lin_TxCheck(void)
     Slave_TxData[4U] = 0x00U;
     Slave_TxData[5U] = 0x00U;
     Slave_TxData[6U] = 0x00U;
-
-#ifdef ENABLE_TORQUE_LIN_COMMUNICATION
-    {
-        unsigned long step_range;
-
-        step_range = 0UL;
-
-        if (step_position_close >= step_position_open)
-        {
-            step_range = (unsigned long)(step_position_close - step_position_open);
-        }
-
-        Slave_TxData[3U] = TrqChange_GetMicrostep();
-        Slave_TxData[4U] = (uint8_t)(step_range & 0xFFUL);
-        Slave_TxData[5U] = (uint8_t)((step_range >> 8U) & 0xFFUL);
-        Slave_TxData[6U] = (uint8_t)((step_range >> 16U) & 0xFFUL);
-    }
-#endif
 
     // #ifdef ENABLE_TORQUE_LIN_COMMUNICATION
     // Lin_TxTrqCount();

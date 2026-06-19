@@ -194,8 +194,10 @@ void Re_Init(void)
     evrdy_on_flag = OFF;
 
 #ifdef ENABLE_TORQUE_LIN_COMMUNICATION
-    TrqChange_ResetMicrostep();
-    
+
+    voltage_status_change = ON; //다음 Spi_Check() 실행 때 현재 voltage_status_spi 값을 기준으로 CTRL1을 다시 설정
+    voltage_status_change_complete = COMPLETE;
+
     TRQ_COUNT_Index = 0U;
     TRQ_COUNT_LogEnable = 1U; 
     TRQ_COUNT_TxReady = 0U;

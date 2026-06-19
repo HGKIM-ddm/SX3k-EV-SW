@@ -172,6 +172,16 @@ static void Motor_GenerateStepPulse(void)
 }
 
 /***********************************************************************************************************************
+ * Function Name: Motor_StopStepPwm
+ * Description  : TAUJ1 STEP PWM을 정지하고 내부 PWM 상태 플래그를 초기화함.
+ ***********************************************************************************************************************/
+void Motor_StopStepPwm(void)
+{
+    R_Config_TAUJ1_Stop();
+    pwm_flag = OFF;
+}
+
+/***********************************************************************************************************************
  * Function Name: App_MotorAction
  * Description  : Handles protection timer and executes motor movement (Action Logic).
  * Called By    : AAF_App

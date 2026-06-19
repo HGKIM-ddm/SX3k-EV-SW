@@ -11,7 +11,6 @@ void TrqChange_Apply(void);
 void TrqChange_ClearPending(void);
 void TrqChange_ResetMicrostep(void);
 uint8_t TrqChange_IsCtrl1Active(void);
-uint8_t TrqChange_GetMicrostep(void);
 
 #endif
 
