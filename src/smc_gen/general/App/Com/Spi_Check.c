@@ -28,15 +28,21 @@ static void SpiCheck_ExecuteVoltageChange(void)
 
     if (voltage_status_spi == NORMAL_VOLTAGE)
     {
-        Drv8889_WriteCtrl1(TRQ_DAC_75, SLEW_RATE_10V);
+        Drv8889_WriteCtrl1(TRQ_DAC_62_5, SLEW_RATE_10V);
         motor_cw_stall_value  = MOTOR_CW_STALL_CHK_VALUE_NORMAL_VOLTAGE;
         motor_ccw_stall_value = MOTOR_CCW_STALL_CHK_VALUE_NORMAL_VOLTAGE;
     }
     else if (voltage_status_spi == LOW_VOLTAGE)
     {
-        Drv8889_WriteCtrl1(TRQ_DAC_75, SLEW_RATE_35V);
+        Drv8889_WriteCtrl1(TRQ_DAC_62_5, SLEW_RATE_35V);
         motor_cw_stall_value  = MOTOR_CW_STALL_CHK_VALUE_LOW_VOLTAGE;
         motor_ccw_stall_value = MOTOR_CCW_STALL_CHK_VALUE_LOW_VOLTAGE;
+    }
+    else if (voltage_status_spi == HIGH_VOLTAGE)
+    {   
+        Drv8889_WriteCtrl1(TRQ_DAC_62_5, SLEW_RATE_10V);
+        motor_cw_stall_value  = MOTOR_CW_STALL_CHK_VALUE_HIGH_VOLTAGE;
+        motor_ccw_stall_value = MOTOR_CCW_STALL_CHK_VALUE_HIGH_VOLTAGE;
     }
     else
     {
@@ -222,6 +228,14 @@ static void SpiCheck_CurrentLimitingSelect(void)
 			voltage_status_change = ON;
 		}
 	}
+	else if ((voltage_status_spi == HIGH_VOLTAGE) && (Operating_flag == 0U))
+	{
+		if (adc_avr >= ADC_VOLTAGE_14V)
+		{
+			voltage_status_spi = HIGH_VOLTAGE;
+			voltage_status_change = ON;
+		}
+	}    
 	else
 	{
 		//invaild
