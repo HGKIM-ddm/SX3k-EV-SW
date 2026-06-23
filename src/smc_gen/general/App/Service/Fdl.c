@@ -23,13 +23,81 @@ void FDL_Init(void)
 	G_Timer1ms.FdlErrorCheck = 0U;
 }
 
+static uint8_t FDL_GetMicrostepDivider(uint8_t microstep)
+{
+    uint8_t divider;
+
+    switch (microstep)
+    {
+    case CONFIG_MICROSTEP_FULL_71:
+        divider = 1U;
+        break;
+
+    case CONFIG_MICROSTEP_1_2:
+        divider = 2U;
+        break;
+
+    case CONFIG_MICROSTEP_1_4:
+        divider = 4U;
+        break;
+
+    case CONFIG_MICROSTEP_1_8:
+        divider = 8U;
+        break;
+
+    case CONFIG_MICROSTEP_1_16:
+        divider = 16U;
+        break;
+
+    case CONFIG_MICROSTEP_1_32:
+        divider = 32U;
+        break;
+
+    default:
+        divider = 8U;
+        break;
+    }
+
+    return divider;
+}
+
+static unsigned int FDL_ConvertStepToDefaultMicrostep(unsigned int step_count)
+{
+    unsigned long converted_value;
+    unsigned long current_divider;
+    unsigned long default_divider;
+
+    current_divider = (unsigned long)FDL_GetMicrostepDivider(motor_microstep_current);
+    default_divider = (unsigned long)FDL_GetMicrostepDivider(CONFIG_MOTOR_MICROSTEP_DEFAULT);
+
+    converted_value =
+        (((unsigned long)step_count * default_divider) +
+         (current_divider / 2UL)) /
+        current_divider;
+
+    if (converted_value > 0xFFFFUL)
+    {
+        converted_value = 0xFFFFUL;
+    }
+
+    return (unsigned int)converted_value;
+}
+
+
+
 void FDL_Write(void)
 {
-	close_memory_write = step_position_close;
-	open_memory_write = step_position_open;
-	now_step_memory_write = step_position;
+	// close_memory_write = step_position_close;
+	// open_memory_write = step_position_open;
+	// now_step_memory_write = step_position;
+	// Initial_memory_write = evrdy_on_flag;
+	// limit_memory_write = limit_step_position;
+
+	close_memory_write = FDL_ConvertStepToDefaultMicrostep(step_position_close);
+	open_memory_write = FDL_ConvertStepToDefaultMicrostep(step_position_open);
+	now_step_memory_write = FDL_ConvertStepToDefaultMicrostep(step_position);
 	Initial_memory_write = evrdy_on_flag;
-	limit_memory_write = limit_step_position;
+	limit_memory_write = FDL_ConvertStepToDefaultMicrostep(limit_step_position);
 
 	if ((AAF_LINOut == 0x00U) && (IGN_Chk == 2U))
 	{

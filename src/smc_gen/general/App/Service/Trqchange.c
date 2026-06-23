@@ -322,6 +322,7 @@ uint8_t TrqChange_Apply(void)
 
         trqchange_current_ctrl1_data = init_ctrl1;
         trqchange_current_microstep = TRQCHANGE_INIT_MICROSTEP;
+        motor_microstep_current = TRQCHANGE_INIT_MICROSTEP;
         trqchange_ctrl1_active = ON;
         trqchange_position_valid = OFF;
         trqchange_reinit_active = ON;
@@ -356,6 +357,7 @@ void TrqChange_ConfirmInitialization(void)
         Drv8889_WriteCtrl1Raw(trqchange_ctrl1_data);
 
         trqchange_current_microstep = trqchange_ctrl3_data;
+        motor_microstep_current = trqchange_ctrl3_data;
         trqchange_initialized_microstep = trqchange_ctrl3_data;
         trqchange_current_ctrl1_data = trqchange_ctrl1_data;
         trqchange_ctrl1_active = ON;

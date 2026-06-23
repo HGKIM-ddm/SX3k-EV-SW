@@ -54,6 +54,7 @@ extern unsigned int init_move_step;
 extern unsigned int motor_open_load;
 extern unsigned int motor_step_value;
 extern volatile unsigned int softstart_complete;
+extern uint8_t motor_microstep_current;
 extern unsigned int motor_stall_flag;
 extern unsigned int motor_cw_stall_value;
 extern unsigned int motor_ccw_stall_value;

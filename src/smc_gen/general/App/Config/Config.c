@@ -77,6 +77,7 @@ unsigned int init_move_step = 0;
 unsigned int motor_open_load = 0;
 unsigned int motor_step_value = 0;
 volatile unsigned int softstart_complete = 0;
+uint8_t motor_microstep_current = CONFIG_MOTOR_MICROSTEP_DEFAULT;
 
 unsigned int motor_stall_flag = 0;
 unsigned int motor_cw_stall_value = 0;
