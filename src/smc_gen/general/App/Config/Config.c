@@ -232,6 +232,11 @@ unsigned int power_chk_memory_read = 0;
 unsigned int First_Powerchk_memory_write = 0U;
 unsigned int First_Powerchk_memory_read = 0U;
 
+/** Temporary **/
+unsigned int AAF_Tx_Position_Temporary = UNKOWN_POSITION;
+unsigned int AAFx_Position_Status_Temporary = Unknown_Status;
+unsigned int AAFx_InitStatus_Temporary = DURING_INITIALIZATION;
+
 /* 2.9 Timers (1us / 1ms Counters) */
 
 /* 1us Timer Group */
