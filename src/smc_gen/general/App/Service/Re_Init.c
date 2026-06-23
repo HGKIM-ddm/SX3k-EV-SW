@@ -1,6 +1,5 @@
 #include "Re_Init.h"
 #include "Service.h"
-#include "Trqchange.h"
 
 static void Step_LoadData(void)
 {
@@ -32,14 +31,19 @@ static void Step_LoadData(void)
 static void Step_Check(void)
 {
     unsigned int step_range;
+    unsigned int minimum_range;
+    unsigned int maximum_range;
     unsigned int reinit_required;
 
     step_range = step_position_close - step_position_open;
 
+    minimum_range = STEP_POSITION_MINIMUM_RANGE;
+    maximum_range = STEP_POSITION_MAXIMUM_RANGE;
+
     reinit_required = (
         /* 1. 이동 범위(Range) 및 마진(Limit) 체크 */
-        (step_range           <= STEP_POSITION_MINIMUM_RANGE)               ||
-        (step_range           >  STEP_POSITION_MAXIMUM_RANGE)               ||
+        (step_range           <= minimum_range)                             ||
+        (step_range           >  maximum_range)                             ||
         (step_position        == REFERENCE_POSITION)                        ||
         (step_position        <  step_position_open  + limit_step_position) ||
         (step_position        >  step_position_close - limit_step_position) ||
@@ -97,74 +101,6 @@ static void Step_Check(void)
     }
 }
 
-/***********************************************************************************************************************
- * Function Name: Init_CheckLimitArrival
- * Description  : 초기화 중 OPEN limit 도달 여부와 Travel Range 최소 기준을 확인함.
- ***********************************************************************************************************************/
-static void Init_CheckLimitArrival(void)
-{
-    uint8_t is_stall_error;
-
-    /* Check stall or invalid travel range */
-    is_stall_error = (uint8_t)(((motor_stall_flag == MOTOR_STALL) ||
-                                ((step_position_close - step_position_open) <= STEP_POSITION_MINIMUM_RANGE)) &&
-                               (stall_test_mode == 0U));
-
-    if (is_stall_error != 0U)
-    {
-        Drv8889_Off();
-        motor_start = OFF;
-        softstart_complete = OFF;
-        motor_step_value = STEP_TIME_1000RPM;
-        G_Timer1msFlag.InitFailCheckFlag = 0U;
-        G_Timer1ms.InitFailCheck = 0U;
-
-        if (fail_safety_step == 0U)
-        {
-            fail_safety_flag = ON;
-        }
-
-        if (fail_safety_step == 4U)
-        {
-            fail_safety_step = 5U;
-        }
-        else if (fail_safety_step == 9U)
-        {
-            fail_safety_step = 10U;
-        }
-        else
-        {
-            /* No fail-safety step transition */
-        }
-    }
-    else if (step_position >= (step_position_open + limit_step_position))
-    {
-        Drv8889_Off();
-        motor_start = OFF;
-        G_Timer1msFlag.StallTimeFlag = 0U;
-        G_Timer1ms.StallTime = 0U;
-        G_Timer1msFlag.External10sCheckFlag = OFF;
-        G_Timer1ms.External10sCheck = 0U;
-        softstart_complete = OFF;
-        motor_step_value = STEP_TIME_1000RPM;
-        G_Timer1msFlag.InitFailCheckFlag = 0U;
-        G_Timer1ms.InitFailCheck = 0U;
-
-        init_move_step = 15U;
-    }
-    else
-    {
-        G_Timer1msFlag.InitFailCheckFlag = 1U;
-
-        if (G_Timer1ms.InitFailCheck >= 5000U)
-        {
-            init_move_step = 0U;
-            G_Timer1msFlag.InitFailCheckFlag = 0U;
-            G_Timer1ms.InitFailCheck = 0U;
-        }
-    }
-}
-
 
 /***********************************************************************************************************************
  * Function Name: Re_Init
@@ -192,14 +128,13 @@ void Re_Init(void)
     Diag_Mode = 0U;
     Diag_Mode_chk = 0U;
     evrdy_on_flag = OFF;
+    wake_up_motor_range_init_chk = 0U;
+    step_start_flag = OFF;
+    aaf_action_complete_chk = FLAP_STOP;
 
 #ifdef ENABLE_TORQUE_LIN_COMMUNICATION
-
-    voltage_status_change = ON; //다음 Spi_Check() 실행 때 현재 voltage_status_spi 값을 기준으로 CTRL1을 다시 설정
-    voltage_status_change_complete = COMPLETE;
-
     TRQ_COUNT_Index = 0U;
-    TRQ_COUNT_LogEnable = 1U; 
+    TRQ_COUNT_LogEnable = 1U;
     TRQ_COUNT_TxReady = 0U;
 #endif
 }

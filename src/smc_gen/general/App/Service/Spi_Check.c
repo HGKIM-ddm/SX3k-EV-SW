@@ -1,6 +1,5 @@
 #include "Spi_Check.h"
 #include "Service.h"
-#include "Trqchange.h"
 
 /* =========================================================================================
  * SPI Communication & Stall Check Functions
@@ -16,22 +15,6 @@ static void SpiCheck_HandleData(void);
 static void SpiCheck_Init(void);
 static void SpiCheck_CurrentLimitingSelect(void);
 
-/***********************************************************************************************************************
- * Function Name: SpiCheck_WriteCtrl1ByVoltage
- * Description  : 전압 상태에 따른 DRV8889 CTRL1 기본값을 설정함.
- *                LIN CTRL1 튜닝값이 적용된 경우에는 튜닝값 유지를 위해 CTRL1을 덮어쓰지 않음.
- ***********************************************************************************************************************/
-// static void SpiCheck_WriteCtrl1ByVoltage(Drv_TrqDac_t trq, Drv_SlewRate_t slew)
-// {
-// #ifdef ENABLE_TORQUE_LIN_COMMUNICATION
-//     if (drv8889_ctrl1_lin_tuning_applied == OFF)
-//     {
-//         Drv8889_WriteCtrl1(trq, slew);
-//     }
-// #else
-//     Drv8889_WriteCtrl1(trq, slew);
-// #endif
-// }
 
 /***********************************************************************************************************************
  * Function Name: SpiCheck_ExecuteVoltageChange
@@ -44,38 +27,36 @@ static void SpiCheck_ExecuteVoltageChange(void)
 
     ctrl1_write_enable = ON;
 
-#ifdef ENABLE_TORQUE_LIN_COMMUNICATION
-    if (TrqChange_IsCtrl1Active() == ON)
+    if (Drv8889_IsCtrl1OverrideActive() == ON)
     {
         ctrl1_write_enable = OFF;
     }
-#endif
 
     if (voltage_status_spi == NORMAL_VOLTAGE)
     {
         if (ctrl1_write_enable == ON)
         {
-            Drv8889_ScsActive(); // CS Low
+            Drv8889_ScsActive();
             Drv8889_WriteCtrl1(TRQ_DAC_75, SLEW_RATE_10V);
         }
 
-        motor_cw_stall_value  = MOTOR_CW_STALL_CHK_VALUE_NORMAL_VOLTAGE;
+        motor_cw_stall_value = MOTOR_CW_STALL_CHK_VALUE_NORMAL_VOLTAGE;
         motor_ccw_stall_value = MOTOR_CCW_STALL_CHK_VALUE_NORMAL_VOLTAGE;
     }
     else if (voltage_status_spi == LOW_VOLTAGE)
     {
         if (ctrl1_write_enable == ON)
         {
-            Drv8889_ScsActive(); // CS Low
+            Drv8889_ScsActive();
             Drv8889_WriteCtrl1(TRQ_DAC_75, SLEW_RATE_35V);
         }
 
-        motor_cw_stall_value  = MOTOR_CW_STALL_CHK_VALUE_LOW_VOLTAGE;
+        motor_cw_stall_value = MOTOR_CW_STALL_CHK_VALUE_LOW_VOLTAGE;
         motor_ccw_stall_value = MOTOR_CCW_STALL_CHK_VALUE_LOW_VOLTAGE;
     }
     else
     {
-        /* Invalid (HIGH_VOLTAGE) */
+        /* Invalid voltage status */
     }
 
     voltage_status_change_complete = WAIT;

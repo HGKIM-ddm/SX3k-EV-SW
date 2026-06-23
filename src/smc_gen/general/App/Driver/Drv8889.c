@@ -1,6 +1,6 @@
 #include "Drv8889.h"
 
-
+static uint8_t drv8889_ctrl1_override_active = OFF;
 
 //Timer
 static uint8_t Drv8889_WaitSpiComplete(void)
@@ -136,6 +136,16 @@ void Drv8889_StepLow(void)  { PORT.P9 &= ~_PORT_Pn0_OUTPUT_HIGH; }
 
 void Drv8889_DirCW(void)    { PORT.P10 |= _PORT_Pn4_OUTPUT_HIGH; }
 void Drv8889_DirCCW(void)   { PORT.P10 &= ~_PORT_Pn4_OUTPUT_HIGH; }
+
+void Drv8889_SetCtrl1Override(uint8_t active)
+{
+    drv8889_ctrl1_override_active = active;
+}
+
+uint8_t Drv8889_IsCtrl1OverrideActive(void)
+{
+    return drv8889_ctrl1_override_active;
+}
 
 /***********************************************************************************************************************
  * Function Name: Drv8889_WriteCtrl1

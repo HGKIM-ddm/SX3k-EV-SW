@@ -1,4 +1,4 @@
-#include "Lin_CHeck.h"
+#include "Lin_Check.h"
 #include "Service.h"
 #include "Trqchange.h"
 
@@ -584,6 +584,7 @@ static uint8_t Lin_CheckTrqSettingFrame(void)
 }
 #endif
 
+
 /***********************************************************************************************************************
  * Function Name: Lin_RxCheck
  * Description  : LIN 수신 프레임을 확인하고 해당 명령을 처리함.
@@ -706,10 +707,22 @@ void Lin_TxCheck(void)
     Slave_TxData[0U] = (uint8_t)((AAFx_Type << 7U) | (AAF_Tx_Position_LIN & 0x07U));
     Slave_TxData[1U] = (uint8_t)((TotalNumOfAAF << 6U) | (AAFx_Index << 4U) | (AAFx_InitStatus & 0x03U));
     Slave_TxData[2U] = (uint8_t)((AAF_ProtectionMode_Tx << 7U) | (AAFx_Over_Volt << 6U) | (AAFx_Low_Volt << 5U) | (AAFx_Motor_Fault << 4U) | (AAFx_Circuit_Short << 2U) | (AAFx_Circuit_Open << 1U));
-    Slave_TxData[3U] = 0x00U;
-    Slave_TxData[4U] = 0x00U;
-    Slave_TxData[5U] = 0x00U;
-    Slave_TxData[6U] = 0x00U;
+    // Slave_TxData[3U] = 0x00U;
+    // Slave_TxData[4U] = 0x00U;
+    // Slave_TxData[5U] = 0x00U;
+    // Slave_TxData[6U] = 0x00U;
+    Slave_TxData[3U] = (uint8_t)init_move_step;
+    Slave_TxData[4U] = (uint8_t)(G_Timer1ms.InitCheck >> 8U);
+    Slave_TxData[5U] = (uint8_t)(G_Timer1ms.InitCheck & 0xFFU);
+    Slave_TxData[6U] =
+    (uint8_t)(((motor_start & 0x01U) << 7U) |
+              ((voltage_status_change_complete & 0x01U) << 6U) |
+              ((lin_bus_inactive_flag & 0x01U) << 5U) |
+              ((protection_function & 0x01U) << 4U) |
+              (((protection_Mode_step != 0U) ? 1U : 0U) << 3U) |
+              ((fail_safety_flag & 0x01U) << 2U) |
+              ((motor_stall_flag & 0x01U) << 1U) |
+              ((G_Timer1ms.ProtectionCheck == 550U) ? 1U : 0U));
 
     // #ifdef ENABLE_TORQUE_LIN_COMMUNICATION
     // Lin_TxTrqCount();

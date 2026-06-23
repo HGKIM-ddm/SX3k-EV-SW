@@ -1,4 +1,5 @@
 #include "Service.h"
+#include "Re_Init.h"
 #include "Trqchange.h"
 
 /***********************************************************************************************************************
@@ -59,6 +60,21 @@ static void Communication_Check(void)
 }
 
 #ifdef ENABLE_TORQUE_LIN_COMMUNICATION
+
+static void MotorSetting_ConfirmInitialization(void)
+{
+    if ((AAFx_InitStatus == NORMAL_FINISHED_INITIALIZATION) &&
+        (aaf_step == AAF_WAITING) &&
+        (wake_up_motor_range_init_chk == COMPLETE) &&
+        (motor_start == OFF) &&
+        (spi_action_step == 0U) &&
+        (spi_send_flag == 0U) &&
+        (spi_receive_flag == 0U))
+    {
+        TrqChange_ConfirmInitialization();
+    }
+}
+
 /***********************************************************************************************************************
  * Function Name: MotorSetting_Check
  * Description  : Checks the motor setting request state.
@@ -77,9 +93,15 @@ static void MotorSetting_Check(void)
     else if ((motor_start == OFF) &&
              (aaf_action == FLAP_STOP) &&
              (aaf_action_complete_chk == FLAP_STOP) &&
-             (aaf_step == AAF_WAITING))
+             (aaf_step == AAF_WAITING) &&
+             (TrqChange_HasPending() == ON))
     {
-        TrqChange_Apply();
+        Motor_StopStepPwm();
+
+        if (TrqChange_Apply() == ON)
+        {
+            Re_Init();
+        }
     }
     else
     {
@@ -154,6 +176,10 @@ void App_SwLogic(void)
 {
     // [Sequence 1] Main Operation Mode Check
     Mode_Check();
+
+#ifdef ENABLE_TORQUE_LIN_COMMUNICATION
+    MotorSetting_ConfirmInitialization();
+#endif
 
     // [Sequence 2] Communication Check
     Communication_Check();

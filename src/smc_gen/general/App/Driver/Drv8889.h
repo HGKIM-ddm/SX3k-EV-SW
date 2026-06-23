@@ -218,7 +218,9 @@ void Drv8889_FaultClear(void);
 
 void Drv8889_WriteCtrl1(Drv_TrqDac_t trq, Drv_SlewRate_t slew);
 
-#endif
+void Drv8889_SetCtrl1Override(uint8_t active);
+uint8_t Drv8889_IsCtrl1OverrideActive(void);
+
 
 #ifdef ENABLE_TORQUE_LIN_COMMUNICATION
 
@@ -231,3 +233,4 @@ void Drv8889_WriteCtrl6(uint8_t data);
 
 #endif
 
+#endif

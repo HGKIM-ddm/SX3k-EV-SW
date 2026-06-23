@@ -135,6 +135,7 @@ static void Init_MoveLimitPosition(void)
 
 		motor_stall_flag = MOTOR_NORMAL; // stall reset
 		// G_Timer1msFlag.StallTimeFlag = 0;			 stall reset
+        stall_cnt = STALL_CNT_DEFAULT;
 		G_Timer1ms.StallTime = 0U;							  // stall reset
 		TRQ_COUNT = MOTOR_STALL_CHK_NORMAL_VALUE; // stall reset
 		G_Timer1ms.Spi = 0U;
@@ -161,7 +162,7 @@ static void Init_CheckLimitArrival(void)
 
     is_stall_error = (uint8_t)(((motor_stall_flag == MOTOR_STALL) ||
                                 ((step_position_close - step_position_open) <= STEP_POSITION_MINIMUM_RANGE)) &&
-                               (stall_test_mode == 0U));
+                                (stall_test_mode == 0U));
 
     if (is_stall_error != 0U)
     {

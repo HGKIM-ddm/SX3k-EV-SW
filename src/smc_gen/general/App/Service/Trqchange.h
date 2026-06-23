@@ -7,11 +7,10 @@
 #ifdef ENABLE_TORQUE_LIN_COMMUNICATION
 
 uint8_t TrqChange_Set(uint8_t ctrl1_data, uint8_t ctrl3_data);
-void TrqChange_Apply(void);
+uint8_t TrqChange_HasPending(void);
+uint8_t TrqChange_Apply(void);
 void TrqChange_ClearPending(void);
-void TrqChange_ResetMicrostep(void);
-uint8_t TrqChange_IsCtrl1Active(void);
+void TrqChange_ConfirmInitialization(void);
 
 #endif
-
 #endif
