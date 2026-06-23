@@ -211,25 +211,35 @@ void Re_Init(void)
  ***********************************************************************************************************************/
 void Step_InitAndCheck(void)
 {
-    if ((step_check_flag == 0U) && (LDCRdy == 0x01u))
+    if ((IGN_Chk == 2U) && (LDCRdy == 0x01U))
+    {
+        Position_Temporary_read();
+        IGN_Chk = 1U;
+    }
+
+    if ((step_check_flag == 0U) && (LDCRdy == 0x01U))
     {
         FDL_Read();
         Step_LoadData();
+        IGN_Chk = 1U;
+
         G_Timer1msFlag.MotorStepCheckFlag = 1U;
 
-        if ((G_Timer1ms.MotorStepCheck >= 50U))
+        if (G_Timer1ms.MotorStepCheck >= 50U)
         {
             Step_Check();
+
             G_Timer1msFlag.MotorStepCheckFlag = 0U;
             G_Timer1ms.MotorStepCheck = 50U;
             step_check_flag = 1U;
         }
-	}	
+    }
 
-	if ((step_check_flag == 1U) && (AAFx_InitStatus == NORMAL_FINISHED_INITIALIZATION))
-	{
-		power_chk = Shutdown_Check;
-		FDL_Write();
-		step_check_flag = 2U;
-	}
+    if ((step_check_flag == 1U) &&
+        (AAFx_InitStatus == NORMAL_FINISHED_INITIALIZATION))
+    {
+        power_chk = Shutdown_Check;
+        FDL_Write();
+        step_check_flag = 2U;
+    }
 }
