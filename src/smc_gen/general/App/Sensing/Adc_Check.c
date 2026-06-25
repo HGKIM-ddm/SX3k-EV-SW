@@ -123,6 +123,10 @@ void ADC_UpdateVoltStat(void)
 		{
 			voltage_status_spi = LOW_VOLTAGE;
 		}
+		else if ((bat_adc >= 500U) && (adc_avr >= ADC_VOLTAGE_15V) && (motor_start == OFF))
+        {
+            voltage_status_spi = HIGH_VOLTAGE;
+        }
 		else
 		{
 			voltage_status_spi = NORMAL_VOLTAGE;

@@ -205,7 +205,7 @@ static void Error_CheckOpen(void)
 {
     if (AAFx_Motor_Fault == 1) return;
  
-    if ((motor_open_load == MOTOR_FAULT) && (Open_Detected == 0U))
+    if ((AAF_OpenLoad == MOTOR_FAULT) && (Open_Detected == 0U))
     {
         G_Timer1ms.MotorOpenCheck = 0U;
         G_Timer1msFlag.MotorOpenCheckFlag = 1U;
@@ -230,18 +230,18 @@ static void Error_CheckOpen(void)
             Open_fault_check = 1U;
         }
  
-        motor_open_load = (unsigned int)(rx_16bit_spi[9] & 0x100U);
+        AAF_OpenLoad = (unsigned int)(rx_16bit_spi[9] & 0x100U);
  
         if (G_Timer1ms.MotorOpenCheck >= 1000U)
         {
-            if ((motor_open_load == NO_ERROR) && (Open_fault_check == 1U))
+            if ((AAF_OpenLoad == NO_ERROR) && (Open_fault_check == 1U))
             {
                 Re_Init();
                 G_Timer1ms.MotorOpenCheck = 0U;
                 G_Timer1msFlag.MotorOpenCheckFlag = 0U;
                 Open_Detected = 0U;
             }
-            else if ((motor_open_load == MOTOR_FAULT) && (motor_Open_chk_count < 10U))
+            else if ((AAF_OpenLoad == MOTOR_FAULT) && (motor_Open_chk_count < 10U))
             {
                 Open_Detected = 0U;
             }

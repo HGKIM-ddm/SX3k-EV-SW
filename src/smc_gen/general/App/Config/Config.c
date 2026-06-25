@@ -10,6 +10,9 @@ unsigned int AAF_DriveMode = NORMAL_DRIVE_MODE; //현재 주행 모드 저장, 1
 unsigned int lin_aaf_request_command = CLOSE; // MCU가 LIN으로 보낸 원본 위치 명령 저장
 uint8_t  highspeed_command_hold_flag = 0U; // 고속 주행모드에서 명령 홀드 여부 저장 (0: 홀드 안함, 1: 홀드)
 
+unsigned int cumulative_stall_count = 7; // 누적 스톨 카운트, 7 이상이면 스톨로 판단
+
+
  /*******************************************************************************
   * Drv8889 Register
   ******************************************************************************/
@@ -78,7 +81,7 @@ unsigned long long step_position = 0;
 unsigned int dir_state = 0;
 unsigned int step_toggle_flag = 0;
 unsigned int init_move_step = 0;
-unsigned int motor_open_load = 0;
+unsigned int AAF_OpenLoad = 0;
 unsigned int motor_step_value = 0;
 volatile unsigned int softstart_complete = 0;
 
@@ -101,7 +104,6 @@ unsigned int open_2nd_step_position = 0;
 unsigned int protection_function = 0;
 unsigned int protection_Mode_step = 0;
 unsigned int AAF_location_type = 0;
-unsigned int AAF_OverCurrent = 0;
 unsigned int AAF_LINOut = 0;
 unsigned int AAFx_Type = 0;
 unsigned int AAFx_InitStatus = 0;
@@ -264,6 +266,12 @@ volatile unsigned int AAF_Maximum_Torque_Test_Mode_tog = 0U;
 
 
 
-
-
-
+/*******************************************************************************
+ * MOTOR FAULT DATA
+ ******************************************************************************/
+unsigned int AAF_OverTemp = 0;              /* Bit 10: OTSD (과열 셧다운) */
+unsigned int AAF_GlobalFault = 0;           /* Bit 15: FAULT (글로벌 에러) */
+unsigned int AAF_UVLO        = 0;  /* B13 저전압 */  
+unsigned int AAF_CPUV        = 0;  /* B12 차지펌프 저전압 */
+unsigned int AAF_OverCurrent = 0;  /* B11 OCP */
+unsigned int AAF_HW_Stall    = 0;  /* B10 STL (HW스톨) */

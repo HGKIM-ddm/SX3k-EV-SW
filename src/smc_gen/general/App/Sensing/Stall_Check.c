@@ -18,7 +18,7 @@ static void StallCheck_UpdateCounter(unsigned int low_limit, unsigned int high_l
             stall_cnt++;
         }
 
-        if (stall_cnt >= STALL_CNT_DEFAULT + STALL_CNT_COMPARISON_VAL)
+        if (stall_cnt >= STALL_CNT_DEFAULT + cumulative_stall_count)
         {
             motor_stall_flag = MOTOR_STALL;
             stall_cnt = STALL_CNT_DEFAULT;
@@ -30,6 +30,27 @@ static void StallCheck_UpdateCounter(unsigned int low_limit, unsigned int high_l
         motor_stall_flag = MOTOR_NORMAL;
         stall_cnt = STALL_CNT_DEFAULT;
     }
+}
+
+/* 초기화 중이면 둔감한 임계(스토퍼 박기용), 아니면 전압별 일반 임계 */
+static unsigned int StallCheck_GetThreshold(unsigned int normal_value)
+{
+    unsigned int threshold;
+
+    if ((aaf_step == AAF_INITIALIZATION) || 
+        (lin_sleep_step >= 3U) || 
+        (fail_safety_flag == ON) || 
+        (LIMP_HOME_step > 0U) || 
+        (antipinch_action_on == ON))
+    {
+        threshold = INIT_STALL_TH_VALUE;
+    }
+    else
+    {
+        threshold = normal_value;       /* 일반: 전압별 민감 임계 */
+    }
+
+    return threshold;
 }
 
 /***********************************************************************************************************************
@@ -44,12 +65,12 @@ static void StallCheck_Close(void)
     if (AAF_location_type == RH_TYPE)
     {
         // RH Type + CLOSE Direction -> Use CCW Thresholds
-        StallCheck_UpdateCounter(motor_ccw_stall_value, MOTOR_CCW_STALL_CHK_HIGH_VALUE);
+        StallCheck_UpdateCounter(StallCheck_GetThreshold(motor_ccw_stall_value), MOTOR_CCW_STALL_CHK_HIGH_VALUE);
     }
     else if (AAF_location_type == LH_TYPE)
     {
         // LH Type + CLOSE Direction -> Use CW Thresholds
-        StallCheck_UpdateCounter(motor_cw_stall_value, MOTOR_CW_STALL_CHK_HIGH_VALUE);
+        StallCheck_UpdateCounter(StallCheck_GetThreshold(motor_cw_stall_value), MOTOR_CW_STALL_CHK_HIGH_VALUE);
     }
     else
     {
@@ -69,12 +90,12 @@ static void StallCheck_Open(void)
     if (AAF_location_type == RH_TYPE)
     {
         // RH Type + OPEN Direction -> Use CW Thresholds
-        StallCheck_UpdateCounter(motor_cw_stall_value, MOTOR_CW_STALL_CHK_HIGH_VALUE);
+        StallCheck_UpdateCounter(StallCheck_GetThreshold(motor_cw_stall_value), MOTOR_CW_STALL_CHK_HIGH_VALUE);
     }
     else if (AAF_location_type == LH_TYPE)
     {
         // LH Type + OPEN Direction -> Use CCW Thresholds
-        StallCheck_UpdateCounter(motor_ccw_stall_value, MOTOR_CCW_STALL_CHK_HIGH_VALUE);
+        StallCheck_UpdateCounter(StallCheck_GetThreshold(motor_ccw_stall_value), MOTOR_CCW_STALL_CHK_HIGH_VALUE);
     }
     else
     {

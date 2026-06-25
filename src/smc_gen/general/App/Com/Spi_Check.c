@@ -28,21 +28,24 @@ static void SpiCheck_ExecuteVoltageChange(void)
 
     if (voltage_status_spi == NORMAL_VOLTAGE)
     {
-        Drv8889_WriteCtrl1(TRQ_DAC_62_5, SLEW_RATE_10V);
-        motor_cw_stall_value  = MOTOR_CW_STALL_CHK_VALUE_NORMAL_VOLTAGE;
-        motor_ccw_stall_value = MOTOR_CCW_STALL_CHK_VALUE_NORMAL_VOLTAGE;
+        Drv8889_WriteCtrl1(TRQ_DAC_68_75, SLEW_RATE_10V);
+        motor_cw_stall_value  = STALL_TH_VALUE_NORMAL_VOLTAGE;
+        motor_ccw_stall_value = STALL_TH_VALUE_NORMAL_VOLTAGE;
+        cumulative_stall_count = 7U; // 디폴트 값 복귀
     }
     else if (voltage_status_spi == LOW_VOLTAGE)
     {
-        Drv8889_WriteCtrl1(TRQ_DAC_62_5, SLEW_RATE_35V);
-        motor_cw_stall_value  = MOTOR_CW_STALL_CHK_VALUE_LOW_VOLTAGE;
-        motor_ccw_stall_value = MOTOR_CCW_STALL_CHK_VALUE_LOW_VOLTAGE;
-    }
+        Drv8889_WriteCtrl1(TRQ_DAC_75, SLEW_RATE_10V);
+        motor_cw_stall_value  = STALL_TH_VALUE_LOW_VOLTAGE;
+        motor_ccw_stall_value = STALL_TH_VALUE_LOW_VOLTAGE;
+        cumulative_stall_count = 7U; // 디폴트 값 복귀
+    }   
     else if (voltage_status_spi == HIGH_VOLTAGE)
     {   
         Drv8889_WriteCtrl1(TRQ_DAC_62_5, SLEW_RATE_10V);
-        motor_cw_stall_value  = MOTOR_CW_STALL_CHK_VALUE_HIGH_VOLTAGE;
-        motor_ccw_stall_value = MOTOR_CCW_STALL_CHK_VALUE_HIGH_VOLTAGE;
+        motor_cw_stall_value  = STALL_TH_VALUE_HIGH_VOLTAGE;
+        motor_ccw_stall_value = STALL_TH_VALUE_HIGH_VOLTAGE;
+        cumulative_stall_count = 14U; // 14로 설정하여 스톨 카운트 증가 
     }
     else
     {
@@ -140,10 +143,28 @@ static void SpiCheck_HandleData(void)
 {
     /* 1. 변수 파싱 */
     TRQ_COUNT = (unsigned int)(rx_16bit_spi[9] & 0xFFU);
-    motor_open_load = (unsigned int)(rx_16bit_spi[9] & 0x100U);
-    AAF_OverCurrent = (unsigned int)(rx_16bit_spi[9] & 0x800U);
+    AAF_UVLO        = rx_16bit_spi[9] & 0x2000U;  /* B13 저전압 */
+    AAF_CPUV        = rx_16bit_spi[9] & 0x1000U;  /* B12 차지펌프 저전압 */
+    AAF_OverCurrent = rx_16bit_spi[9] & 0x0800U;  /* B11 OCP */
+    AAF_HW_Stall    = rx_16bit_spi[9] & 0x0400U;  /* B10 STL (HW스톨) */
+    AAF_OverTemp    = rx_16bit_spi[9] & 0x0200U;  /* B9  TF 과열 */
+    AAF_OpenLoad    = rx_16bit_spi[9] & 0x0100U;  /* B8  OL */
+
+    if (AAF_Tx_Position == DIAG_MODE_AUTO) {
+        if (TRQ_COUNT_Index < 4000U){
+            TRQ_COUNT_Buffer[TRQ_COUNT_Index] = TRQ_COUNT;
+            TRQ_COUNT_Index++;
+        }
+    }
 
     #ifdef ENABLE_TORQUE_LIN_COMMUNICATION
+
+    // if (TRQ_COUNT_Index < 4000U)
+    // {
+    //     TRQ_COUNT_Buffer[TRQ_COUNT_Index] = TRQ_COUNT;
+    //     TRQ_COUNT_Index++;
+    // }
+
     if (TRQ_COUNT_LogEnable == 1U)
     {
         // 모터 구동 중 2ms마다 여기가 호출됨
@@ -212,34 +233,38 @@ static void SpiCheck_Init(void)
 
 static void SpiCheck_CurrentLimitingSelect(void)
 {
-	if ((voltage_status_spi == LOW_VOLTAGE) && (Operating_flag == 0U))
-	{
-		if (adc_avr >= ADC_VOLTAGE_10_5V)
-		{
-			voltage_status_spi = NORMAL_VOLTAGE;
-			voltage_status_change = ON;
-		}
-	}
-	else if ((voltage_status_spi == NORMAL_VOLTAGE) && (Operating_flag == 0U))
-	{
-		if (adc_avr <= ADC_VOLTAGE_10V)
-		{
-			voltage_status_spi = LOW_VOLTAGE;
-			voltage_status_change = ON;
-		}
-	}
-	else if ((voltage_status_spi == HIGH_VOLTAGE) && (Operating_flag == 0U))
-	{
-		if (adc_avr >= ADC_VOLTAGE_14V)
-		{
-			voltage_status_spi = HIGH_VOLTAGE;
-			voltage_status_change = ON;
-		}
-	}    
-	else
-	{
-		//invaild
-	}
+    if (Operating_flag == 0U)
+    {
+        if (voltage_status_spi == LOW_VOLTAGE)
+        {
+            if (adc_avr >= ADC_VOLTAGE_10_5V)
+            {
+                voltage_status_spi = NORMAL_VOLTAGE;
+                voltage_status_change = ON;
+            }
+        }
+        else if (voltage_status_spi == NORMAL_VOLTAGE)
+        {
+            if (adc_avr <= ADC_VOLTAGE_10V)
+            {
+                voltage_status_spi = LOW_VOLTAGE;
+                voltage_status_change = ON;
+            }
+            else if (adc_avr >= ADC_VOLTAGE_15V)
+            {
+                voltage_status_spi = HIGH_VOLTAGE;
+                voltage_status_change = ON;
+            }
+        }
+        else if (voltage_status_spi == HIGH_VOLTAGE)
+        {
+            if (adc_avr <= ADC_VOLTAGE_14V)
+            {
+                voltage_status_spi = NORMAL_VOLTAGE;
+                voltage_status_change = ON;
+            }
+        }
+    }
 }
 
 /***********************************************************************************************************************
