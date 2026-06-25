@@ -237,7 +237,7 @@ static void SpiCheck_CurrentLimitingSelect(void)
     {
         if (voltage_status_spi == LOW_VOLTAGE)
         {
-            if (adc_avr >= ADC_VOLTAGE_10_5V)
+            if (adc_avr >= ADC_VOLTAGE_10V)
             {
                 voltage_status_spi = NORMAL_VOLTAGE;
                 voltage_status_change = ON;
@@ -245,7 +245,7 @@ static void SpiCheck_CurrentLimitingSelect(void)
         }
         else if (voltage_status_spi == NORMAL_VOLTAGE)
         {
-            if (adc_avr <= ADC_VOLTAGE_10V)
+            if (adc_avr < ADC_VOLTAGE_10V)
             {
                 voltage_status_spi = LOW_VOLTAGE;
                 voltage_status_change = ON;
@@ -258,7 +258,7 @@ static void SpiCheck_CurrentLimitingSelect(void)
         }
         else if (voltage_status_spi == HIGH_VOLTAGE)
         {
-            if (adc_avr <= ADC_VOLTAGE_14V)
+            if (adc_avr < ADC_VOLTAGE_15V)
             {
                 voltage_status_spi = NORMAL_VOLTAGE;
                 voltage_status_change = ON;
