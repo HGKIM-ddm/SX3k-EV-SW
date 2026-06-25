@@ -48,7 +48,7 @@ static void SpiCheck_ExecuteVoltageChange(void)
         if (ctrl1_write_enable == ON)
         {
             Drv8889_ScsActive();
-            Drv8889_WriteCtrl1(TRQ_DAC_75, SLEW_RATE_35V);
+            Drv8889_WriteCtrl1(TRQ_DAC_75, SLEW_RATE_10V);
         }
 
         motor_cw_stall_value = MOTOR_CW_STALL_CHK_VALUE_LOW_VOLTAGE;
