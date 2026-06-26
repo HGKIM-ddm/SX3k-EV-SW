@@ -14,6 +14,8 @@ extern unsigned int CR_Mcu_VehSpdInt_Kph;
 extern unsigned int AAF_DriveMode;
 extern unsigned int lin_aaf_request_command;
 extern uint8_t  highspeed_command_hold_flag;
+
+extern unsigned int cumulative_stall_count;
 /*******************************************************************************
  * Drv8889 Register
  ******************************************************************************/
@@ -50,7 +52,7 @@ extern unsigned long long step_position;
 extern unsigned int dir_state;
 extern unsigned int step_toggle_flag;
 extern unsigned int init_move_step;
-extern unsigned int motor_open_load;
+extern unsigned int AAF_OpenLoad;
 extern unsigned int motor_step_value;
 extern volatile unsigned int softstart_complete;
 extern unsigned int motor_stall_flag;
@@ -72,7 +74,6 @@ extern unsigned int open_2nd_step_position;
 extern unsigned int protection_function;
 extern unsigned int protection_Mode_step;
 extern unsigned int AAF_location_type;
-extern unsigned int AAF_OverCurrent;
 extern unsigned int AAF_LINOut;
 extern unsigned int AAFx_Type;
 extern unsigned int AAFx_InitStatus;
@@ -320,6 +321,15 @@ extern volatile unsigned int AAF_Flap_Fixation_Test_Mode_tog;
 extern volatile unsigned int AAF_Maximum_Torque_Test_Mode_tog;
 
 
+/*******************************************************************************
+ * MOTOR FAULT DATA
+ ******************************************************************************/
+extern unsigned int AAF_OverTemp;              /* Bit 10: OTSD (과열 셧다운) */
+extern unsigned int AAF_GlobalFault;           /* Bit 15: FAULT (글로벌 에러) */
+extern unsigned int AAF_UVLO;  /* B13 저전압 */  
+extern unsigned int AAF_CPUV;  /* B12 차지펌프 저전압 */
+extern unsigned int AAF_OverCurrent;  /* B11 OCP */
+extern unsigned int AAF_HW_Stall;  /* B10 STL (HW스톨) */
 
 #endif 
 

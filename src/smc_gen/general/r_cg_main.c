@@ -141,8 +141,8 @@ static void AAF_Init(void)
 
 	G_Timer1msFlag.VoltCheckDelayFlag = 1; // POWER ON AFTER 500ms
 
-	motor_cw_stall_value = MOTOR_CW_STALL_CHK_VALUE_NORMAL_VOLTAGE;
-	motor_ccw_stall_value = MOTOR_CCW_STALL_CHK_VALUE_NORMAL_VOLTAGE;
+	motor_cw_stall_value = STALL_TH_VALUE_NORMAL_VOLTAGE;
+	motor_ccw_stall_value = STALL_TH_VALUE_NORMAL_VOLTAGE;
 
 	diag_mode_auto_dir = OPEN;
 	G_Timer1msFlag.ProtectionCheckFlag = 1;

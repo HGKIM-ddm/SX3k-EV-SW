@@ -186,7 +186,12 @@ typedef enum {
     STL_REP_OFF     = (0x0U << 3),   /* (현재) nFAULT 미보고 → SW 판정 */
     STL_REP_ON      = (0x1U << 3)    /* nFAULT 보고 */
 } Drv_StlRep_t;
- 
+
+/* CTRL5 EN_SR_BLANK → bit0 (DRV8889A-Q1 전용) */
+typedef enum {
+    EN_SR_BLANK_OFF = (0x0U << 0),
+    EN_SR_BLANK_ON  = (0x1U << 0)
+} Drv_EnSrBlank_t; 
 /* ====================================================================
  * CTRL6 (0x08) : STALL_TH[7:0]
  *   현재값 0x00 = STALL_TH 0 (HW 자동 스톨 최소, SW에서 TRQ_COUNT로 직접 판정)
