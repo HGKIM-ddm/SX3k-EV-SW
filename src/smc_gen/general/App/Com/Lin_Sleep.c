@@ -71,70 +71,54 @@ static void LinSleep_Delay(void)
  ***********************************************************************************************************************/
 static void LinSleep_ParsingCommand(void)
 {
-    /* LINOut == 0: 정상 종료 조건
-    * 마스터가 마지막으로 요청한 위치로 이동한 뒤 Sleep 진입 준비
-    */
     if (AAF_LINOut == 0x00U)
     {
-        /* EV 명령 체계에서는 OPEN, OPEN_1ST, OPEN_2ND가 모두 OPEN 계열 명령임.
-        * 현재 EV sleep 코드에서는 1st/2nd 위치도 LinSleep_CheckCompletion()에서 별도 목표 위치로 처리함.
-        */
-        if ((lin_aaf_command == OPEN) ||
-            (lin_aaf_command == OPEN_1ST) ||
-            (lin_aaf_command == OPEN_2ND))
+        if (IGN_Chk == 0U)
+        {
+            lin_sleep_step = 8U;
+        }
+        else if ((lin_aaf_command == OPEN) ||
+                 (lin_aaf_command == OPEN_1ST) ||
+                 (lin_aaf_command == OPEN_2ND))
         {
             Drv8889_Wakeup();
 
-            /*
-             * OPEN / OPEN_1ST / OPEN 2ND 명령을 그대로 저장
-             * 뒤쪽 LIN_SLEEP_STARTMOTOR()와 LIN_SLEEP_CHECKCOMPLETION()에서 이 값을 기준으로 처리
-             */
             aaf_action = lin_aaf_command;
-            /* 모터 구동 시작 단계로 이동*/
             lin_sleep_step = 3U;
         }
         else if (lin_aaf_command == CLOSE)
         {
-            Drv8889_Wakeup();
+            if ((AAF_Tx_Position == CLOSE) &&
+                (AAFx_Position_Status == Close_Status) &&
+                (aaf_action_complete_chk == FLAP_STOP))
+            {
+                lin_sleep_step = 8U;
+            }
+            else
+            {
+                Drv8889_Wakeup();
 
-            /*CLOSE 명령 저장*/
-            aaf_action = CLOSE;
-            /*모터 구동 시작 단계로 이동*/
-            lin_sleep_step = 3U;
-        }
-        else if (lin_aaf_command == UNKOWN_POSITION)
-        {
-            /*
-             * 마지막 명령이 UNKNOWN이면 SLEEP 전 추가 구동을 하지 않음
-             * 현재 위치 신뢰가 낮거나 명령이 불명확한 상태이므로 바로 최종 SLEEP 단계로 이동
-             */
-            lin_sleep_step = 8U;
+                aaf_action = CLOSE;
+                lin_sleep_step = 3U;
+            }
         }
         else
         {
-  
-            /*정의되지 않은 명령이면 모터를 구동하지 않고 SLEEP 단계로 이동*/
             lin_sleep_step = 8U;
         }
     }
-    /* LINOut == 1: 비정상 종료 또는 LIN 단선
-    * 사양에 따라 무조건 OPEN 방향으로 이동 후 SLEEP 진
-    */
     else if (AAF_LINOut == 0x01U)
     {
         Drv8889_Wakeup();
 
         aaf_action = OPEN;
-        /*모터 구동 시작 단계로 이동*/
         lin_sleep_step = 3U;
     }
     else
     {
-        /*AAF_LINOut 값이 유효하지 않으면 모터 구동 없이 최종 Sleep 단계로 이동 */
         lin_sleep_step = 8U;
     }
 }
-
 /***********************************************************************************************************************
  * Function Name: LinSleep_Cycle1
  * Description  : LIN Sleep 전반부(준비) 단계 처리 (초기화 -> 대기 -> 명령 해석)
@@ -445,9 +429,6 @@ static void LinSleep_Stall_Stop(void)
  ***********************************************************************************************************************/
 static void LinSleep_Final(void)
 {
-    /* 위치 정보가 UNKNOWN이거나 초기화 중 상태라면
-     * 다음 WAKE 이후 위치 초기화가 필요하도록 상태 유지
-     */
     if ((AAF_Tx_Position == UNKOWN_POSITION) ||
         (AAFx_Position_Status == Unknown_Status) ||
         (AAFx_InitStatus == DURING_INITIALIZATION))
@@ -458,18 +439,24 @@ static void LinSleep_Final(void)
         AAFx_InitStatus = DURING_INITIALIZATION;
     }
 
-    /* LIN BUS INACTIVE가 아직 4초 이상이면 MCU Sleep 진입 */
     if (G_Timer1ms.LinBusInactive >= LIN_BUS_CHK_TIME_4_SEC)
     {
-        
+        if ((AAF_LINOut == 0x00U) &&
+            (IGN_Chk == 1U) &&
+            (motor_start == OFF) &&
+            (AAF_Tx_Position != UNKOWN_POSITION) &&
+            (AAFx_Position_Status != Unknown_Status) &&
+            (AAFx_Position_Status != FlapMoving_Status) &&
+            (AAFx_InitStatus == NORMAL_FINISHED_INITIALIZATION))
+        {
+            Position_Temporary_write();
+            IGN_Chk = 2U;
+        }
+
         MCU_Sleep();
-        
     }
     else
     {
-        /* Sleep sequence 중 LIN이 다시 수신된 경우
-         * MCU Sleep에 들어가지 않고 Sleep 상태를 해제하여 Normal 동작으로 복귀
-         */
         lin_bus_inactive_flag = OFF;
         lin_sleep_step = 0U;
 

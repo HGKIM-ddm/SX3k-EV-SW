@@ -30,12 +30,22 @@ void FDL_Write(void)
 	close_memory_write = step_position_close;
 	open_memory_write = step_position_open;
 	now_step_memory_write = step_position;
-	position_memory_write = AAF_Tx_Position;
 	Initial_memory_write = evrdy_on_flag;
 	limit_memory_write = limit_step_position;
 
-	position_status_memory_write = AAFx_Position_Status;
-	AAFx_InitStatus_memory_write = AAFx_InitStatus;
+	if ((AAF_LINOut == 0x00U) && (IGN_Chk == 2U))
+	{
+		position_memory_write = AAF_Tx_Position_Temporary;
+		position_status_memory_write = AAFx_Position_Status_Temporary;
+		AAFx_InitStatus_memory_write = AAFx_InitStatus_Temporary;
+	}
+	else
+	{
+		position_memory_write = AAF_Tx_Position;
+		position_status_memory_write = AAFx_Position_Status;
+		AAFx_InitStatus_memory_write = AAFx_InitStatus;
+	}
+
 	DTC_memory_write |= DTC_Status;
 	power_chk_memory_write = power_chk;
 	First_Powerchk_memory_write = First_Powerchk;
@@ -185,4 +195,22 @@ void FDL_Read(void)
 	{
 		AAFx_InitStatus_memory_read = Memory_Range_Init;
 	}
+}
+
+void Position_Temporary_write(void)
+{
+    AAF_Tx_Position_Temporary = AAF_Tx_Position;
+    AAFx_Position_Status_Temporary = AAFx_Position_Status;
+    AAFx_InitStatus_Temporary = AAFx_InitStatus;
+
+    AAF_Tx_Position = UNKOWN_POSITION;
+    AAFx_Position_Status = Unknown_Status;
+    AAFx_InitStatus = DURING_INITIALIZATION;
+}
+
+void Position_Temporary_read(void)
+{
+    AAF_Tx_Position = AAF_Tx_Position_Temporary;
+    AAFx_Position_Status = AAFx_Position_Status_Temporary;
+    AAFx_InitStatus = AAFx_InitStatus_Temporary;
 }
