@@ -15,20 +15,20 @@ static void StallCheck_UpdateCounter(unsigned int low_limit, unsigned int high_l
     {
         if ((G_Timer1ms.StallTime >= STALL_CHK_WAIT_TIME) || (stall_test_mode == 1U))
         {
-            stall_cnt++;
+            stall_count++;
         }
 
-        if (stall_cnt >= STALL_CNT_DEFAULT + cumulative_stall_count)
+        if (stall_count >= STALL_CNT_DEFAULT + cumulative_stall_count)
         {
             motor_stall_flag = MOTOR_STALL;
-            stall_cnt = STALL_CNT_DEFAULT;
+            stall_count = STALL_CNT_DEFAULT;
         }
     }
     // Value is within normal range
     else
     {
         motor_stall_flag = MOTOR_NORMAL;
-        stall_cnt = STALL_CNT_DEFAULT;
+        stall_count = STALL_CNT_DEFAULT;
     }
 }
 

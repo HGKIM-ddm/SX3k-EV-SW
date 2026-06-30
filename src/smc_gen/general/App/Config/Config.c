@@ -58,8 +58,9 @@ uint16_t rx_16bit_spi[11] = {
     0,
 };
 
-uint16_t fault_clear[1] = {
-    0x0CBA};
+uint16_t fault_clear[1] = { 
+    0x0CBC 
+};
 
 /*******************************************************************************
  * Drv8889 Register
@@ -186,7 +187,7 @@ unsigned int First_Powerchk = 0U;
 unsigned int fail_safety_flag = 0;
 unsigned int fail_safety_1_cycle_flag = 0;
 unsigned int fail_safety_step = 0;
-unsigned int stall_cnt = STALL_CNT_DEFAULT;
+unsigned int stall_count = STALL_CNT_DEFAULT;
 unsigned int stall_test_mode = 0;
 unsigned int evrdy_on_flag = 0;
 unsigned int diag_mode_auto_dir = 0;

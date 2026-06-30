@@ -59,25 +59,11 @@ static void Init_StallCheck(uint8_t next_step, uint8_t retry_step, uint8_t dir)
         {
             step_position_close = step_position;
 
-            // Only case 7
-            // if (next_step == 8U)
-            // {
-            //     OBD1_Close_Check = OBD1_adc;
-            //     OBD2_Close_Check = OBD2_adc;
-            //     OBD3_Close_Check = OBD3_adc;
-            // }
         }
         else // dir == OPEN
         {
             step_position_open = step_position;
 
-            // Only case 10
-            // if (next_step == 11U)
-            // {
-            //     OBD1_Open_Check = OBD1_adc;
-            //     OBD2_Open_Check = OBD2_adc;
-            //     OBD3_Open_Check = OBD3_adc;
-            // }
         }
 
         G_Timer1msFlag.StallTimeFlag = 0U;
@@ -162,10 +148,6 @@ static void Init_CheckLimitArrival(void)
     uint8_t is_stall_error = ((motor_stall_flag == MOTOR_STALL) || 
                               ((step_position_close - step_position_open) <= STEP_POSITION_MINIMUM_RANGE)) && 
                              (stall_test_mode == 0U);
-
-    // check obd
-    // uint8_t is_obd_error = (((OBD1_Open_Check >= 3700U) || (OBD1_Close_Check >= 3700U)) && (SNSR1_Check == USE_SNSR1)) || 
-    //                        (((OBD2_Open_Check >= 3700U) || (OBD2_Close_Check >= 3700U)) && (SNSR2_Check == USE_SNSR2));
 
     // stall or obd
     if (is_stall_error)
@@ -266,7 +248,6 @@ static void InitMove_Cycle2(void)
         limit_step_position = (step_position_close - step_position_open) * AAF_ERROR_ANGLE / AAF_FULL_ANGLE;
         open_1st_step_position = (unsigned int)(((unsigned long)(step_position_close - step_position_open) * AAF_1ST_OPEN_ANGLE) / AAF_FULL_ANGLE); //overflow 방지
         open_2nd_step_position = (unsigned int)(((unsigned long)(step_position_close - step_position_open) * AAF_2ST_OPEN_ANGLE) / AAF_FULL_ANGLE); //overflow 방지
-        //OBD_Init();
 		init_move_step = 13U;
         break;
     case 13:
@@ -305,23 +286,4 @@ void Init_move(void)
     }
 }
 
-// void OBD_Init(void)
-// {
-// 	// OBD1
-// 	OBD1_adc_threshold_close = OBD1_Close_Check +
-// 							   ((OBD1_Open_Check - OBD1_Close_Check) * POSITION_CLOSE_THRESHOLD / 100U);
-// 	OBD1_adc_threshold_open = OBD1_Close_Check +
-// 							  ((OBD1_Open_Check - OBD1_Close_Check) * POSITION_OPEN_THRESHOLD / 100U);
 
-// 	// OBD2
-// 	OBD2_adc_threshold_close = OBD2_Close_Check +
-// 							   ((OBD2_Open_Check - OBD2_Close_Check) * POSITION_CLOSE_THRESHOLD / 100U);
-// 	OBD2_adc_threshold_open = OBD2_Close_Check +
-// 							  ((OBD2_Open_Check - OBD2_Close_Check) * POSITION_OPEN_THRESHOLD / 100U);
-
-// 	// OBD3
-// 	OBD3_adc_threshold_close = OBD3_Close_Check +
-// 							   ((OBD3_Open_Check - OBD3_Close_Check) * POSITION_CLOSE_THRESHOLD / 100U);
-// 	OBD3_adc_threshold_open = OBD3_Close_Check +
-// 							  ((OBD3_Open_Check - OBD3_Close_Check) * POSITION_OPEN_THRESHOLD / 100U);
-// }

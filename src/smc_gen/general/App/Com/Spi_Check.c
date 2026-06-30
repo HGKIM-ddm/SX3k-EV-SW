@@ -28,21 +28,21 @@ static void SpiCheck_ExecuteVoltageChange(void)
 
     if (voltage_status_spi == NORMAL_VOLTAGE)
     {
-        Drv8889_WriteCtrl1(TRQ_DAC_68_75, SLEW_RATE_10V);
+        Drv8889_WriteCtrl1(TRQ_DAC_87_5, SLEW_RATE_10V);
         motor_cw_stall_value  = STALL_TH_VALUE_NORMAL_VOLTAGE;
         motor_ccw_stall_value = STALL_TH_VALUE_NORMAL_VOLTAGE;
         cumulative_stall_count = 7U; // 디폴트 값 복귀
     }
     else if (voltage_status_spi == LOW_VOLTAGE)
     {
-        Drv8889_WriteCtrl1(TRQ_DAC_75, SLEW_RATE_10V);
+        Drv8889_WriteCtrl1(TRQ_DAC_87_5, SLEW_RATE_10V);
         motor_cw_stall_value  = STALL_TH_VALUE_LOW_VOLTAGE;
         motor_ccw_stall_value = STALL_TH_VALUE_LOW_VOLTAGE;
         cumulative_stall_count = 7U; // 디폴트 값 복귀
     }   
     else if (voltage_status_spi == HIGH_VOLTAGE)
     {   
-        Drv8889_WriteCtrl1(TRQ_DAC_62_5, SLEW_RATE_10V);
+        Drv8889_WriteCtrl1(TRQ_DAC_87_5, SLEW_RATE_10V);
         motor_cw_stall_value  = STALL_TH_VALUE_HIGH_VOLTAGE;
         motor_ccw_stall_value = STALL_TH_VALUE_HIGH_VOLTAGE;
         cumulative_stall_count = 14U; // 14로 설정하여 스톨 카운트 증가 
@@ -186,7 +186,8 @@ static void SpiCheck_HandleData(void)
 
     if (AAF_Maximum_Torque_Test_Mode == OFF)
     {
-        Stall_Check();
+        Drv8889_IsFault();
+        //Stall_Check();
     }
     else
     {

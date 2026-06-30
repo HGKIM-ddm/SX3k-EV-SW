@@ -76,8 +76,8 @@
     #define STEP_POSITION_MAXIMUM_RANGE 15500U
 #elif (CONFIG_AAF_ANGLE == 110)
     #define AAF_FULL_ANGLE              110U
-    #define STEP_POSITION_MINIMUM_RANGE 15000U 
-    #define STEP_POSITION_MAXIMUM_RANGE 18000U    
+    #define STEP_POSITION_MINIMUM_RANGE 18000U 
+    #define STEP_POSITION_MAXIMUM_RANGE 23000U    
 #endif
 
 /* ====================================================================

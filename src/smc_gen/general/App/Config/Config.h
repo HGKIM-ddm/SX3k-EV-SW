@@ -159,7 +159,7 @@ extern unsigned int First_Powerchk;
 extern unsigned int fail_safety_flag;
 extern unsigned int fail_safety_1_cycle_flag;
 extern unsigned int fail_safety_step;
-extern unsigned int stall_cnt;
+extern unsigned int stall_count;
 extern unsigned int stall_test_mode;
 extern unsigned int evrdy_on_flag;
 extern unsigned int diag_mode_auto_dir;

@@ -18,7 +18,9 @@
 #define DRV_CTRL6       0x10U   /* 실제 0x08 (RW) */
 #define DRV_CTRL7       0x12U   /* 실제 0x09 (R)  TRQ_COUNT */
 #define DRV_CTRL8       0x14U   /* 실제 0x0A (R)  REV_ID */
- 
+
+#define MOTOR_STALL_BIT  0x0400U
+
 /* ====================================================================
  * CTRL1 (0x03) : TRQ_DAC[7:4] | RSVD[3:2] | SLEW_RATE[1:0]
  *   현재값 0x40 = TRQ_DAC_75 | SLEW_RATE_10V
@@ -197,7 +199,7 @@ typedef enum {
  *   현재값 0x00 = STALL_TH 0 (HW 자동 스톨 최소, SW에서 TRQ_COUNT로 직접 판정)
 
  * ==================================================================== */
-#define STALL_TH 0U
+#define STALL_TH 15U
 /* 0 = 0 count, 0xFF = 255 counts (Table 7-30) */
 
 void Drv8889_GpioInit(void);
@@ -220,6 +222,7 @@ void Drv8889_DirCCW(void);
 
 void Drv8889_SpiInit(void);
 void Drv8889_FaultClear(void);
+void Drv8889_IsFault(void);
 
 void Drv8889_WriteCtrl1(Drv_TrqDac_t trq, Drv_SlewRate_t slew);
 
