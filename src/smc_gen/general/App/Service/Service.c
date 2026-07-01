@@ -84,6 +84,12 @@ void AAF_SetType(void)
 	AAF_Tx_Position = UNKOWN_POSITION;
 	AAFx_Position_Status = Unknown_Status;
 	AAFx_InitStatus = DURING_INITIALIZATION;
+
+    #ifdef ENABLE_TORQUE_TEST
+    aaf_step = AAF_WAITING;                              
+    AAFx_InitStatus = NORMAL_FINISHED_INITIALIZATION;   
+    AAF_Maximum_Torque_Test_Mode = ON;
+    #endif
 }
 
 void App_HwCheck(void)

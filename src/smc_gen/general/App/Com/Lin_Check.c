@@ -10,7 +10,7 @@ static void Lin_ParseTorqueTestMode(void)
 {
     AAF_Init_Flag                = (unsigned int)((ID_chk_rxdata[1U] & 0x80U) >> 7U);
     AAF_Flap_Fixation_Test_Mode  = (unsigned int)((ID_chk_rxdata[2U] & 0x80U) >> 7U);
-    AAF_Maximum_Torque_Test_Mode = (unsigned int)((ID_chk_rxdata[3U] & 0x80U) >> 7U);
+    AAF_Maximum_Torque_Test_Mode = ON;
     Re_Init_check                = (unsigned int)((ID_chk_rxdata[4U] & 0x80U) >> 7U);
 
     if (Re_Init_check == 0x01U)
@@ -34,7 +34,7 @@ static void Lin_ParseTorqueTestMode(void)
  * Description  : 파싱된 플래그를 기반으로 토크, 고정 테스트 모드 토글 동작 및 초기화 수행
  ***********************************************************************************************************************/
 static void Lin_ExecuteTorqueTestMode(void)
-{
+{   
     if ((AAF_Init_Flag_tog == OFF) && (AAF_Init_Flag == ON))
     {
         if ((AAF1_TargetPosition == 0x7FU) || (AAF2_TargetPosition == 0x7FU) || (AAF3_TargetPosition == 0x7FU))
