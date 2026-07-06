@@ -14,14 +14,6 @@ static void Step_LoadData(void)
 	DTC_Status |= DTC_memory_read;
 	power_chk = power_chk_memory_read;
 	First_Powerchk = First_Powerchk_memory_read;
-	//only sx3k
-	// OBD1_Close_Check = OBD1_Close_Check_memory_read;
-	// OBD1_Open_Check = OBD1_Open_Check_memory_read;
-	// OBD2_Close_Check = OBD2_Close_Check_memory_read;
-	// OBD2_Open_Check = OBD2_Open_Check_memory_read;
-	// OBD3_Close_Check = OBD3_Close_Check_memory_read;
-	// OBD3_Open_Check = OBD3_Open_Check_memory_read;
-	// OBD_Init();
 }
 
 static void Step_Check(void)
@@ -143,7 +135,15 @@ void Step_InitAndCheck(void)
 
         if (G_Timer1ms.MotorStepCheck >= 50U)
         {
-            Step_Check();
+            if ((fw_version_memory_read & 0xFFU) != FW_VERSION) //버전 바뀔때 초기화
+            {
+                Re_Init();
+            }
+            else
+            {
+                Step_Check();   
+            }
+
             G_Timer1msFlag.MotorStepCheckFlag = 0U;
             G_Timer1ms.MotorStepCheck = 50U;
             step_check_flag = 1U;

@@ -237,7 +237,7 @@ unsigned int power_chk_memory_write = 0; // power chk
 unsigned int power_chk_memory_read = 0;
 unsigned int First_Powerchk_memory_write = 0U;
 unsigned int First_Powerchk_memory_read = 0U;
-
+unsigned int fw_version_memory_read = 0U; // fw version
 unsigned int AAF_Tx_Position_Temporary = UNKOWN_POSITION;
 unsigned int AAFx_Position_Status_Temporary = Unknown_Status;
 unsigned int AAFx_InitStatus_Temporary = DURING_INITIALIZATION;

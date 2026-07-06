@@ -210,7 +210,7 @@ extern unsigned int power_chk_memory_write;
 extern unsigned int power_chk_memory_read;
 extern unsigned int First_Powerchk_memory_write;
 extern unsigned int First_Powerchk_memory_read;
-
+extern unsigned int fw_version_memory_read;
 extern unsigned int AAF_Tx_Position_Temporary;
 extern unsigned int AAFx_Position_Status_Temporary;
 extern unsigned int AAFx_InitStatus_Temporary;

@@ -24,6 +24,8 @@
 //Current CodeName
 #define VEHICLE_CODENAME SX3K_EV_AAF1
 
+#define FW_VERSION 0x01U  
+
  /* ==================================================================== */
 
 //1ms timer macro

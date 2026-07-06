@@ -49,13 +49,6 @@ void FDL_Write(void)
 	DTC_memory_write |= DTC_Status;
 	power_chk_memory_write = power_chk;
 	First_Powerchk_memory_write = First_Powerchk;
-	//only sx3k
-	// OBD1_Close_Check_memory_write = OBD1_Close_Check;
-	// OBD1_Open_Check_memory_write = OBD1_Open_Check;
-	// OBD2_Close_Check_memory_write = OBD2_Close_Check;
-	// OBD2_Open_Check_memory_write = OBD2_Open_Check;
-	// OBD3_Close_Check_memory_write = OBD3_Close_Check;
-	// OBD3_Open_Check_memory_write = OBD3_Open_Check;
 
 	w_buff[0] = close_memory_write & 0x00FFU; // write 2byte read 4byte ?븯?쐞
 	w_buff[1] = (close_memory_write & 0xFF00U) >> 8U;
@@ -84,23 +77,8 @@ void FDL_Write(void)
 	w_buff[16] = First_Powerchk_memory_write & 0x00FFU; // write 2byte read 4byte limitstep
 	w_buff[17] = (First_Powerchk_memory_write & 0xFF00U) >> 8U;
 
-	// w_buff[18] = OBD1_Close_Check_memory_write & 0x00FFU; // write 2byte read 4byte limitstep
-	// w_buff[19] = (OBD1_Close_Check_memory_write & 0xFF00U) >> 8U;
-
-	// w_buff[20] = OBD1_Open_Check_memory_write & 0x00FFU; // write 2byte read 4byte limitstep
-	// w_buff[21] = (OBD1_Open_Check_memory_write & 0xFF00U) >> 8U;
-
-	// w_buff[22] = OBD2_Close_Check_memory_write & 0x00FFU; // write 2byte read 4byte limitstep
-	// w_buff[23] = (OBD2_Close_Check_memory_write & 0xFF00U) >> 8U;
-
-	// w_buff[24] = OBD2_Open_Check_memory_write & 0x00FFU; // write 2byte read 4byte limitstep
-	// w_buff[25] = (OBD2_Open_Check_memory_write & 0xFF00U) >> 8U;
-
-	// w_buff[26] = OBD3_Close_Check_memory_write & 0x00FFU; // write 2byte read 4byte limitstep
-	// w_buff[27] = (OBD3_Close_Check_memory_write & 0xFF00U) >> 8U;
-
-	// w_buff[28] = OBD3_Open_Check_memory_write & 0x00FFU; // write 2byte read 4byte limitstep
-	// w_buff[29] = (OBD3_Open_Check_memory_write & 0xFF00U) >> 8U;
+	w_buff[18] = FW_VERSION & 0x00FFU;
+	w_buff[19] = (FW_VERSION & 0xFF00U) >> 8U;   // 0x00
 
 	ret = function_FDL_erease(0U, 1U);
 
@@ -118,7 +96,7 @@ void FDL_Write(void)
 		}
 	}
 
-	ret = function_FDL_write(w_buff, 0U, 9U); // KR
+	ret = function_FDL_write(w_buff, 0U, 10U); // KR
 
 	G_Timer1msFlag.FdlErrorCheckFlag = 1;
 
@@ -141,12 +119,26 @@ void FDL_Write(void)
 void FDL_Read(void)
 {
 
-	ret = function_FDL_read(r_buff, 0U, 15U);
+	ret = function_FDL_read(r_buff, 0U, 5U);
 
 	G_Timer1msFlag.FdlErrorCheckFlag = 1U;
 
 	if (ret < (char)0) // error
 	{
+		//초기화
+		close_memory_read           = 0U;
+        open_memory_read            = 0U;
+        now_step_memory_read        = 0U;
+        position_memory_read        = UNKOWN_POSITION;
+        Initial_memory_read         = OFF;
+        limit_memory_read           = 0U;
+        position_status_memory_read = Unknown_Status;
+        AAFx_InitStatus_memory_read = DURING_INITIALIZATION;
+        DTC_memory_read             = 0U;
+        power_chk_memory_read       = Shutdown_Check;
+        First_Powerchk_memory_read  = 0U;
+        fw_version_memory_read      = 0xFFFFU;    
+
 		while (1)
 		{
 			if (G_Timer1ms.FdlErrorCheck >= 100U)
@@ -155,6 +147,8 @@ void FDL_Read(void)
 				break;
 			}
 		}
+
+		return;
 	}
 
 	G_Timer1msFlag.FdlErrorCheckFlag = 0U;
@@ -179,14 +173,9 @@ void FDL_Read(void)
 
 	power_chk_memory_read = (unsigned int)(r_buff[3U] >> 16U) & 0xFu;
 	First_Powerchk_memory_read = (unsigned int)(r_buff[4U]) & 0xFu;
-	//only sx3k
-	//OBD1_Close_Check_memory_read = (unsigned int)(r_buff[4U] >> 16U) & 0xFFFFu;
-	//OBD1_Open_Check_memory_read = (unsigned int)(r_buff[5U]) & 0xFFFFu;
-	//OBD2_Close_Check_memory_read = (unsigned int)(r_buff[5U] >> 16U) & 0xFFFFu;
-	//OBD2_Open_Check_memory_read = (unsigned int)(r_buff[6U]) & 0xFFFFu;
-	//OBD3_Close_Check_memory_read = (unsigned int)(r_buff[6U] >> 16U) & 0xFFFFu;
-	//OBD3_Open_Check_memory_read = (unsigned int)(r_buff[7U]) & 0xFFFFu;
 	
+	fw_version_memory_read = (unsigned int)(r_buff[4U] >> 16U) & 0xFFFFu; // 버전 읽기 (r_buff[4] 상위 16bit)
+
 	if (position_status_memory_read >= Memory_Range_Break)
 	{
 		position_status_memory_read = Memory_Range_Init;
