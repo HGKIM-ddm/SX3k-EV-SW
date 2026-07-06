@@ -80,15 +80,12 @@ unsigned int motor_start = OFF;
 unsigned int motor_wait_chk = 0;
 unsigned long long step_position = 0;
 unsigned int dir_state = 0;
-unsigned int step_toggle_flag = 0;
 unsigned int init_move_step = 0;
 unsigned int AAF_OpenLoad = 0;
 unsigned int motor_step_value = 0;
 volatile unsigned int softstart_complete = 0;
 
 unsigned int motor_stall_flag = 0;
-unsigned int motor_cw_stall_value = 0;
-unsigned int motor_ccw_stall_value = 0;
 unsigned int step_start_flag = 0;
 
 /* 2.3 AAF Application Variables */
@@ -138,9 +135,6 @@ unsigned int Req_ChkSum_Rx = 0;
 unsigned int Req_Alive_Rx = 0;
 unsigned int AAFx_Mode = 0;
 
-unsigned int AAFx_SNSR_SCG = 0;
-unsigned int AAFx_SNSR_SCB = 0;
-unsigned int AAFx_SNSR_OC = 0;
 unsigned int AAFx_Position_Status = 0;
 unsigned int AAFx_ErrorStatus = 0;
 unsigned int TotalNumOfAAFSensor = 0;

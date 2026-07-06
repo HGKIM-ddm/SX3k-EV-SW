@@ -223,8 +223,10 @@ void Drv8889_DirCCW(void);
 void Drv8889_SpiInit(void);
 void Drv8889_FaultClear(void);
 void Drv8889_IsFault(void);
+uint8_t Drv8889_IsStallBitSet(void);
 
 void Drv8889_WriteCtrl1(Drv_TrqDac_t trq, Drv_SlewRate_t slew);
+void Drv8889_WriteCtrl6(uint8_t stall_th);
 
 #endif
 

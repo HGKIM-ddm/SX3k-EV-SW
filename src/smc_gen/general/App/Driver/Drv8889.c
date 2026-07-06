@@ -149,6 +149,13 @@ void Drv8889_WriteCtrl1(Drv_TrqDac_t trq, Drv_SlewRate_t slew)
     Drv8889_SpiTransfer(&ctrl1_frame, &rx_16bit_spi[3], 2U);
 }
 
+void Drv8889_WriteCtrl6(uint8_t stall_th)
+{
+    uint16_t ctrl6_frame = ((uint16_t)DRV_CTRL6 << 8) | (uint16_t)stall_th;
+
+    Drv8889_SpiTransfer(&ctrl6_frame, &rx_16bit_spi[8], 2U);
+}
+
 void Drv8889_SpiInit(void)
 {
     uint8_t i;
@@ -194,30 +201,10 @@ void Drv8889_FaultClear(void)
     G_Timer1ms.StallTime = 0U;
 }
 
-void Drv8889_IsFault(void)
+uint8_t Drv8889_IsStallBitSet(void)
 {
-    if ((motor_start == ON)
-        && (AAF_Maximum_Torque_Test_Mode == OFF)
-        && (G_Timer1ms.StallTime >= STALL_CHK_WAIT_TIME))
-    {
-        if ((rx_16bit_spi[9] & MOTOR_STALL_BIT) != 0U)   /* STL=1 → stall */
-        {
-            stall_count++;
-            if (stall_count >= cumulative_stall_count)   /* 7연속 */
-            {
-                motor_stall_flag = MOTOR_STALL;
-                stall_count = cumulative_stall_count;    /* 포화 (0 아님) */
-            }
-        }
-        else
-        {
-            stall_count = 0U;                            /* ← 연속 끊기면 리셋 (필수) */
-        }
-    }
-    else
-    {
-        stall_count = 0U;                                /* 비구동/블랭킹 중 리셋 */
-    }
+    return ((rx_16bit_spi[9] & MOTOR_STALL_BIT) != 0U) ? 1U : 0U;
 }
+
 
 
