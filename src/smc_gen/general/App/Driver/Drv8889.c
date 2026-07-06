@@ -94,11 +94,21 @@ void Drv8889_Sleep(void)
 
 void Drv8889_On(void)
 {
+    if ((rx_16bit_spi[9] & MOTOR_STALL_BIT) != 0U)
+    {
+        Drv8889_FaultClear();
+    }
+
 	PORT.P10 &= ~_PORT_Pn0_OUTPUT_HIGH; // MCU_DRVOFF
 }
 
 void Drv8889_On2(void)
 {
+    if ((rx_16bit_spi[9] & MOTOR_STALL_BIT) != 0U)
+    {
+        Drv8889_FaultClear();
+    }
+
 	PORT.P10 &= ~_PORT_Pn0_OUTPUT_HIGH; // MCU_DRVOFF
 }
 
@@ -139,6 +149,13 @@ void Drv8889_WriteCtrl1(Drv_TrqDac_t trq, Drv_SlewRate_t slew)
     Drv8889_SpiTransfer(&ctrl1_frame, &rx_16bit_spi[3], 2U);
 }
 
+void Drv8889_WriteCtrl6(uint8_t stall_th)
+{
+    uint16_t ctrl6_frame = ((uint16_t)DRV_CTRL6 << 8) | (uint16_t)stall_th;
+
+    Drv8889_SpiTransfer(&ctrl6_frame, &rx_16bit_spi[8], 2U);
+}
+
 void Drv8889_SpiInit(void)
 {
     uint8_t i;
@@ -153,9 +170,9 @@ void Drv8889_SpiInit(void)
     tx_16bit_spi[3]  = ((uint16_t)DRV_CTRL1 << 8) | (TRQ_DAC_68_75 | SLEW_RATE_10V);
     tx_16bit_spi[4]  = ((uint16_t)DRV_CTRL2 << 8) | (DIS_OUT_ENABLE | TOFF_16US | DECAY_SMART_RIPPLE);
     tx_16bit_spi[5]  = ((uint16_t)DRV_CTRL3 << 8) | (SPI_DIR_PIN | SPI_STEP_PIN | MICROSTEP_1_8);
-    tx_16bit_spi[6]  = ((uint16_t)DRV_CTRL4 << 8) | (LOCK_UNLOCK | EN_OL_ON | OCP_LATCH | OTSD_LATCH | TW_NO_REP);
+    tx_16bit_spi[6] =  ((uint16_t)DRV_CTRL4 << 8) | (LOCK_UNLOCK | EN_OL_ON | OCP_LATCH | OTSD_RECOVER | TW_NO_REP);
     tx_16bit_spi[7]  = ((uint16_t)DRV_CTRL5 << 8) | (EN_STL_ON | STL_REP_OFF | EN_SR_BLANK_ON);
-    tx_16bit_spi[8]  = ((uint16_t)DRV_CTRL6 << 8) | (STALL_TH);   /* STALL_TH = 0 */
+    tx_16bit_spi[8]  = ((uint16_t)DRV_CTRL6 << 8) | (STALL_TH);   /* STALL_TH = 15 */
 
     /* Read 전용 */
     tx_16bit_spi[9]  = ((uint16_t)DRV_CTRL7 << 8);   /* TRQ_COUNT (R) */
@@ -179,6 +196,15 @@ void Drv8889_FaultClear(void)
     Drv8889_SpiTransfer(&fault_clear[0], &rx_16bit_spi[9], 10U);
     
     Drv8889_SpiTransfer(&rx_16bit_spi_id[9], &rx_16bit_spi[9], 10U);
+
+    motor_stall_flag = MOTOR_NORMAL;     
+    G_Timer1ms.StallTime = 0U;
 }
+
+uint8_t Drv8889_IsStallBitSet(void)
+{
+    return ((rx_16bit_spi[9] & MOTOR_STALL_BIT) != 0U) ? 1U : 0U;
+}
+
 
 

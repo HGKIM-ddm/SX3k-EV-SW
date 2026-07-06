@@ -23,11 +23,30 @@ static void Antipinch_PrevOpen(void)
         AAFx_ErrorStatus = Open_ErrorStatus; 
         G_Timer1ms.Spi = 0U;               
         motor_stall_flag = MOTOR_NORMAL; 
+        // G_Timer1ms.StallTime = 0U;
         antipinch_step = 1U;
         break;
 
     case 1:
-        if ((motor_stall_flag == MOTOR_STALL) || (G_Timer1ms.InitCheck >= 4500U)) 
+        if ((motor_stall_flag == MOTOR_STALL) || (G_Timer1ms.InitCheck >= 8000U))
+        {
+            Drv8889_Off();
+            motor_start = OFF;
+            G_Timer1msFlag.StallTimeFlag = 0U;
+            G_Timer1ms.StallTime = 0U; 
+            softstart_complete = OFF;
+            motor_step_value = STEP_TIME_1000RPM;
+            aaf_action = FLAP_STOP;
+            G_Timer1msFlag.InitCheckFlag = 0U;
+            G_Timer1ms.InitCheck = 0U;
+
+            if (step_position <= step_position_open)
+            {
+                step_position = step_position_open;
+            }
+
+            antipinch_step = 2U;
+        }
         {
             Drv8889_Off();
             motor_start = OFF;
@@ -127,7 +146,7 @@ static void Antipinch_PrevOpen(void)
 
             aaf_step = FINISHED_OPERATE;
         }
-        else if ((motor_stall_flag == MOTOR_STALL) || (G_Timer1ms.InitCheck >= 4500U))
+        else if ((motor_stall_flag == MOTOR_STALL) || (G_Timer1ms.InitCheck >= 8000U))
         {
             Drv8889_Off();
             motor_start = OFF;
@@ -189,7 +208,7 @@ static void Antipinch_PrevClose(void)
         break;
 
     case 1:
-        if ((motor_stall_flag == MOTOR_STALL) || (G_Timer1ms.InitCheck >= 4500U))
+        if ((motor_stall_flag == MOTOR_STALL) || (G_Timer1ms.InitCheck >= 8000U))
         {
             Drv8889_Off();
             motor_start = OFF;
@@ -290,7 +309,7 @@ static void Antipinch_PrevClose(void)
 
             aaf_step = FINISHED_OPERATE;
         }
-        else if ((motor_stall_flag == MOTOR_STALL) || (G_Timer1ms.InitCheck >= 4500U))
+        else if ((motor_stall_flag == MOTOR_STALL) || (G_Timer1ms.InitCheck >= 8000U))
         {
             Drv8889_Off();
             motor_start = OFF;
@@ -323,7 +342,7 @@ static void Antipinch_PrevClose(void)
         break;
 
     case 6:
-        if ((motor_stall_flag == MOTOR_STALL) || (G_Timer1ms.InitCheck >= 4500U))
+        if ((motor_stall_flag == MOTOR_STALL) || (G_Timer1ms.InitCheck >= 8000U))
         {
             Drv8889_Off();
             motor_start = OFF;

@@ -39,7 +39,7 @@ static void FS_MotorOpenStart(unsigned int next_step)
  ***********************************************************************************************************************/
 static void FS_CheckStallStop(unsigned int next_step)
 {
-    if ((motor_stall_flag == MOTOR_STALL) || (G_Timer1ms.InitCheck >= 4500U))
+    if ((motor_stall_flag == MOTOR_STALL) || (G_Timer1ms.InitCheck >= 8000U))
     {
         Drv8889_Off2();
         motor_start = OFF;

@@ -29,27 +29,18 @@ static void SpiCheck_ExecuteVoltageChange(void)
     if (voltage_status_spi == NORMAL_VOLTAGE)
     {
         Drv8889_WriteCtrl1(TRQ_DAC_68_75, SLEW_RATE_10V);
-        motor_cw_stall_value  = STALL_TH_VALUE_NORMAL_VOLTAGE;
-        motor_ccw_stall_value = STALL_TH_VALUE_NORMAL_VOLTAGE;
-        cumulative_stall_count = 7U; // 디폴트 값 복귀
     }
     else if (voltage_status_spi == LOW_VOLTAGE)
     {
-        Drv8889_WriteCtrl1(TRQ_DAC_75, SLEW_RATE_10V);
-        motor_cw_stall_value  = STALL_TH_VALUE_LOW_VOLTAGE;
-        motor_ccw_stall_value = STALL_TH_VALUE_LOW_VOLTAGE;
-        cumulative_stall_count = 7U; // 디폴트 값 복귀
+        Drv8889_WriteCtrl1(TRQ_DAC_68_75, SLEW_RATE_10V);
     }   
     else if (voltage_status_spi == HIGH_VOLTAGE)
     {   
-        Drv8889_WriteCtrl1(TRQ_DAC_62_5, SLEW_RATE_10V);
-        motor_cw_stall_value  = STALL_TH_VALUE_HIGH_VOLTAGE;
-        motor_ccw_stall_value = STALL_TH_VALUE_HIGH_VOLTAGE;
-        cumulative_stall_count = 14U; // 14로 설정하여 스톨 카운트 증가 
+        Drv8889_WriteCtrl1(TRQ_DAC_68_75, SLEW_RATE_10V);
     }
     else
     {
-        /* Invalid (HIGH_VOLTAGE) */
+        /* Invalid */
     }
 
     voltage_status_change_complete = WAIT;
@@ -150,20 +141,14 @@ static void SpiCheck_HandleData(void)
     AAF_OverTemp    = rx_16bit_spi[9] & 0x0200U;  /* B9  TF 과열 */
     AAF_OpenLoad    = rx_16bit_spi[9] & 0x0100U;  /* B8  OL */
 
-    if (AAF_Tx_Position == DIAG_MODE_AUTO) {
-        if (TRQ_COUNT_Index < 4000U){
-            TRQ_COUNT_Buffer[TRQ_COUNT_Index] = TRQ_COUNT;
-            TRQ_COUNT_Index++;
-        }
-    }
+    // if (AAF_Tx_Position == DIAG_MODE_AUTO) {
+    //     if (TRQ_COUNT_Index < 4000U){
+    //         TRQ_COUNT_Buffer[TRQ_COUNT_Index] = TRQ_COUNT;
+    //         TRQ_COUNT_Index++;
+    //     }
+    // }
 
     #ifdef ENABLE_TORQUE_LIN_COMMUNICATION
-
-    // if (TRQ_COUNT_Index < 4000U)
-    // {
-    //     TRQ_COUNT_Buffer[TRQ_COUNT_Index] = TRQ_COUNT;
-    //     TRQ_COUNT_Index++;
-    // }
 
     if (TRQ_COUNT_LogEnable == 1U)
     {
@@ -186,6 +171,7 @@ static void SpiCheck_HandleData(void)
 
     if (AAF_Maximum_Torque_Test_Mode == OFF)
     {
+        StallCheck_ChangeStallTh();
         Stall_Check();
     }
     else

@@ -10,18 +10,14 @@
  ******************************************************************************/
 extern unsigned int LDCRdy;
 extern unsigned int CR_Mcu_VehSpdInt_Kph;
-
 extern unsigned int AAF_DriveMode;
 extern unsigned int lin_aaf_request_command;
 extern uint8_t  highspeed_command_hold_flag;
-
 extern unsigned int cumulative_stall_count;
 /*******************************************************************************
  * Drv8889 Register
  ******************************************************************************/
 extern unsigned int TRQ_COUNT;
-
-//for UI test
 extern uint16_t TRQ_COUNT_Buffer[4000U];
 extern unsigned int TRQ_COUNT_Index;
 extern uint8_t TRQ_COUNT_LogEnable;
@@ -50,14 +46,11 @@ extern unsigned int motor_start;
 extern unsigned int motor_wait_chk;
 extern unsigned long long step_position;
 extern unsigned int dir_state;
-extern unsigned int step_toggle_flag;
 extern unsigned int init_move_step;
 extern unsigned int AAF_OpenLoad;
 extern unsigned int motor_step_value;
 extern volatile unsigned int softstart_complete;
 extern unsigned int motor_stall_flag;
-extern unsigned int motor_cw_stall_value;
-extern unsigned int motor_ccw_stall_value;
 extern unsigned int step_start_flag;
 
 /* 2.3 AAF Application Variables */
@@ -109,9 +102,6 @@ extern unsigned int Req_ChkSum_Rx;
 extern unsigned int Req_Alive_Rx;
 extern unsigned int AAFx_Mode;
 
-extern unsigned int AAFx_SNSR_SCG;
-extern unsigned int AAFx_SNSR_SCB;
-extern unsigned int AAFx_SNSR_OC;
 extern unsigned int AAFx_Position_Status;
 extern unsigned int AAFx_ErrorStatus;
 extern unsigned int TotalNumOfAAFSensor;
@@ -159,7 +149,7 @@ extern unsigned int First_Powerchk;
 extern unsigned int fail_safety_flag;
 extern unsigned int fail_safety_1_cycle_flag;
 extern unsigned int fail_safety_step;
-extern unsigned int stall_cnt;
+extern unsigned int stall_count;
 extern unsigned int stall_test_mode;
 extern unsigned int evrdy_on_flag;
 extern unsigned int diag_mode_auto_dir;
