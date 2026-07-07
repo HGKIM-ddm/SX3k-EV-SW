@@ -28,15 +28,15 @@ static void SpiCheck_ExecuteVoltageChange(void)
 
     if (voltage_status_spi == NORMAL_VOLTAGE)
     {
-        Drv8889_WriteCtrl1(TRQ_DAC_68_75, SLEW_RATE_10V);
+        Drv8889_WriteCtrl1(TRQ_DAC_62_5, SLEW_RATE_10V);
     }
     else if (voltage_status_spi == LOW_VOLTAGE)
     {
-        Drv8889_WriteCtrl1(TRQ_DAC_68_75, SLEW_RATE_10V);
+        Drv8889_WriteCtrl1(TRQ_DAC_62_5, SLEW_RATE_10V);
     }   
     else if (voltage_status_spi == HIGH_VOLTAGE)
     {   
-        Drv8889_WriteCtrl1(TRQ_DAC_68_75, SLEW_RATE_10V);
+        Drv8889_WriteCtrl1(TRQ_DAC_62_5, SLEW_RATE_10V);
     }
     else
     {

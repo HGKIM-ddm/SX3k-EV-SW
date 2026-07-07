@@ -99,26 +99,15 @@ uint8_t HighSpeed_1stOpenOverride(uint8_t requested_command)
 
 #ifdef AAF_HIGH_SPEED_MODE_ENABLE
 
-    if (AAF_DriveMode == HIGH_SPEED_DRIVE_MODE)
+if (AAF_DriveMode == HIGH_SPEED_DRIVE_MODE)
+{
+    // 해제 지연 구간(135 미만 10초)에도 고속 모드 상태이므로 동일 규칙 적용
+    if ((requested_command == CLOSE) || (requested_command == OPEN_1ST))
     {
-        if (G_Timer1msFlag.HighSpeedExitCheckFlag == ON)
-        {
-            // 10초 동안 명령 유지
-            effective_command = HighSpeed_HoldCommand();
-        } 
-        else
-        {
-            if ((requested_command == CLOSE) || (requested_command == OPEN_1ST))
-            {
-                // 고속 주행 모드에서는 CLOSE 또는 1ST OPEN 명령이 1ST OPEN으로 오버라이드됨
-                effective_command = OPEN_1ST;
-            }
-            else
-            {
-                /* Requested command is used without override */
-            }
-        }
+        effective_command = OPEN_1ST;
     }
+    // 그 외 명령은 오버라이드 없이 그대로 수행
+}
 
 #endif
 

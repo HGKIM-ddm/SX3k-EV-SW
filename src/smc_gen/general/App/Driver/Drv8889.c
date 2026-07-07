@@ -167,7 +167,7 @@ void Drv8889_SpiInit(void)
     tx_16bit_spi[2]  = ((uint16_t)DRV_DIAG2 << 8);   /* DIAG Status 2 (R) */
 
     /* Write: CTRL1~6 (enum OR로 의미 명확) */
-    tx_16bit_spi[3]  = ((uint16_t)DRV_CTRL1 << 8) | (TRQ_DAC_68_75 | SLEW_RATE_10V);
+    tx_16bit_spi[3]  = ((uint16_t)DRV_CTRL1 << 8) | (TRQ_DAC_62_5 | SLEW_RATE_10V);
     tx_16bit_spi[4]  = ((uint16_t)DRV_CTRL2 << 8) | (DIS_OUT_ENABLE | TOFF_16US | DECAY_SMART_RIPPLE);
     tx_16bit_spi[5]  = ((uint16_t)DRV_CTRL3 << 8) | (SPI_DIR_PIN | SPI_STEP_PIN | MICROSTEP_1_8);
     tx_16bit_spi[6] =  ((uint16_t)DRV_CTRL4 << 8) | (LOCK_UNLOCK | EN_OL_ON | OCP_LATCH | OTSD_RECOVER | TW_NO_REP);

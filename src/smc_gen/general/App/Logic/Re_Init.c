@@ -46,7 +46,9 @@ static void Step_Check(void)
         (AAFx_InitStatus      == ABNORMAL_FINISHED_INITIALIZATION)          ||
         (AAFx_Position_Status == FlapMoving_Status)                         ||
         (AAFx_Position_Status == Unknown_Status)                            ||
-        (power_chk            == Shutdown_Check)
+        (power_chk            == Shutdown_Check)							||
+		// 5. 펌웨어 버전 불일치 체크
+		((fw_version_memory_read & 0xFFU) != FW_VERSION) 
     ) ? 1U : 0U;
 
     if (reinit_required == 1U)
@@ -135,14 +137,7 @@ void Step_InitAndCheck(void)
 
         if (G_Timer1ms.MotorStepCheck >= 50U)
         {
-            if ((fw_version_memory_read & 0xFFU) != FW_VERSION) //버전 바뀔때 초기화
-            {
-                Re_Init();
-            }
-            else
-            {
-                Step_Check();   
-            }
+            Step_Check();   
 
             G_Timer1msFlag.MotorStepCheckFlag = 0U;
             G_Timer1ms.MotorStepCheck = 50U;

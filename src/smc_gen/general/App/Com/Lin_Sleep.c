@@ -547,7 +547,7 @@ static void McuSleep_PortConfig(void)
 static void McuSleep_InternalModuleStop(void)
 {
     R_Config_INTC_Create();         // 인터럽트 컨트롤러 재설정 (Wake-up 준비)
-    // R_Config_INTC_INTP5_Start(); // (주석 유지)
+    R_Config_INTC_INTP5_Start(); 
 
     R_Config_CSIH0_Stop();          // SPI 모듈 정지
     R_Config_ADCA0_Halt();          // ADC 모듈 정지
