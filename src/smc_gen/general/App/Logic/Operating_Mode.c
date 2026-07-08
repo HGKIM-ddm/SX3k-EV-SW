@@ -1,5 +1,6 @@
 #include "Operating_Mode.h"
 #include "Service.h"
+#include "HighSpeed_Mode.h"
 
 static void Operate_Waiting(void);
 static void Operate_SetupAction(void);
@@ -52,7 +53,7 @@ static void Operate_SetupAction(void) {
 	if ((lin_aaf_command == OPEN) || (lin_aaf_command == CLOSE) ||
         (lin_aaf_command == OPEN_1ST) || (lin_aaf_command == OPEN_2ND))
     {
-        Operate_Action(lin_aaf_command);
+        Operate_Action(HighSpeed_1stOpenOverride(lin_aaf_command));
 	}
 	else if ((lin_aaf_command == DIAG_MODE_OPEN) && (AAF_Tx_Position != DIAG_MODE_OPEN)) // lin init command chk
 	{
@@ -743,5 +744,3 @@ void Torque_TestMode(void)
         break;
     }
 }
-
-

@@ -69,29 +69,6 @@ void HighSpeed_CheckDriveMode(uint8_t speed)
 
 }
 
-static uint8_t HighSpeed_HoldCommand(void)
-{
-    uint8_t hold_command;
-
-    // 동작 완료 상태 -> AAF_Tx_Position 유지, 동작 중 상태 -> 현재 LIN 명령 (lin_aaf_command) 유지
-    hold_command = lin_aaf_command;
-
-    if (aaf_action_complete_chk == FLAP_STOP) // 이 상태는 동작이 완료된 상태이므로, 실제 위치값인 AAF_Tx_Position을 유지
-    {
-        if (AAF_Tx_Position != UNKOWN_POSITION)
-        {
-            hold_command = AAF_Tx_Position;
-        }
-    }
-
-    if (hold_command == UNKOWN_POSITION)
-    {
-        hold_command = OPEN_1ST;
-    }
-
-    return hold_command;
-}
-
 // 고속 주행모드일 경우, MCU 명령이 CLOSE 또는 1ST OPEN이면 실제 동작은 1ST OPEN 수행
 uint8_t HighSpeed_1stOpenOverride(uint8_t requested_command)
 {

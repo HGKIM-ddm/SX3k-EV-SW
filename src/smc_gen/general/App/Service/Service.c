@@ -24,7 +24,6 @@ static void Mode_Check(void)
         // invalid
     }
 
-    HighSpeed_CheckDriveMode(CR_Mcu_VehSpdInt_Kph);
 }
 
 /***********************************************************************************************************************
@@ -117,6 +116,3 @@ void App_SwLogic(void)
     // [Sequence 5] Step Initialization Check
     Step_InitAndCheck();
 }
-
-
-

@@ -1,5 +1,6 @@
-#include "Lin_CHeck.h"
+#include "Lin_Check.h"
 #include "Service.h"
+#include "HighSpeed_Mode.h"
 
 #ifdef ENABLE_TORQUE_TEST
 /***********************************************************************************************************************
@@ -413,6 +414,8 @@ void Lin_RxCheck(void)
             AAF_ProtectionMode_Rx  = (unsigned int)((ID_chk_rxdata[7U] & 0x40U) >> 6U);
             LDCRdy                 = (unsigned int)((ID_chk_rxdata[7U] & 0x30U) >> 4U);
             AAF_LINOut             = (unsigned int)((ID_chk_rxdata[7U] & 0x0CU) >> 2U);
+
+            HighSpeed_CheckDriveMode(CR_Mcu_VehSpdInt_Kph);
 
             #ifdef ENABLE_TORQUE_TEST
             Lin_ParseTorqueTestMode(); 
