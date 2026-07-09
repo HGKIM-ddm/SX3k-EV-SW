@@ -127,6 +127,7 @@ extern unsigned int spi_action_step;
 extern char ret;
 extern unsigned int lin_bus_inactive_flag;
 extern unsigned int lin_sleep_step;
+extern volatile unsigned int lin_status_error_detected;
 
 
 /* 2.5 ADC & Power Variables */

@@ -34,6 +34,8 @@ void Lin_ReceiveComplete_Interrupt(void)
     // 5. Reset Timer & Update Hardware Status
     G_Timer1ms.LinBusInactive = 0U; // Reset LIN timeout timer
 
+	lin_status_error_detected = OFF;
+
     /* 6. Sleep 상태였다면 Sleep flag 해제 및 상태 복구 */
     Lin_WakeupFromSleep();
 		
@@ -74,6 +76,12 @@ void Lin_Status_Interrupt(void)
 {
 	NOP();
 	error_status = RLN30.LEST; // check status
+
+	if (error_status != 0U)
+	{
+		lin_status_error_detected = ON;
+	}
+
 	if (G_Timer1ms.IgnCheck >= 500U)
 	{
 		if (LIMP_HOME_Count <= 160U)

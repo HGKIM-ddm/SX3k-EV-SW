@@ -71,7 +71,21 @@ static void LinSleep_Delay(void)
  ***********************************************************************************************************************/
 static void LinSleep_ParsingCommand(void)
 {
-    if (AAF_LINOut == 0x00U)
+    if (lin_status_error_detected == ON)
+    {
+        if (IGN_Chk == 0U)
+        {
+            lin_sleep_step = 8U;
+        }
+        else
+        {
+            Drv8889_Wakeup();
+
+            aaf_action = OPEN;
+            lin_sleep_step = 3U;
+        }
+    }
+    else if (AAF_LINOut == 0x00U)
     {
         if (IGN_Chk == 0U)
         {
