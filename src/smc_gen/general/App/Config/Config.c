@@ -100,6 +100,7 @@ unsigned int limit_step_position = 0;
 unsigned int open_1st_step_position = 0;
 unsigned int open_2nd_step_position = 0;
 unsigned int protection_function = 0;
+unsigned int voltage_protection_function = 0;  //8.5, 16.5v 구간 open 시도
 unsigned int protection_Mode_step = 0;
 unsigned int AAF_location_type = 0;
 unsigned int AAF_LINOut = 0;

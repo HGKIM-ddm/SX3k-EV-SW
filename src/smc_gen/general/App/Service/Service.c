@@ -1,5 +1,5 @@
 #include "Service.h"
-
+    
 /***********************************************************************************************************************
  * Function Name: Mode_Check
  * Description  : Checks and executes the primary operation modes (Normal, Test, Sleep).
@@ -7,7 +7,7 @@
  ***********************************************************************************************************************/
 static void Mode_Check(void)
 {
-    if ((protection_function == OFF) && (lin_bus_inactive_flag == OFF) && (AAF_Maximum_Torque_Test_Mode == OFF) && (G_Timer1ms.ProtectionCheck == 550))
+    if ((protection_function == OFF) && (voltage_protection_function == OFF) && (protection_Mode_step == 0U) && (lin_bus_inactive_flag == OFF) && (AAF_Maximum_Torque_Test_Mode == OFF) && (G_Timer1ms.ProtectionCheck == 550)) 
     {
         Operating_Mode();
     }
@@ -46,7 +46,7 @@ static void Communication_Check(void)
 static void Safety_Check(void)
 {
     // 1. Fail Safety Mode
-    if ((protection_function == OFF) && (lin_bus_inactive_flag == OFF) && (AAF_Maximum_Torque_Test_Mode == OFF))
+    if ((protection_function == OFF) && (voltage_protection_function == OFF) && (protection_Mode_step == 0U) && (lin_bus_inactive_flag == OFF) && (AAF_Maximum_Torque_Test_Mode == OFF))
     {
         FailSafety_Mode();
     }
@@ -63,7 +63,7 @@ static void Safety_Check(void)
     // 4. Protection Mode
     ProtectionMode_Check();
 
-    if (((protection_function == ON) || (protection_Mode_step != 0U)) && (lin_bus_inactive_flag == OFF) && (AAF_Maximum_Torque_Test_Mode == OFF))
+   if (((protection_function == ON) || (voltage_protection_function == ON) || (protection_Mode_step != 0U)) && (lin_bus_inactive_flag == OFF) && (AAF_Maximum_Torque_Test_Mode == OFF))
     {
         Protection_Mode();
     }
