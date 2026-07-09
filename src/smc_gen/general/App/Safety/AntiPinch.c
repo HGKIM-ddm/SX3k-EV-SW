@@ -47,24 +47,7 @@ static void Antipinch_PrevOpen(void)
 
             antipinch_step = 2U;
         }
-        {
-            Drv8889_Off();
-            motor_start = OFF;
-            G_Timer1msFlag.StallTimeFlag = 0U;
-            G_Timer1ms.StallTime = 0U; 
-            softstart_complete = OFF;
-            motor_step_value = STEP_TIME_1000RPM;
-            aaf_action = FLAP_STOP;
-            G_Timer1msFlag.InitCheckFlag = 0U;
-            G_Timer1ms.InitCheck = 0U;
-            
-            if (step_position >= step_position_close)
-            {
-                step_position = step_position_close;
-            }
 
-            antipinch_step = 2U;
-        }
         break;
 
     case 2:
