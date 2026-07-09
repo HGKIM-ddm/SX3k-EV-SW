@@ -288,6 +288,7 @@ void Error_CheckAfterIGN(void)
             G_Timer1msFlag.IgnCheckFlag = 0U;
             G_Timer1ms.IgnCheck = 500U;
             IGN_Chk_On = 1U;
+            LimpHome_UpdateCount();
             Error_Check();
         }
     }
@@ -368,11 +369,3 @@ void Error_UnknownStatus(void)
 	AAFx_SNSR4_Position = Initial_Value;
 	aaf_step = FINISHED_OPERATE;
 }
-
-
-
-
-
-
-
-
