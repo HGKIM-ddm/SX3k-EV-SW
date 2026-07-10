@@ -118,6 +118,8 @@ extern unsigned int lin_aaf_command;
 extern unsigned int lin_rx_pass_flag;
 extern unsigned int lin_rx_chk_flag;
 extern volatile uint8_t lin_tx_resp_flag;
+extern volatile uint8_t g_lin_comm_ok_flag;
+extern volatile uint8_t g_lin_error_flag;
 extern unsigned int AAF_LIN_ChkSum_CHK_value;
 extern unsigned char spi_send_flag;
 extern unsigned char spi_receive_flag;
@@ -327,4 +329,3 @@ extern unsigned int AAF_OverCurrent;  /* B11 OCP */
 extern unsigned int AAF_HW_Stall;  /* B10 STL (HW스톨) */
 
 #endif 
-

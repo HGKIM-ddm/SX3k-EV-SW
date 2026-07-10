@@ -10,7 +10,7 @@
 void Lin_ReceiveComplete_Interrupt(void)
 {
     uint8_t receive_header_flag;
-    uint8_t receive_response_flag; // Typo Fixed: reponse -> response
+    uint8_t receive_response_flag;
 
     // 1. Get Status Flags
     receive_header_flag = (uint8_t)(RLN30.LST & 0x80U);  /* 1: Header transmission completed */
@@ -25,6 +25,7 @@ void Lin_ReceiveComplete_Interrupt(void)
     // 3. Handle Response Reception
     if (receive_response_flag != 0U)
     {
+        g_lin_comm_ok_flag = 1U;
         Lin_HandleReceivedResponse();
     }
 
@@ -74,14 +75,8 @@ void Lin_Status_Interrupt(void)
 {
 	NOP();
 	error_status = RLN30.LEST; // check status
-	if (G_Timer1ms.IgnCheck >= 500U)
-	{
-		if (LIMP_HOME_Count <= 160U)
-		{
-			LIMP_HOME_Count += 2U;
-		}
-	}
-
+	g_lin_error_flag = 1U;
+	
 #if 1 // LEST Clear
 	while (1)
 	{
@@ -115,4 +110,3 @@ void Lin_Status_Interrupt(void)
 	}
 #endif
 }
-

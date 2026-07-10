@@ -1,6 +1,43 @@
 #include "Limp_Home.h"
 #include "Service.h"
 
+/***********************************************************************************************************************
+ * Function Name: LimpHome_UpdateCount
+ * Description  : LIN 통신 상태에 따라 Limp Home 카운터를 증감시킴.
+ *                - 정상 통신 시 4 감소, 에러 발생 시 2 증가.
+ *                - 진단은 9V~16V 전압 범위 및 IGN ON 500ms 이후에만 수행됨.
+ ***********************************************************************************************************************/
+void LimpHome_UpdateCount(void)
+{
+    /* 진단 조건: 9V ~ 16V 사이의 전압 */
+    if ((adc_avr >= ADC_UNDER_VOLTAGE_9V) && (adc_avr <= ADC_OVER_VOLTAGE_16V))
+    {
+        /* LIN 통신 에러 발생 시 카운트 증가 */
+        if (g_lin_error_flag == 1U)
+        {
+            g_lin_error_flag = 0U; // 플래그 소모
+            if (LIMP_HOME_Count <= 160U)
+            {
+                LIMP_HOME_Count += 2U;
+            }
+        }
+        /* LIN 통신 정상 수신 시 카운트 감소 */
+        else if (g_lin_comm_ok_flag == 1U)
+        {
+            g_lin_comm_ok_flag = 0U; // 플래그 소모
+            if (LIMP_HOME_Count > 0U)
+            {
+                LIMP_HOME_Count = (LIMP_HOME_Count >= 4U) ? (LIMP_HOME_Count - 4U) : 0U;
+            }
+        }
+
+		else
+		{
+			//invalid
+		}
+    }
+}
+
 void Limp_Home(void)
 {
 
@@ -47,11 +84,6 @@ void Limp_Home(void)
 			aaf_step = FINISHED_OPERATE;
 			LIMP_HOME_step = 2U;
 			
-			//only sx3k
-			AAFx_SNSR1_Position = Initial_Value;
-			AAFx_SNSR2_Position = Initial_Value;
-			AAFx_SNSR3_Position = Initial_Value;
-			AAFx_SNSR4_Position = Initial_Value;
 		}
 		else if ((AAF_Tx_Position == OPEN) && (AAFx_Position_Status == Open_Status))
 		{
@@ -61,15 +93,10 @@ void Limp_Home(void)
 			aaf_step = FINISHED_OPERATE;
 			LIMP_HOME_step = 2U;
 
-			//only sx3k
-			AAFx_SNSR1_Position = Initial_Value;
-			AAFx_SNSR2_Position = Initial_Value;
-			AAFx_SNSR3_Position = Initial_Value;
-			AAFx_SNSR4_Position = Initial_Value;
 		}
 		else
 		{
-            //invaild
+            //invalid
 		}
 		break;
 	case 2:
@@ -84,4 +111,3 @@ void Limp_Home(void)
 		break;
 	}
 }
-
