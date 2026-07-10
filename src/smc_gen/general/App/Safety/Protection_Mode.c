@@ -106,7 +106,7 @@ static void Protection_UpdateFinal(void)
     AAFx_InitStatus = DURING_INITIALIZATION;
     AAFx_Position_Status = Unknown_Status;
     // FDL_Write();
-    if (protection_function == OFF)
+    if ((protection_function == OFF) && (voltage_protection_function == OFF)) 
     {
         protection_Mode_step = 5U;
     }

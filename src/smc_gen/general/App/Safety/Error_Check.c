@@ -1,6 +1,35 @@
 #include "Error_Check.h"
 #include "Service.h"
 
+static void Error_StartVoltageProtection(void)
+{
+    if (voltage_protection_function == OFF)
+    {
+        voltage_protection_function = ON;
+        protection_Mode_step = 0U;
+        G_Timer1ms.ProtectionMode = 0U;
+        G_Timer1msFlag.ProtectionModeFlag = 0U;
+    }
+}
+
+static void Error_ClearVoltageProtection(void)
+{
+    voltage_protection_function = OFF;
+
+    if (protection_Mode_step == 4U)
+    {
+        protection_Mode_step = 5U;
+    }
+    else if (protection_Mode_step == 0U)
+    {
+        Re_Init();
+    }
+    else
+    {
+        /* protection running */
+    }
+}
+
 /***********************************************************************************************************************
  * Function Name: Error_CheckVoltage
  * Description  : 전압 상태(저전압/과전압)를 체크하고 임계값 이탈 시 모터를 정지하거나 보호 모드로 진입함
@@ -25,11 +54,11 @@ static uint8_t Error_CheckVoltage(void)
         if (adc_avr >= ADC_UNDER_VOLTAGE_9V)
         {
             AAFx_Low_Volt = NO_ERROR;
-            protection_Mode_step = 0U;
             Under_Voltage_Deceted = 0U;
             G_Timer1ms.Adc1sCheck = 0U;
             G_Timer1msFlag.Adc1sCheckFlag = 0U;
-            Re_Init();
+            Error_ClearVoltageProtection();
+
         }
     }
     else if (adc_avr <= ADC_UNDER_VOLTAGE_8_5V)
@@ -44,7 +73,8 @@ static uint8_t Error_CheckVoltage(void)
         {
             AAFx_Low_Volt = UNDER_VOLTAGE;
             DTC_Status |= 0x20u;
-            Error_UnknownStatus();                      
+            Error_UnknownStatus();
+            Error_StartVoltageProtection();                      
             G_Timer1ms.Adc1sCheck = ADC_Detect_Time;       
             G_Timer1msFlag.Adc1sCheckFlag = 0U;
         }
@@ -72,8 +102,10 @@ static uint8_t Error_CheckVoltage(void)
         if (adc_avr <= ADC_OVER_VOLTAGE_16V)
         {
             AAFx_Over_Volt = NO_ERROR;
-            protection_Mode_step = 0U;
-            Re_Init();
+            Over_Voltage_Deceted = 0U;
+            G_Timer1ms.Adc1sCheck = 0U;
+            G_Timer1msFlag.Adc1sCheckFlag = 0U;
+            Error_ClearVoltageProtection();
         }
     }
     else
@@ -90,7 +122,8 @@ static uint8_t Error_CheckVoltage(void)
             {
                 AAFx_Over_Volt = OVER_VOLTAGE;
                 DTC_Status |= 0x40u;
-                Error_UnknownStatus();                   
+                Error_UnknownStatus();
+                Error_StartVoltageProtection();                      
                 G_Timer1ms.Adc1sCheck = ADC_Detect_Time;   
                 G_Timer1msFlag.Adc1sCheckFlag = 0U;
             }

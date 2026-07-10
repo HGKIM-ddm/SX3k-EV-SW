@@ -55,13 +55,6 @@ static void LinSleep_Delay(void)
 
 /***********************************************************************************************************************
  * Function Name: LinSleep_ParsingCommand
- * Description  : LIN 통신으로 수신된 Wakeup 명령을 해석하여 동작(Open/Close)을 결정함 (Case 2)
- * Called By    : LinSleep_Cycle1
- * Arguments    : void
- * Return Value : void
- ***********************************************************************************************************************/
-/***********************************************************************************************************************
- * Function Name: LinSleep_ParsingCommand
  * Description  : LIN Sleep 진입 전 마지막 수신 명령을 해석하여 Sleep 전 최종 구동 방향을 결정함
  *                - AAF_LINOut == 0 : 정상 종료 조건, 마지막 마스터 명령을 수행한 후 Sleep 진입
  *                - AAF_LINOut == 1 : 비정상 종료/LIN 단선 조건, OPEN 방향으로 이동 후 Sleep 진입
