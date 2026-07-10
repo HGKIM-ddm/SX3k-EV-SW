@@ -174,6 +174,7 @@ extern unsigned int motor_Open_chk_count;
 extern unsigned int antipinch_step;
 extern unsigned int antipinch_previous_action;
 extern unsigned int antipinch_action_on;
+extern unsigned int antipinch_original_action;
 
 /* 2.8 Flash Memory Variables (Shadow RAM) */
 extern unsigned int close_memory_write;

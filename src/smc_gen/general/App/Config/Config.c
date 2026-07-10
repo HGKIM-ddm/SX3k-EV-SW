@@ -206,6 +206,7 @@ unsigned int motor_Open_chk_count = 0U;
 unsigned int antipinch_step = 0;
 unsigned int antipinch_previous_action = INITIALIZATION;
 unsigned int antipinch_action_on = 0;
+unsigned int antipinch_original_action = INITIALIZATION;
 
 /* 2.8 Flash Memory Variables (Shadow RAM) */
 unsigned int close_memory_write = 0; // close step

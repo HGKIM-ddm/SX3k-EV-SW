@@ -61,7 +61,7 @@ static void Step_Check(void)
 		{
 			aaf_step = AAF_WAITING;
 			aaf_init_step = NORMAL_INITIALIZATION;
-			AAF_Tx_Position = OPEN;
+			// AAF_Tx_Position = OPEN;
 			// AAFx_Position_Status = Open_Status;
 			AAFx_InitStatus = NORMAL_FINISHED_INITIALIZATION;
 			evrdy_on_flag = ON;
@@ -72,7 +72,7 @@ static void Step_Check(void)
 		{
 			aaf_step = AAF_WAITING;
 			aaf_init_step = NORMAL_INITIALIZATION;
-			AAF_Tx_Position = CLOSE;
+			// AAF_Tx_Position = CLOSE;
 			// AAFx_Position_Status = Close_Status;
 			AAFx_InitStatus = NORMAL_FINISHED_INITIALIZATION;
 			evrdy_on_flag = ON;

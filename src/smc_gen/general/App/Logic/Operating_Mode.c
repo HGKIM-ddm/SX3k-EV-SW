@@ -462,7 +462,8 @@ static void Operate_HandleStall(void)
 		motor_start = OFF;
 		softstart_complete = OFF;
 		motor_step_value = STEP_TIME_1000RPM;
-
+		antipinch_original_action = aaf_action;
+		
 		if (aaf_action == DIAG_MODE_OPEN)
 		{
 			AAF_Tx_Position = DIAG_MODE_OPEN;
@@ -595,9 +596,9 @@ static void Operate_Finish(void)
 	G_Timer1msFlag.External10sCheckFlag = OFF; // 10s chk timer off
 	G_Timer1ms.External10sCheck = 0U;
 
-	if ((AAF_Tx_Position == OPEN) && (Diag_Mode == 0U))
+	if (((AAF_Tx_Position == OPEN_1ST) || (AAF_Tx_Position == OPEN_2ND) ||(AAF_Tx_Position == OPEN)) && (Diag_Mode == 0U))
 	{
-			AAFx_Position_Status = Open_Status;
+		AAFx_Position_Status = Open_Status;
 	}
 	else if ((AAF_Tx_Position == CLOSE) && (Diag_Mode == 0U))
 	{
@@ -606,11 +607,6 @@ static void Operate_Finish(void)
 	else if ((AAF_Tx_Position == DIAG_MODE_OPEN) || (AAF_Tx_Position == DIAG_MODE_CLOSE) || (AAF_Tx_Position == DIAG_MODE_AUTO))
 	{
 		AAFx_Position_Status = Unknown_Status;
-		//only sx3k
-		AAFx_SNSR1_Position = Initial_Value;
-		AAFx_SNSR2_Position = Initial_Value;
-		AAFx_SNSR3_Position = Initial_Value;
-		AAFx_SNSR4_Position = Initial_Value;
 	}
 	else
 	{
