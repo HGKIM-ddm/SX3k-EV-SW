@@ -3,6 +3,31 @@
 /* =========================================================================================
  * Anti-Pinch Movement Helper Functions
  * ========================================================================================= */
+static unsigned int AntiPinch_GetTargetPosition(unsigned int action)
+{
+    unsigned int target_pos;
+
+    switch (action)
+    {
+    case CLOSE:   
+                target_pos = step_position_close; 
+                break;
+    case OPEN_1ST: 
+                target_pos = step_position_open + (unsigned int)(((unsigned long)(step_position_close - step_position_open) * AAF_1ST_OPEN_ANGLE) / AAF_FULL_ANGLE); 
+                break;
+    case OPEN_2ND:
+                target_pos = step_position_open + (unsigned int)(((unsigned long)(step_position_close - step_position_open) * AAF_2ST_OPEN_ANGLE) / AAF_FULL_ANGLE);
+                break;
+    case OPEN:
+                target_pos = step_position_open; 
+                break;
+    default: 
+                target_pos = step_position_open;
+                break;
+    }
+
+    return target_pos;
+}
 
 /***********************************************************************************************************************
  * Function Name: Antipinch_PrevOpen
@@ -47,24 +72,7 @@ static void Antipinch_PrevOpen(void)
 
             antipinch_step = 2U;
         }
-        {
-            Drv8889_Off();
-            motor_start = OFF;
-            G_Timer1msFlag.StallTimeFlag = 0U;
-            G_Timer1ms.StallTime = 0U; 
-            softstart_complete = OFF;
-            motor_step_value = STEP_TIME_1000RPM;
-            aaf_action = FLAP_STOP;
-            G_Timer1msFlag.InitCheckFlag = 0U;
-            G_Timer1ms.InitCheck = 0U;
-            
-            if (step_position >= step_position_close)
-            {
-                step_position = step_position_close;
-            }
 
-            antipinch_step = 2U;
-        }
         break;
 
     case 2:
@@ -88,7 +96,7 @@ static void Antipinch_PrevOpen(void)
         TRQ_COUNT = MOTOR_STALL_CHK_NORMAL_VALUE; 
         motor_stall_flag = MOTOR_NORMAL;                  
         G_Timer1ms.Spi = 0U;
-        aaf_action = OPEN;
+        aaf_action = antipinch_original_action; 
 
         G_Timer1msFlag.InitCheckFlag = 1U; 
 
@@ -127,7 +135,7 @@ static void Antipinch_PrevOpen(void)
             }
             else
             {
-                AAF_Tx_Position = OPEN;
+                AAF_Tx_Position = antipinch_original_action; 
                 AAFx_InitStatus = NORMAL_FINISHED_INITIALIZATION;
                 AAFx_ErrorStatus = No_ErrorStatus;
                 Operate_SelectTxPostion();
@@ -254,7 +262,7 @@ static void Antipinch_PrevClose(void)
         TRQ_COUNT = MOTOR_STALL_CHK_NORMAL_VALUE; 
         G_Timer1ms.Spi = 0U;
 
-        aaf_action = CLOSE;
+        aaf_action = antipinch_original_action;
         G_Timer1msFlag.InitCheckFlag = 1U; 
         antipinch_step = 4U;
         break;
@@ -290,7 +298,7 @@ static void Antipinch_PrevClose(void)
             }
             else
             {
-                AAF_Tx_Position = CLOSE;
+                AAF_Tx_Position = antipinch_original_action;
                 AAFx_InitStatus = NORMAL_FINISHED_INITIALIZATION;
                 AAFx_ErrorStatus = No_ErrorStatus;
                 Operate_SelectTxPostion();
