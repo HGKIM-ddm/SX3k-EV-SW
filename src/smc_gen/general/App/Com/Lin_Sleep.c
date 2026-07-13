@@ -81,19 +81,10 @@ static void LinSleep_ParsingCommand(void)
         }
         else if (lin_aaf_command == CLOSE)
         {
-            if ((AAF_Tx_Position == CLOSE) &&
-                (AAFx_Position_Status == Close_Status) &&
-                (aaf_action_complete_chk == FLAP_STOP))
-            {
-                lin_sleep_step = 8U;
-            }
-            else
-            {
-                Drv8889_Wakeup();
+            Drv8889_Wakeup();
 
-                aaf_action = CLOSE;
-                lin_sleep_step = 3U;
-            }
+            aaf_action = CLOSE;
+            lin_sleep_step = 3U;
         }
         else
         {
