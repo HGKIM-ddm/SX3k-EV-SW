@@ -541,4 +541,59 @@ void Lin_BusCheck(void)
     }
 }
 
+/***********************************************************************************************************************
+ * Function Name: Lin_NrstCheck
+ * Description  : LIN 트랜시버(TLE8457) NRST 핀을 매 루프마다 확인하여 디바운스 처리함.
+ *                Sleep 진입 여부와 무관하게 항상 호출되어, lin_nrst_low_flag를 항상 최신 상태로 유지함.
+ *                - NRST가 10ms 간격 3회 연속 Low로 확인되면 lin_nrst_low_flag = ON
+ *                  (EN 명령이 무시되는 저전압 보호상태로 판단)
+ *                - NRST가 10ms 간격 3회 연속 High로 확인되면 lin_nrst_low_flag = OFF (정상 복귀)
+ * Called By    : Communication_Check (Service.c) - 매 루프 무조건 호출
+ * Arguments    : void
+ * Return Value : void
+ ***********************************************************************************************************************/
+void Lin_NrstCheck(void)
+{
+    unsigned int nrst_now;
 
+    G_Timer1msFlag.NrstCheckFlag = 1U;
+
+    if (G_Timer1ms.NrstCheck >= 10U)
+    {
+        G_Timer1ms.NrstCheck = 0U;
+        nrst_now = PORT.PPR0 & (1U << 0);
+
+        if (nrst_now == OFF) /* NRST Low */
+        {
+            if (lin_nrst_low_flag == OFF)
+            {
+                lin_nrst_debounce_count++;
+                if (lin_nrst_debounce_count >= 3U)
+                {
+                    lin_nrst_debounce_count = 0U;
+                    lin_nrst_low_flag = ON;
+                }
+            }
+            else
+            {
+                lin_nrst_debounce_count = 0U;
+            }
+        }
+        else /* NRST High */
+        {
+            if (lin_nrst_low_flag == ON)
+            {
+                lin_nrst_debounce_count++;
+                if (lin_nrst_debounce_count >= 3U)
+                {
+                    lin_nrst_debounce_count = 0U;
+                    lin_nrst_low_flag = OFF;
+                }
+            }
+            else
+            {
+                lin_nrst_debounce_count = 0U;
+            }
+        }
+    }
+}

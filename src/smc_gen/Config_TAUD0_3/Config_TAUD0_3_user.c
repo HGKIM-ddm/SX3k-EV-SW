@@ -103,7 +103,7 @@ void r_Config_TAUD0_3_interrupt(void)
     TIMER_1MS(IgnCheck);
     TIMER_1MS(AdcRecoveryCheck);
     TIMER_1MS(HighSpeedExitCheck);
-
+    TIMER_1MS(NrstCheck);
     //Extra Timer
     #ifdef UDS
     uds_1ms++;     

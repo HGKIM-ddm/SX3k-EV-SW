@@ -127,6 +127,48 @@ static void LinSleep_Cycle1(void)
         break;
     }
 }
+/***********************************************************************************************************************
+ * Function Name: LinSleep_Cycle2
+ * Description  : LIN Sleep 후반부(동작) 단계 처리 (구동 시작 -> 완료 확인 -> Sleep)
+ * Called By    : Lin_Sleep (Step 3 ~ 5)
+ * Arguments    : void
+ * Return Value : void
+ ***********************************************************************************************************************/
+static void LinSleep_Cycle2(void)
+{
+    switch (lin_sleep_step)
+    {
+    case 3:
+        LinSleep_StartMotor();
+        break;
+
+    case 4:
+        LinSleep_CheckCompletion();
+        break;
+
+    case 5:
+        LinSleep_Stall_Delay();
+        break;
+
+    case 6:
+        LinSleep_Stall_Open();
+        break;
+
+    case 7:
+        LinSleep_Stall_Stop();
+        break;
+
+    case 8:
+        LinSleep_Final();
+        break;
+    case 9:
+        LinSleep_UnderVoltageRecovery();
+        break;
+
+    default:
+        break;
+    }
+}
 
 /***********************************************************************************************************************
  * Function Name: LinSleep_StartMotor
@@ -454,45 +496,20 @@ static void LinSleep_Final(void)
     }
 }
 
-/***********************************************************************************************************************
- * Function Name: LinSleep_Cycle2
- * Description  : LIN Sleep 후반부(동작) 단계 처리 (구동 시작 -> 완료 확인 -> Sleep)
- * Called By    : Lin_Sleep (Step 3 ~ 5)
- * Arguments    : void
- * Return Value : void
- ***********************************************************************************************************************/
-static void LinSleep_Cycle2(void)
+static void LinSleep_UnderVoltageRecovery(void)
 {
-    switch (lin_sleep_step)
-    {
-    case 3:
-        LinSleep_StartMotor();
-        break;
-
-    case 4:
-        LinSleep_CheckCompletion();
-        break;
-
-    case 5:
-        LinSleep_Stall_Delay();
-        break;
-
-    case 6:
-        LinSleep_Stall_Open();
-        break;
-
-    case 7:
-        LinSleep_Stall_Stop();
-        break;
-
-    case 8:
-        LinSleep_Final();
-        break;
-
-    default:
-        break;
+    { //Loop Start
+    //DI(); //disabled interrupt
+    //Lin Mode Reset Mode
+    //Transmission Stop
+    // Port Protperty Change
+    // EN, TXD LOW
+    // EI(); //enable interrupt
+    // Check EN, TXD LOW
+    // Check Nrst Low Flag OFF -> lin_sleep_step = 8U;, else Loop Again
     }
 }
+
 /***********************************************************************************************************************
  * Function Name: McuSleep_ExternalOff
  * Description  : MCU가 슬립 모드로 진입하기 전, 연결된 외부 하드웨어(모터 드라이버, 트랜시버 등)를 끔
@@ -600,18 +617,28 @@ void MCU_Sleep(void)
         FDL_Write();
     }
 
-    // 3. 외부 하드웨어 전원 차단
-    McuSleep_ExternalOff();
+    if (lin_nrst_low_flag == ON)
+    {
+        lin_sleep_step = 9U;
+        return;
+    }
+    else
+    {
+        // 3. 외부 하드웨어 전원 차단
+        McuSleep_ExternalOff();
 
-    // 4. 슬립 대비 포트 설정 (누설 전류 방지)
-    McuSleep_PortConfig();
+        // 4. 슬립 대비 포트 설정 (누설 전류 방지)
+        McuSleep_PortConfig();
 
-    // 5. 내부 주변장치 클럭 정지
-    McuSleep_InternalModuleStop();
+        // 5. 내부 주변장치 클럭 정지
+        McuSleep_InternalModuleStop();
 
-    // 6. Deep Stop 모드 진입 (Wake-up 이벤트 발생 전까지 정지)
-    McuSleep_DeepStop();
+        // 6. Deep Stop 모드 진입 (Wake-up 이벤트 발생 전까지 정지)
+        McuSleep_DeepStop();
+    }
 }
+
+
 
 /***********************************************************************************************************************
  * Function Name: Lin_WakeupFromSleep

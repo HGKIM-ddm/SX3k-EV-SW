@@ -162,6 +162,8 @@ unsigned int spi_action_step = 0;
 char ret = 0;
 unsigned int lin_bus_inactive_flag = 0;
 unsigned int lin_sleep_step = 0;
+unsigned int lin_nrst_low_flag = 0;
+unsigned int lin_nrst_debounce_count = 0;
 
 /* 2.5 ADC & Power Variables */
 uint16_t bat_adc = 0;

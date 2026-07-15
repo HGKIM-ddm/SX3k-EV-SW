@@ -36,7 +36,8 @@ static void Communication_Check(void)
     Lin_RxCheck();
     Lin_TxCheck();
     Spi_Check();
-}
+    Lin_NrstCheck();
+}   
 
 /***********************************************************************************************************************
  * Function Name: Safety_Check
