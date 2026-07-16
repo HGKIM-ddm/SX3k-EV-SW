@@ -518,8 +518,8 @@ void Lin_BusCheck(void)
         lin_bus_inactive_flag = ON;
         lin_sleep_step = 0U;
 
-        Drv8889_Off2();                           // drv of
-        motor_start = OFF;                    // step stop
+        Drv8889_Off2();                           // drv off
+        motor_start = OFF;                        // step stop
 
         aaf_action = FLAP_STOP;
         aaf_action_complete_chk = FLAP_STOP;
@@ -537,7 +537,18 @@ void Lin_BusCheck(void)
 
         wake_up_motor_range_init_chk = 0U;
 
-        aaf_step = AAF_WAITING;
+        /* 수정된 부분: 초기화가 안 끝났다면 WAITING으로 덮어쓰는 것을 방지 */
+        if (AAFx_InitStatus != NORMAL_FINISHED_INITIALIZATION)
+        {
+            aaf_step = AAF_INITIALIZATION;
+        }
+        else if (aaf_step != AAF_INITIALIZATION)
+        {
+            aaf_step = AAF_WAITING;
+        }
+        else {
+            /* invalid */
+        }
     }
 }
 

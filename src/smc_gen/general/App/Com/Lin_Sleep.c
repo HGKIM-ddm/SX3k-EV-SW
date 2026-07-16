@@ -433,7 +433,10 @@ static void LinSleep_Final(void)
         aaf_action = FLAP_STOP;
         aaf_action_complete_chk = FLAP_STOP;
 
-        aaf_step = AAF_WAITING;
+        if (aaf_step != AAF_INITIALIZATION) 
+        {
+            aaf_step = AAF_WAITING; 
+        }
     }
 }
 
@@ -698,14 +701,23 @@ void Lin_WakeupFromSleep(void)
         softstart_complete = OFF;
         motor_step_value = STEP_TIME_1000RPM;
 
+        /* 수정된 부분: 초기화가 완전히 끝나지 않았다면 무조건 초기화 루프로 진입 */
+        if (AAFx_InitStatus != NORMAL_FINISHED_INITIALIZATION)
+        {
+            aaf_step = AAF_INITIALIZATION;
+            aaf_init_step = START_INITIALIZATION; // 0U
+        }
         /* Sleep sequence 중 이동 중이었다면 일반 동작 대기로 복귀 */
-        if (AAFx_Position_Status == FlapMoving_Status)
+        else if (AAFx_Position_Status == FlapMoving_Status)
         {
             aaf_step = AAF_OPERATE;
         }
         else
         {
-            aaf_step = AAF_WAITING;
+            if (aaf_step != AAF_INITIALIZATION) 
+            {
+                aaf_step = AAF_WAITING; 
+            }
         }
     }
 }

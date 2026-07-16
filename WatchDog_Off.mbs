@@ -1,0 +1,1 @@
+target sfr WDTA0MD=0x00        /* WDTA0.MD: reset mode off */
