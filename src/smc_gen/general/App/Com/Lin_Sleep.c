@@ -634,6 +634,11 @@ void Lin_Sleep(void)
  ***********************************************************************************************************************/
 void MCU_Sleep(void)
 {
+    if (power_chk == Normal_Shutdown)
+    {
+        return;
+    }
+    
     // 1. 종료 상태 플래그 설정
     power_chk = Normal_Shutdown;
     First_Powerchk = 1U;
@@ -650,11 +655,11 @@ void MCU_Sleep(void)
     // 4. 슬립 대비 포트 설정 (누설 전류 방지)
     McuSleep_PortConfig();
 
-    // 5. 내부 주변장치 클럭 정지
-    McuSleep_InternalModuleStop();
+    // // 5. 내부 주변장치 클럭 정지
+    // McuSleep_InternalModuleStop();
 
-    // 6. Deep Stop 모드 진입 (Wake-up 이벤트 발생 전까지 정지)
-    McuSleep_DeepStop();
+    // // 6. Deep Stop 모드 진입 (Wake-up 이벤트 발생 전까지 정지)
+    // McuSleep_DeepStop();
     
 }
 
@@ -681,6 +686,8 @@ void Lin_WakeupFromSleep(void)
         /* LIN Sleep 상태머신 초기화 */
         lin_sleep_step = 0U;
 
+        power_chk = Shutdown_Check;
+        
         /* LIN Sleep 대기 타이머 초기화 */
         G_Timer1msFlag.LinSleepModeFlag = 0U;
         G_Timer1ms.LinSleepMode = 0U;
