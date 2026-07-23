@@ -332,4 +332,25 @@ extern unsigned int AAF_CPUV;  /* B12 차지펌프 저전압 */
 extern unsigned int AAF_OverCurrent;  /* B11 OCP */
 extern unsigned int AAF_HW_Stall;  /* B10 STL (HW스톨) */
 
+
+/* ===== DRV8889 DIAG Status  ===== */
+/* DIAG Status 1 (0x02 addr) : OCP 상별 */
+extern unsigned int DIAG_OCP_HS1_A; 
+extern unsigned int DIAG_OCP_LS1_A; 
+extern unsigned int DIAG_OCP_HS2_A;
+extern unsigned int DIAG_OCP_LS2_A;
+extern unsigned int DIAG_OCP_HS1_B; 
+extern unsigned int DIAG_OCP_LS1_B; 
+extern unsigned int DIAG_OCP_HS2_B; 
+extern unsigned int DIAG_OCP_LS2_B;
+/* DIAG Status 2 (0x02 addr) : 온도/스톨/OL */
+extern unsigned int DIAG_OL_A; 
+extern unsigned int DIAG_OL_B; 
+extern unsigned int DIAG_STALL; 
+extern unsigned int DIAG_STL_LRN_OK;
+extern unsigned int DIAG_OTS; 
+extern unsigned int DIAG_OTW; 
+extern unsigned int DIAG_UTW;
+
+
 #endif 

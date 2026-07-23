@@ -14,7 +14,7 @@
 
 //For Torque Test
 // #define ENABLE_TORQUE_TEST
-
+#define ENABLE_CHAMBER_TEST      /* 챔버 테스트:  Byte4 온도/전압 폴트 LIN 매핑 */
 //For Bootloader
 #define UDS
 

@@ -280,3 +280,22 @@ unsigned int AAF_UVLO        = 0;  /* B13 저전압 */
 unsigned int AAF_CPUV        = 0;  /* B12 차지펌프 저전압 */
 unsigned int AAF_OverCurrent = 0;  /* B11 OCP */
 unsigned int AAF_HW_Stall    = 0;  /* B10 STL (HW스톨) */
+
+/* ===== DRV8889 DIAG Status  ===== */
+/* DIAG Status 1 (0x02 addr) : OCP 상별 */
+unsigned int DIAG_OCP_HS1_A = 0; 
+unsigned int DIAG_OCP_LS1_A = 0; 
+unsigned int DIAG_OCP_HS2_A = 0;
+unsigned int DIAG_OCP_LS2_A = 0;
+unsigned int DIAG_OCP_HS1_B = 0; 
+unsigned int DIAG_OCP_LS1_B = 0; 
+unsigned int DIAG_OCP_HS2_B = 0; 
+unsigned int DIAG_OCP_LS2_B = 0;
+/* DIAG Status 2 (0x02 addr) : 온도/스톨/OL */
+unsigned int DIAG_OL_A = 0; 
+unsigned int DIAG_OL_B = 0; 
+unsigned int DIAG_STALL = 0; 
+unsigned int DIAG_STL_LRN_OK = 0;
+unsigned int DIAG_OTS = 0; 
+unsigned int DIAG_OTW = 0; 
+unsigned int DIAG_UTW = 0;
