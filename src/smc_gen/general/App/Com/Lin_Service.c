@@ -85,7 +85,10 @@ static void Lin_Wakeup(void)
         else
         {
             /* 이동 중이 아니었다면 일반 명령 대기 상태로 복귀 */
-            aaf_step = AAF_WAITING;
+           if (aaf_step != AAF_INITIALIZATION) 
+            {
+                aaf_step = AAF_WAITING; 
+            }
         }
     }
 }

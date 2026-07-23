@@ -129,7 +129,8 @@ extern unsigned int spi_action_step;
 extern char ret;
 extern unsigned int lin_bus_inactive_flag;
 extern unsigned int lin_sleep_step;
-
+extern unsigned int lin_nrst_low_flag;
+extern unsigned int lin_nrst_debounce_count;
 
 /* 2.5 ADC & Power Variables */
 extern uint16_t bat_adc;
@@ -247,6 +248,7 @@ typedef struct {
     unsigned int Timer3minuteSec;
     unsigned int IgnErrorCheck;
     unsigned int HighSpeedExitCheck;
+    unsigned int NrstCheck;
 } Global_Timer1msType;
 
 typedef struct {
@@ -283,6 +285,7 @@ typedef struct {
     unsigned int Timer3minuteFlag;
     unsigned int IgnErrorCheckFlag;
     unsigned int HighSpeedExitCheckFlag;
+    unsigned int NrstCheckFlag;
 } Global_Timer1msFlagType;
 
 extern Global_Timer1msType G_Timer1ms;
