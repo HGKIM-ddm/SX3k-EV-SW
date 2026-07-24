@@ -142,25 +142,25 @@ static void SpiCheck_HandleData(void)
     AAF_OpenLoad    = rx_16bit_spi[9] & 0x0100U;  /* B8  OL */
 
 
-     /* ===== DIAG Status 1 (rx_16bit_spi[1] 하위바이트) : OCP 상별 ===== */
-    DIAG_OCP_HS1_A = rx_16bit_spi[1] & 0x0001U;  /* B0 */
-    DIAG_OCP_LS1_A = rx_16bit_spi[1] & 0x0002U;  /* B1 */
-    DIAG_OCP_HS2_A = rx_16bit_spi[1] & 0x0004U;  /* B2 */
-    DIAG_OCP_LS2_A = rx_16bit_spi[1] & 0x0008U;  /* B3 */
-    DIAG_OCP_HS1_B = rx_16bit_spi[1] & 0x0010U;  /* B4 */
-    DIAG_OCP_LS1_B = rx_16bit_spi[1] & 0x0020U;  /* B5 */
-    DIAG_OCP_HS2_B = rx_16bit_spi[1] & 0x0040U;  /* B6 */
-    DIAG_OCP_LS2_B = rx_16bit_spi[1] & 0x0080U;  /* B7 */
+     /* ===== DIAG Status 1 (rx_16bit_spi[2] 하위바이트) : OCP 상별 ===== */
+    DIAG_OCP_HS1_A = rx_16bit_spi[2] & 0x0001U;  /* B0 */
+    DIAG_OCP_LS1_A = rx_16bit_spi[2] & 0x0002U;  /* B1 */
+    DIAG_OCP_HS2_A = rx_16bit_spi[2] & 0x0004U;  /* B2 */
+    DIAG_OCP_LS2_A = rx_16bit_spi[2] & 0x0008U;  /* B3 */
+    DIAG_OCP_HS1_B = rx_16bit_spi[2] & 0x0010U;  /* B4 */
+    DIAG_OCP_LS1_B = rx_16bit_spi[2] & 0x0020U;  /* B5 */
+    DIAG_OCP_HS2_B = rx_16bit_spi[2] & 0x0040U;  /* B6 */
+    DIAG_OCP_LS2_B = rx_16bit_spi[2] & 0x0080U;  /* B7 */
 
-    /* ===== DIAG Status 2 (rx_16bit_spi[2] 하위바이트) : 온도/스톨/OL ===== */
-    DIAG_OL_A       = rx_16bit_spi[2] & 0x0001U;  /* B0 */
-    DIAG_OL_B       = rx_16bit_spi[2] & 0x0002U;  /* B1 */
+    /* ===== DIAG Status 2 (rx_16bit_spi[3] 하위바이트) : 온도/스톨/OL ===== */
+    DIAG_OL_A       = rx_16bit_spi[3] & 0x0001U;  /* B0 */
+    DIAG_OL_B       = rx_16bit_spi[3] & 0x0002U;  /* B1 */
     /* B2 RSVD */
-    DIAG_STALL      = rx_16bit_spi[2] & 0x0008U;  /* B3 */
-    DIAG_STL_LRN_OK = rx_16bit_spi[2] & 0x0010U;  /* B4 */
-    DIAG_OTS        = rx_16bit_spi[2] & 0x0020U;  /* B5 과열 셧다운 */
-    DIAG_OTW        = rx_16bit_spi[2] & 0x0040U;  /* B6 고온 경고 */
-    DIAG_UTW        = rx_16bit_spi[2] & 0x0080U;  /* B7 저온 경고 */
+    DIAG_STALL      = rx_16bit_spi[3] & 0x0008U;  /* B3 */
+    DIAG_STL_LRN_OK = rx_16bit_spi[3] & 0x0010U;  /* B4 */
+    DIAG_OTS        = rx_16bit_spi[3] & 0x0020U;  /* B5 과열 셧다운 */
+    DIAG_OTW        = rx_16bit_spi[3] & 0x0040U;  /* B6 고온 경고 */
+    DIAG_UTW        = rx_16bit_spi[3] & 0x0080U;  /* B7 저온 경고 */
 
 
     // if (AAF_Tx_Position == DIAG_MODE_AUTO) {
