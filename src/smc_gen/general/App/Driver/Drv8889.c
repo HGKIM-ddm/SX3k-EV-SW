@@ -156,6 +156,15 @@ void Drv8889_WriteCtrl6(uint8_t stall_th)
     Drv8889_SpiTransfer(&ctrl6_frame, &rx_16bit_spi[8], 2U);
 }
 
+void Drv8889_ReadDiag(uint8_t idx)
+{
+    if (idx < 11U)   /* rx_16bit_spi[] / rx_16bit_spi_id[] 배열 경계 보호 */
+    {
+        Drv8889_SpiTransfer(&rx_16bit_spi_id[idx], &rx_16bit_spi[idx], 2U);
+    }
+}
+
+
 void Drv8889_SpiInit(void)
 {
     uint8_t i;

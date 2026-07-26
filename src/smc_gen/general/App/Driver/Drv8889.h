@@ -228,6 +228,8 @@ uint8_t Drv8889_IsStallBitSet(void);
 void Drv8889_WriteCtrl1(Drv_TrqDac_t trq, Drv_SlewRate_t slew);
 void Drv8889_WriteCtrl6(uint8_t stall_th);
 
+void Drv8889_ReadDiag(uint8_t idx);
+
 #endif
 
 

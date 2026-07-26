@@ -499,13 +499,14 @@ void Lin_TxCheck(void)
     Slave_TxData[2U] = (uint8_t)((AAF_ProtectionMode_Tx << 7U) | (AAFx_Over_Volt << 6U) | (AAFx_Low_Volt << 5U) | (AAFx_Motor_Fault << 4U) | (AAFx_Circuit_Short << 2U) | (AAFx_Circuit_Open << 1U));
     #ifdef ENABLE_CHAMBER_TEST
     Slave_TxData[3U] = (uint8_t)(
-          ((AAF_OverTemp != 0U) ? 0x01U : 0x00U)        /* bit0: TF 온도폴트(OR) */
-        | ((AAF_UVLO     != 0U) ? 0x02U : 0x00U)        /* bit1: UVLO */
-        | ((AAF_CPUV     != 0U) ? 0x04U : 0x00U)        /* bit2: CPUV */
-        | ((DIAG_OTW     != 0U) ? 0x08U : 0x00U)        /* bit3: OTW 고온 */
-        | ((DIAG_UTW     != 0U) ? 0x10U : 0x00U));      /* bit4: UTW 저온 */
+        ((AAF_OverTemp != 0U) ? 0x01U : 0x00U)   /* bit0: TF (FAULT status, 신뢰가능) */
+        | ((AAF_UVLO     != 0U) ? 0x02U : 0x00U)   /* bit1: UVLO */
+        | ((AAF_CPUV     != 0U) ? 0x04U : 0x00U)   /* bit2: CPUV */
+        | ((DIAG_OTW     != 0U) ? 0x08U : 0x00U)   /* bit3: OTW 고온경고 */
+        | ((DIAG_UTW     != 0U) ? 0x10U : 0x00U)   /* bit4: UTW 저온경고 */
+        | ((DIAG_OTS     != 0U) ? 0x20U : 0x00U)); /* bit5: OTS 과열셧다운(실제 정지) */
     #else
-    Slave_TxData[3U] = 0x00U;
+        Slave_TxData[3U] = 0x00U;
     #endif
     Slave_TxData[4U] = 0x00U;
     Slave_TxData[5U] = 0x00U;
