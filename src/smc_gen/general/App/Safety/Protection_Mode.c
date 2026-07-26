@@ -46,18 +46,20 @@ static void Protection_Delay(void)
  ***********************************************************************************************************************/
 static void Protection_StartMotor(void)
 {
-    // if(((adc_avr >= ADC_UNDER_VOLTAGE_7V) && (adc_avr <= ADC_UNDER_VOLTAGE_9V)) || ((adc_avr >= ADC_OVER_VOLTAGE_16V) && (adc_avr <= ADC_OVER_VOLTAGE_18V)) || (AAF_ProtectionMode_Rx == ON))
-    // if(((adc_avr >= ADC_OVER_VOLTAGE_16V) && (adc_avr <= ADC_OVER_VOLTAGE_18V)) || (AAF_ProtectionMode_Rx == ON) && (AAF_Tx_Position != OPEN))   
-    if ((AAF_Tx_Position != OPEN))
-	{
-        Motor_Open2();                    // dir OPEN
-       	Drv8889_On();                        // drv on
-        motor_start = ON;                // step start
-        G_Timer1msFlag.StallCheckFlag = ON;    // test
-        motor_stall_flag = MOTOR_NORMAL; // stall reset
-        G_Timer1ms.StallTime = 0U;          // stall reset
+     // if(((adc_avr >= ADC_UNDER_VOLTAGE_7V) && (adc_avr <= ADC_UNDER_VOLTAGE_9V)) || ((adc_avr >= ADC_OVER_VOLTAGE_16V) && (adc_avr <= ADC_OVER_VOLTAGE_18V)) || (AAF_ProtectionMode_Rx == ON))
+     // if(((adc_avr >= ADC_OVER_VOLTAGE_16V) && (adc_avr <= ADC_OVER_VOLTAGE_18V)) || (AAF_ProtectionMode_Rx == ON) && (AAF_Tx_Position != OPEN))  
+    if (AAF_Tx_Position != OPEN)
+    {
+        Motor_Open2();
+        Drv8889_On();
+
+        motor_start = ON;
+        G_Timer1msFlag.StallCheckFlag = ON;
+        motor_stall_flag = MOTOR_NORMAL;
+        G_Timer1ms.StallTime = 0U;
+
         protection_Mode_step = 3U;
-        G_Timer1msFlag.InitCheckFlag = 1U; // test
+        G_Timer1msFlag.InitCheckFlag = 1U;
     }
     else
     {
@@ -75,20 +77,24 @@ static void Protection_StartMotor(void)
  ***********************************************************************************************************************/
 static void Protection_StallCheck(void)
 {
-    // if ((motor_stall_flag == MOTOR_STALL) || (G_Timer1ms.InitCheck >= 4500U))
     if ((step_position <= (step_position_open + limit_step_position)) || (motor_stall_flag == MOTOR_STALL))
     {
         Drv8889_Off2();
         motor_start = OFF;
+
         G_Timer1msFlag.StallTimeFlag = 0U;
-        G_Timer1ms.StallTime = 0U; // stall reset
+        G_Timer1ms.StallTime = 0U;
+
         G_Timer1msFlag.InitCheckFlag = 0U;
         G_Timer1ms.InitCheck = 0U;
+
         AAF_Tx_Position = UNKOWN_POSITION;
         AAFx_InitStatus = DURING_INITIALIZATION;
         AAFx_Position_Status = Unknown_Status;
+
         softstart_complete = OFF;
         motor_step_value = STEP_TIME_1000RPM;
+
         protection_Mode_step = 4U;
     }
 }
@@ -116,7 +122,7 @@ static void Protection_WaitOff(void)
 {
     Re_Init();
     protection_Mode_step = 0U;
-}
+} 
 
 static void Protection_Cycle1(void)
 {
