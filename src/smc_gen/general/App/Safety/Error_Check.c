@@ -16,6 +16,11 @@ static void Error_ClearVoltageProtection(void)
 {
     voltage_protection_function = OFF;
 
+    if (protection_function == ON)
+    {
+        return;
+    }
+
     if (protection_Mode_step == 4U)
     {
         protection_Mode_step = 5U;
@@ -23,6 +28,11 @@ static void Error_ClearVoltageProtection(void)
     else if (protection_Mode_step == 0U)
     {
         Re_Init();
+    }
+    else if ((protection_Mode_step == 3U) &&
+             (motor_start == OFF))
+    {
+        protection_Mode_step = 4U;
     }
     else
     {

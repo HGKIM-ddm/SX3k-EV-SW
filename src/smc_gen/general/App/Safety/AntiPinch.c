@@ -104,7 +104,8 @@ static void Antipinch_PrevOpen(void)
         break;
 
     case 4:
-        if ((aaf_action == OPEN) && (step_position <= step_position_open + limit_step_position))
+        //if ((aaf_action == OPEN) && (step_position <= step_position_open + limit_step_position))
+        if (((aaf_action == OPEN) || (aaf_action == DIAG_MODE_OPEN) || ((aaf_action == DIAG_MODE_AUTO) && (diag_mode_auto_dir == OPEN))) && (step_position <= (step_position_open + limit_step_position)))
         {
             Drv8889_Off();
             motor_start = OFF;
@@ -268,7 +269,8 @@ static void Antipinch_PrevClose(void)
         break;
 
     case 4:
-        if ((aaf_action == CLOSE) && (step_position >= step_position_close - limit_step_position))
+        //if ((aaf_action == CLOSE) && (step_position >= step_position_close - limit_step_position))
+        if (((aaf_action == CLOSE) || (aaf_action == DIAG_MODE_CLOSE) || ((aaf_action == DIAG_MODE_AUTO) && (diag_mode_auto_dir == CLOSE))) && (step_position >= (step_position_close - limit_step_position)))
         {
             Drv8889_Off();
             motor_start = OFF;
