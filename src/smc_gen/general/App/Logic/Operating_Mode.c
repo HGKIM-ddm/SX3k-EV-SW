@@ -199,7 +199,7 @@ static void Operate_NormalProcess(void)
     }
     else if (aaf_action == OPEN_1ST)
     {
-        target_pos = step_position_open + (unsigned int)(((unsigned long)(step_position_close - step_position_open) * AAF_1ST_OPEN_ANGLE) / AAF_FULL_ANGLE);
+        target_pos = open_1st_step_position;
         
         if (step_position > (target_pos + ERROR_RANGE)) {
             Operate_NormalAction(OPEN);
@@ -212,7 +212,7 @@ static void Operate_NormalProcess(void)
     }
     else if (aaf_action == OPEN_2ND)
     {
-        target_pos = step_position_open + (unsigned int)(((unsigned long)(step_position_close - step_position_open) * AAF_2ST_OPEN_ANGLE) / AAF_FULL_ANGLE);
+        target_pos = open_2nd_step_position;
         
         if (step_position > (target_pos + ERROR_RANGE)) {
             Operate_NormalAction(OPEN);
@@ -342,7 +342,7 @@ static void Operate_CheckRange(void)
     }
     else if (aaf_action == OPEN_1ST)
     {
-        target_pos = step_position_open + (unsigned int)(((unsigned long)(step_position_close - step_position_open) * AAF_1ST_OPEN_ANGLE) / AAF_FULL_ANGLE);
+        target_pos = open_1st_step_position;
         
         if (((flap_move == OPEN) && (step_position <= target_pos)) || 
             ((flap_move == CLOSE) && (step_position >= target_pos)))
@@ -358,7 +358,7 @@ static void Operate_CheckRange(void)
     }
     else if (aaf_action == OPEN_2ND)
     {
-        target_pos = step_position_open + (unsigned int)(((unsigned long)(step_position_close - step_position_open) * AAF_2ST_OPEN_ANGLE) / AAF_FULL_ANGLE);
+        target_pos = open_2nd_step_position;
         
         if (((flap_move == OPEN) && (step_position <= target_pos)) || 
             ((flap_move == CLOSE) && (step_position >= target_pos)))
