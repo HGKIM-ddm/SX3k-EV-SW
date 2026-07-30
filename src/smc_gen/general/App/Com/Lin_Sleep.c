@@ -20,9 +20,7 @@ static void LinSleep_StopMotorAndReset(void)
 
 static uint8_t LinSleep_AbortOnFault(void)
 {
-    if ((AAFx_Over_Volt     == NO_ERROR) &&
-        (AAFx_Low_Volt      == NO_ERROR) &&
-        (AAFx_Motor_Fault   == 0U)       &&
+    if ((AAFx_Motor_Fault   == 0U)       &&
         (AAFx_Circuit_Short == NO_ERROR) &&
         (AAFx_Circuit_Open  == NO_ERROR))
     {
