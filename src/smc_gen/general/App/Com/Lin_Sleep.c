@@ -1,6 +1,8 @@
 #include "Lin_Sleep.h"
 #include "Service.h"
 
+
+
 /***********************************************************************************************************************
  * Function Name: LinSleep_StopMotorAndReset
  * Description  : 모터 구동 정지 및 제어 변수 리셋 (Case 0, 4 공통)
@@ -14,6 +16,32 @@ static void LinSleep_StopMotorAndReset(void)
     G_Timer1ms.StallTime = 0U;
     softstart_complete = OFF;
     motor_step_value = STEP_TIME_1000RPM;
+}
+
+static uint8_t LinSleep_AbortOnFault(void)
+{
+    if ((AAFx_Over_Volt     == NO_ERROR) &&
+        (AAFx_Low_Volt      == NO_ERROR) &&
+        (AAFx_Motor_Fault   == 0U)       &&
+        (AAFx_Circuit_Short == NO_ERROR) &&
+        (AAFx_Circuit_Open  == NO_ERROR))
+    {
+        return 0U;
+    }
+
+    LinSleep_StopMotorAndReset();
+
+    aaf_step      = AAF_INITIALIZATION;
+    aaf_init_step = WAIT_INITIALIZATION;
+
+    AAF_Tx_Position      = UNKOWN_POSITION;
+    AAFx_Position_Status = Unknown_Status;
+    AAFx_InitStatus      = DURING_INITIALIZATION;
+
+    motor_stall_flag = MOTOR_NORMAL;
+
+    lin_sleep_step = 8U;   
+    return 1U;
 }
 
 /***********************************************************************************************************************
@@ -114,6 +142,8 @@ static void LinSleep_ParsingCommand(void)
  ***********************************************************************************************************************/
 static void LinSleep_StartMotor(void)
 {
+    if (LinSleep_AbortOnFault() == 1U) { return; }
+
     if ((aaf_action == OPEN) || (aaf_action == OPEN_1ST) || (aaf_action == OPEN_2ND))
     {
         Motor_Open2();
@@ -158,18 +188,7 @@ static void LinSleep_CheckCompletion(void)
     // 기본 OPEN 목표 위치는 FULL OPEN 기준 위치
     target_pos = step_position_open;
 
-    if (aaf_action == OPEN_1ST)
-    {
-        target_pos = OPEN_1ST_POSITION;
-    }
-    else if (aaf_action == OPEN_2ND)
-    {
-        target_pos = OPEN_2ND_POSITION;
-    }
-    else
-    {
-        // OPEN 또는 CLOSE인 경우 별도 target_pos 변경 없음
-    }
+    if (LinSleep_AbortOnFault() == 1U) { return; }
 
     if (((aaf_action == OPEN) ||
          (aaf_action == OPEN_1ST) ||
