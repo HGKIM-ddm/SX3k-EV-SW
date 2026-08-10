@@ -48,7 +48,6 @@ extern unsigned long long step_position;
 extern unsigned int dir_state;
 extern unsigned int init_move_step;
 extern unsigned int AAF_OpenLoad;
-extern unsigned int motor_step_value;
 extern volatile unsigned int softstart_complete;
 extern unsigned int motor_stall_flag;
 extern unsigned int step_start_flag;

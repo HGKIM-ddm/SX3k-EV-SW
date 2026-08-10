@@ -461,7 +461,6 @@ static void Operate_HandleStall(void)
 		Drv8889_Off2();
 		motor_start = OFF;
 		softstart_complete = OFF;
-		motor_step_value = STEP_TIME_1000RPM;
 		antipinch_original_action = aaf_action;
 		
 		if (aaf_action == DIAG_MODE_OPEN)
@@ -616,7 +615,6 @@ static void Operate_Finish(void)
 	G_Timer1ms.StallCheck = 0U;		 // test
 	G_Timer1msFlag.StallCheckFlag = 0U; // test
 	softstart_complete = OFF;
-	motor_step_value = STEP_TIME_1000RPM;
 	G_Timer1msFlag.InitCheckFlag = 0U;						  // test
 	G_Timer1ms.InitCheck = 0U;							  // test
 	G_Timer1msFlag.StallTimeFlag = 0U;								  // stall reset

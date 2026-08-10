@@ -60,7 +60,6 @@ static void Antipinch_PrevOpen(void)
             G_Timer1msFlag.StallTimeFlag = 0U;
             G_Timer1ms.StallTime = 0U; 
             softstart_complete = OFF;
-            motor_step_value = STEP_TIME_1000RPM;
             aaf_action = FLAP_STOP;
             G_Timer1msFlag.InitCheckFlag = 0U;
             G_Timer1ms.InitCheck = 0U;
@@ -148,7 +147,6 @@ static void Antipinch_PrevOpen(void)
             G_Timer1msFlag.StallTimeFlag = 0U;
             G_Timer1ms.StallTime = 0U;
             softstart_complete = OFF;
-            motor_step_value = STEP_TIME_1000RPM;
 
             antipinch_previous_action = ANTIWAIT;
             antipinch_step = 0U;
@@ -162,7 +160,6 @@ static void Antipinch_PrevOpen(void)
             G_Timer1msFlag.StallTimeFlag = 0U;
             G_Timer1ms.StallTime = 0U;
             softstart_complete = OFF;
-            motor_step_value = STEP_TIME_1000RPM;
 
             G_Timer1msFlag.InitCheckFlag = 0U;
             G_Timer1ms.InitCheck = 0U;
@@ -224,7 +221,6 @@ static void Antipinch_PrevClose(void)
             G_Timer1msFlag.StallTimeFlag = 0U;
             G_Timer1ms.StallTime = 0U; 
             softstart_complete = OFF;
-            motor_step_value = STEP_TIME_1000RPM;
 
             G_Timer1msFlag.InitCheckFlag = 0U;
             G_Timer1ms.InitCheck = 0U;
@@ -312,7 +308,6 @@ static void Antipinch_PrevClose(void)
             G_Timer1msFlag.StallTimeFlag = 0U;
             G_Timer1ms.StallTime = 0U;
             softstart_complete = OFF;
-            motor_step_value = STEP_TIME_1000RPM;
 
             antipinch_previous_action = ANTIWAIT;
             antipinch_step = 0U;
@@ -326,7 +321,6 @@ static void Antipinch_PrevClose(void)
             G_Timer1msFlag.StallTimeFlag = 0U;
             G_Timer1ms.StallTime = 0U;
             softstart_complete = OFF;
-            motor_step_value = STEP_TIME_1000RPM;
 
             G_Timer1msFlag.InitCheckFlag = 0U;
             G_Timer1ms.InitCheck = 0U;
@@ -359,7 +353,6 @@ static void Antipinch_PrevClose(void)
             G_Timer1msFlag.StallTimeFlag = 0U;
             G_Timer1ms.StallTime = 0U; 
             softstart_complete = OFF;
-            motor_step_value = STEP_TIME_1000RPM;
 
             aaf_action = FLAP_STOP;
             G_Timer1msFlag.InitCheckFlag = 0U;

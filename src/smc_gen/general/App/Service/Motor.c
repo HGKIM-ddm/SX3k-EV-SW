@@ -4,7 +4,6 @@
 static void Motor_Action(void);
 static void Motor_ManageStartStatus(void);
 static void Motor_SoftStart(void);
-static void Motor_StagedSoftStart(void);
 static void Motor_GenerateStepPulse(void);
 
 static volatile uint8_t pwm_flag = OFF;
@@ -90,58 +89,7 @@ static void Motor_SoftStart(void)
     motor_wait_chk = ON;
     G_Timer1msFlag.StallTimeFlag = ON;
     G_Timer1msFlag.MotorAccelerationFlag = 1U;
-
-    Motor_StagedSoftStart(); //not used
-
-    // Active acceleration logic
-    if (((motor_step_value <= STEP_TIME_1000RPM) && (motor_step_value > STEP_TIME_1250RPM)) && (G_Timer1ms.MotorAcceleration >= 10))
-    {
-        motor_step_value--;
-        G_Timer1ms.MotorAcceleration = 0U;
-    }
-    else
-    {
-        motor_step_value = STEP_TIME_1250RPM;
-        G_Timer1ms.MotorAcceleration = 0U;
-        softstart_complete = ON;
-    }
-
     G_Timer1ms.MotorDelay = MOTOR_WAIT_TIME;
-}
-
-/***********************************************************************************************************************
- * Function Name: Motor_StagedSoftStart
- * Description  : Handles the legacy detailed soft-start acceleration logic (Previously commented out).
- * Called By    : Motor_SoftStart (Currently commented out)
- * Arguments    : void
- * Return Value : void
- ***********************************************************************************************************************/
-static void Motor_StagedSoftStart(void)
-{
-    // if (((motor_step_value <= STEP_TIME_1000RPM) && (motor_step_value > STEP_TIME_1250RPM)) && (G_Timer1ms.MotorAcceleration >= 4))
-    // {
-    //     motor_step_value--;
-    //     G_Timer1ms.MotorAcceleration = 0;
-    // }
-    // else if (((motor_step_value <= STEP_TIME_1250RPM) && (motor_step_value > STEP_TIME_1500RPM)) && (G_Timer1ms.MotorAcceleration >= 6))
-    // {
-    //     motor_step_value--;
-    //     G_Timer1ms.MotorAcceleration = 0;
-    // }
-    // else if (((motor_step_value <= STEP_TIME_1500RPM) && (motor_step_value > STEP_TIME_1575RPM)) && (G_Timer1ms.MotorAcceleration >= 8))
-    // {
-    //     motor_step_value--;
-    //     G_Timer1ms.MotorAcceleration = 0;
-    // }
-    // else if (motor_step_value <= STEP_TIME_1575RPM)
-    // {
-    //     motor_step_value = STEP_TIME_1575RPM;
-    //     softstart_complete = ON;
-    // }
-    // else
-    // {
-    //     // Invalid
-    // }
 }
 
 /***********************************************************************************************************************

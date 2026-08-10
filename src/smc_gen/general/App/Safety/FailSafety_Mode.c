@@ -49,7 +49,6 @@ static void FS_CheckStallStop(unsigned int next_step)
         G_Timer1msFlag.InitCheckFlag = 0U;
         G_Timer1ms.InitCheck = 0U;
         softstart_complete = OFF;
-        motor_step_value = STEP_TIME_1000RPM;
         fail_safety_step = next_step;
     }
 }

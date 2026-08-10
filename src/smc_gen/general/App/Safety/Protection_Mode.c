@@ -88,7 +88,6 @@ static void Protection_StallCheck(void)
         AAFx_InitStatus = DURING_INITIALIZATION;
         AAFx_Position_Status = Unknown_Status;
         softstart_complete = OFF;
-        motor_step_value = STEP_TIME_1000RPM;
         protection_Mode_step = 4U;
     }
 }

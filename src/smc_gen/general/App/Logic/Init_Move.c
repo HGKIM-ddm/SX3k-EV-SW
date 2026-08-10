@@ -69,7 +69,6 @@ static void Init_StallCheck(uint8_t next_step, uint8_t retry_step, uint8_t dir)
         G_Timer1msFlag.StallTimeFlag = 0U;
         G_Timer1ms.StallTime = 0U;
         softstart_complete = OFF;
-        motor_step_value = STEP_TIME_1000RPM;
         G_Timer1msFlag.InitFailCheckFlag = 0U;
         G_Timer1ms.InitFailCheck = 0U;
 
@@ -155,7 +154,6 @@ static void Init_CheckLimitArrival(void)
         Drv8889_Off();
         motor_start = OFF;
         softstart_complete = OFF;
-        motor_step_value = STEP_TIME_1000RPM;
         G_Timer1msFlag.InitFailCheckFlag = 0U;
         G_Timer1ms.InitFailCheck = 0U;
         
@@ -172,7 +170,6 @@ static void Init_CheckLimitArrival(void)
         G_Timer1msFlag.External10sCheckFlag = OFF;
         G_Timer1ms.External10sCheck = 0U;
         softstart_complete = OFF;
-        motor_step_value = STEP_TIME_1000RPM;
         G_Timer1msFlag.InitFailCheckFlag = 0U;
         G_Timer1ms.InitFailCheck = 0U;
 

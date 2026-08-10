@@ -15,7 +15,7 @@ static void LinSleep_StopMotorAndReset(void)
     G_Timer1msFlag.StallTimeFlag = 0U;
     G_Timer1ms.StallTime = 0U;
     softstart_complete = OFF;
-    motor_step_value = STEP_TIME_1000RPM;
+
 }
 
 static uint8_t LinSleep_AbortOnFault(void)
@@ -83,7 +83,7 @@ static void LinSleep_Delay(void)
  * Function Name: LinSleep_ParsingCommand
  * Description  : LIN Sleep 진입 전 마지막 수신 명령을 해석하여 Sleep 전 최종 구동 방향을 결정함
  *                - AAF_LINOut == 0 : 정상 종료 조건, 마지막 마스터 명령을 수행한 후 Sleep 진입
- *                - AAF_LINOut == 1 : 비정상 종료/LIN 단선 조건, OPEN 방향으로 이동 후 Sleep 진입
+ *                - AAF_LINOut == 1 : 비정상 종료/LIN 단선 조건, OPEN 방향으로 이동 후 Sleep 진입 (case 2)
  * Called By    : LinSleep_Cycle1
  * Arguments    : void
  * Return Value : void
@@ -321,15 +321,6 @@ static void LinSleep_Stall_Open(void)
 
     /* 모터 구동 시작 */
     motor_start = ON;
-
-        /*
-     * Soft Stop 1단계:
-     * CLOSE stopper 후 OPEN 방향 약 5도 복귀 구간은 짧은 거리이므로
-     * 기존 속도보다 느린 속도로 복귀한다.
-     * 만약 motor_step_value = STEP_TIME_SLEEP_BACKOFF;를 넣었는데도 속도가 안 느려지면, Motor_SoftStart()나 Motor_Action() 쪽에서 motor_step_value를 다시 덮어쓰고 있을 가능성
-     * 0527 우상민
-     */
-    //motor_step_value = STEP_TIME_SLEEP_BACKOFF;
 
     /* 스톨 상태 및 타이머 초기화 */
     motor_stall_flag = MOTOR_NORMAL;
@@ -726,7 +717,6 @@ void Lin_WakeupFromSleep(void)
 
         /* Soft start 및 모터 속도 초기화 */
         softstart_complete = OFF;
-        motor_step_value = STEP_TIME_1000RPM;
 
         /* 수정된 부분: 초기화가 완전히 끝나지 않았다면 무조건 초기화 루프로 진입 */
         if (AAFx_InitStatus != NORMAL_FINISHED_INITIALIZATION)
