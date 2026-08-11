@@ -513,7 +513,7 @@ void Lin_TxCheck(void)
 
 void Lin_BusCheck(void)
 {
-    if ((G_Timer1ms.LinBusInactive >= LIN_BUS_CHK_TIME_4_SEC) && (lin_bus_inactive_flag == OFF))
+    if ((G_Timer1ms.LinBusInactive >= LIN_BUS_CHK_TIME_4_SEC) && (lin_bus_inactive_flag == OFF) && (antipinch_action_on == OFF))
     {
         lin_bus_inactive_flag = ON;
         lin_sleep_step = 0U;
