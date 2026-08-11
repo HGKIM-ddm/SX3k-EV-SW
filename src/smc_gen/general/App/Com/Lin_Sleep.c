@@ -99,24 +99,18 @@ static void LinSleep_ParsingCommand(void)
         }
         else if ((lin_aaf_command == OPEN) ||
                  (lin_aaf_command == OPEN_1ST) ||
-                 (lin_aaf_command == OPEN_2ND))
+                 (lin_aaf_command == OPEN_2ND) ||
+                 (lin_aaf_command == CLOSE))
         {
             Drv8889_Wakeup();
 
-            aaf_action = lin_aaf_command;
-            lin_sleep_step = 3U;
-        }
-        else if (lin_aaf_command == CLOSE)
-        {
-            Drv8889_Wakeup();
-            
-            if (fail_safety_step != 0U)
+            if (fail_safety_flag == ON)
             {
                 aaf_action = OPEN;
-            } 
+            }
             else
             {
-                aaf_action = CLOSE;
+                aaf_action = lin_aaf_command;
             }
 
             lin_sleep_step = 3U;
