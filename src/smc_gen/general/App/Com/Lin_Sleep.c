@@ -489,8 +489,8 @@ static void LinSleep_UnderVoltageRecovery(void)
     R_PORT_ResetAltFunc(Port10, 9U, Input);
 
     /* 5. EN Port, TxD Port를 Low로 변경 */
-    PORT.P10 &= ~_PORT_Pn10_OUTPUT_HIGH; // TxD Low
-    PORT.P10 &= ~_PORT_Pn3_OUTPUT_HIGH;  // EN Low
+    // PORT.P10 &= ~_PORT_Pn10_OUTPUT_HIGH; // TxD Low
+    // PORT.P10 &= ~_PORT_Pn3_OUTPUT_HIGH;  // EN Low
 
     /* 6. Interrupt Enable */
     EI();
@@ -511,7 +511,16 @@ static void LinSleep_UnderVoltageRecovery(void)
 static void McuSleep_ExternalOff(void)
 {
     Drv8889_Sleep();        // 모터 드라이버 슬립 전환
-    LinTrcv_Off();  // LIN 트랜시버 전원 차단
+
+   if (lin_nrst_low_flag == ON)
+    {
+        LinTrcv_On();       /* 저전압 : 트랜시버 유지 (INTP5 wake 및 복구 경로 확보) */
+    }
+    else
+    {
+        LinTrcv_Off();
+    }
+
     Drv8889_ScsActive();   // SPI 통신 핀 활성화
 }
 
@@ -673,6 +682,12 @@ void MCU_Sleep(void)
     // 1. 종료 상태 플래그 설정
     power_chk = Normal_Shutdown;
     First_Powerchk = 1U;
+
+    if (lin_nrst_low_flag == ON)
+    {
+        lin_sleep_step = 9U;      /* 저전압 가드 한번 더*/
+        return;
+    }
 
     // 2. 필요 시 플래시 메모리에 데이터 저장
     if (step_check_flag == 2U)
