@@ -1,7 +1,7 @@
 #include "Lin_Sleep.h"
 #include "Service.h"
 
-
+static uint8_t Sleep_Stall = OFF;
 
 /***********************************************************************************************************************
  * Function Name: LinSleep_StopMotorAndReset
@@ -51,11 +51,12 @@ static uint8_t LinSleep_AbortOnFault(void)
  ***********************************************************************************************************************/
 static void LinSleep_Reset(void)
 {
-    LinSleep_StopMotorAndReset(); 
-    
-    // Case 0에만 있는 추가 초기화
+    LinSleep_StopMotorAndReset();
+
     G_Timer1msFlag.InitFailCheckFlag = 0U;
     G_Timer1ms.InitFailCheck = 0U;
+
+    Sleep_Stall = OFF;
 
     lin_sleep_step = 1U;
 }
@@ -108,8 +109,16 @@ static void LinSleep_ParsingCommand(void)
         else if (lin_aaf_command == CLOSE)
         {
             Drv8889_Wakeup();
+            
+            if (fail_safety_step != 0U)
+            {
+                aaf_action = OPEN;
+            } 
+            else
+            {
+                aaf_action = CLOSE;
+            }
 
-            aaf_action = CLOSE;
             lin_sleep_step = 3U;
         }
         else
@@ -226,8 +235,8 @@ static void LinSleep_CheckCompletion(void)
         TRQ_COUNT = MOTOR_STALL_CHK_NORMAL_VALUE;
         motor_stall_flag = MOTOR_NORMAL;
 
-        // close stopper 후 800ms 대기 단계로 이동
-        // 다음 단계에서 OPEN 방향으로 약 5도 복귀함
+        Sleep_Stall    = OFF;
+
         lin_sleep_step = 5U;
     }
 
@@ -241,8 +250,6 @@ static void LinSleep_CheckCompletion(void)
 
         AAF_Tx_Position = CLOSE;
         AAFx_Position_Status = Close_Status;
-
-        // Sleep 전 CLOSE 도달 완료 상태이므로 정상 초기화 완료 상태로 보고
         AAFx_InitStatus = NORMAL_FINISHED_INITIALIZATION;
 
         Operate_SelectTxPostion();
@@ -254,11 +261,11 @@ static void LinSleep_CheckCompletion(void)
     }
 
     // 조건 4: 목표 위치 도달 전 스톨 발생
-    // 목표 위치 도달 조건을 만족하지 못한 상태에서 스톨이 발생하면
-    // 현재 위치를 신뢰할 수 없으므로 UNKNOWN / DURING_INITIALIZATION 상태로 저장함.
     else if (motor_stall_flag == MOTOR_STALL)
     {
         LinSleep_StopMotorAndReset();
+
+        motor_stall_flag = MOTOR_NORMAL;
 
         aaf_step = AAF_INITIALIZATION;
         aaf_init_step = WAIT_INITIALIZATION;
@@ -267,10 +274,9 @@ static void LinSleep_CheckCompletion(void)
         AAFx_Position_Status = Unknown_Status;
         AAFx_InitStatus = DURING_INITIALIZATION;
 
-        motor_stall_flag = MOTOR_NORMAL;
-
+        Sleep_Stall    = ON;
         // 최종 Sleep 단계로 이동
-        lin_sleep_step = 8U;
+        lin_sleep_step = 5U;
     }
     else
     {
@@ -298,8 +304,15 @@ static void LinSleep_Stall_Delay(void)
         G_Timer1msFlag.LinSleepModeFlag = 0U;
         G_Timer1ms.LinSleepMode = 0U;
 
-        /* OPEN 방향 약 5도 복귀 구동 시작 단계로 이동 */
-        lin_sleep_step = 6U;
+        if ((Sleep_Stall == ON) && (aaf_action == OPEN))
+        {
+            Sleep_Stall    = OFF;
+            lin_sleep_step = 8U;
+        }
+        else
+        {
+            lin_sleep_step = 6U;
+        }
     }
 }
 
@@ -341,56 +354,69 @@ static void LinSleep_Stall_Open(void)
  * Arguments    : void
  * Return Value : void
  ***********************************************************************************************************************/
-//0526 우상민
 static void LinSleep_Stall_Stop(void)
 {
-    /* OPEN 방향으로 약 5도 복귀 완료
-     * CLOSE 위치에서 limit_step_position만큼 OPEN 방향으로 빠지면 완료로 판단
-     */
-
     unsigned int sleep_backoff_step;
 
-    sleep_backoff_step = step_position_close - (limit_step_position / SLEEP_BACKOFF_DIVIDER);    
-
-    if (step_position <= (sleep_backoff_step))
+    /* 이상 stall 후 OPEN 파킹 경로 */
+    if (Sleep_Stall == ON)
     {
-        LinSleep_StopMotorAndReset();
-        
-        /* 실제 위치는 stopper에서 약간 빠졌지만, Sleep 전 최종 상태는 CLOSE로 보고 */
-        AAF_Tx_Position = CLOSE;
-        AAFx_Position_Status = Close_Status;
-        AAFx_InitStatus = NORMAL_FINISHED_INITIALIZATION;
+        /* OPEN stopper 감지 시 정지.
+         * 위치 조건은 스텝 펄스는 계속 흐르는데 stall 이 오지 않는 경우의 하한이다. */
+        if ((motor_stall_flag == MOTOR_STALL) ||
+            (step_position <= (step_position_open + limit_step_position)))
+        {
+            LinSleep_StopMotorAndReset();
 
-        Operate_SelectTxPostion();
+            motor_stall_flag = MOTOR_NORMAL;
 
-        aaf_step = FINISHED_OPERATE;
-
-        /* 최종 Sleep 단계로 이동 */
-        lin_sleep_step = 8U;
+            Sleep_Stall    = OFF;
+            lin_sleep_step = 8U;
+        }
+        else
+        {
+            /* OPEN 방향 계속 구동 */
+        }
     }
-    /* OPEN 복귀 중 다시 스톨이 발생하면 위치 신뢰 불가 처리 */
-    else if (motor_stall_flag == MOTOR_STALL)
-    {
-        LinSleep_StopMotorAndReset();
-
-        aaf_step = AAF_INITIALIZATION;
-        aaf_init_step = WAIT_INITIALIZATION;
-
-        AAF_Tx_Position = UNKOWN_POSITION;
-        AAFx_Position_Status = Unknown_Status;
-        AAFx_InitStatus = DURING_INITIALIZATION;
-
-        motor_stall_flag = MOTOR_NORMAL;
-
-        /* 최종 Sleep 단계로 이동 */
-        lin_sleep_step = 8U;
-    }
+    /* 정상 close stopper 후 백오프 완료 판정 */
     else
     {
-        /* 아직 약 5도 복귀 완료 전이면 계속 OPEN 방향 구동 유지 */
+        sleep_backoff_step = step_position_close - (limit_step_position / SLEEP_BACKOFF_DIVIDER);
+
+        if (step_position <= sleep_backoff_step)
+        {
+            LinSleep_StopMotorAndReset();
+
+            AAF_Tx_Position      = CLOSE;
+            AAFx_Position_Status = Close_Status;
+            AAFx_InitStatus      = NORMAL_FINISHED_INITIALIZATION;
+
+            Operate_SelectTxPostion();
+
+            aaf_step       = FINISHED_OPERATE;
+            lin_sleep_step = 8U;
+        }
+        else if (motor_stall_flag == MOTOR_STALL)
+        {
+            LinSleep_StopMotorAndReset();
+
+            aaf_step      = AAF_INITIALIZATION;
+            aaf_init_step = WAIT_INITIALIZATION;
+
+            AAF_Tx_Position      = UNKOWN_POSITION;
+            AAFx_Position_Status = Unknown_Status;
+            AAFx_InitStatus      = DURING_INITIALIZATION;
+
+            motor_stall_flag = MOTOR_NORMAL;
+
+            lin_sleep_step = 8U;
+        }
+        else
+        {
+            /* 아직 백오프 완료 전 */
+        }
     }
 }
-
 
 /***********************************************************************************************************************
  * Function Name: LinSleep_Final
