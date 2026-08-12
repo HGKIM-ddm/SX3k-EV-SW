@@ -187,10 +187,7 @@ static void LinSleep_CheckCompletion(void)
     unsigned int target_pos;
 
     // 기본 OPEN 목표 위치는 FULL OPEN 기준 위치
-    if (aaf_action == OPEN)      { target_pos = step_position_open; }
-    else if (aaf_action == OPEN_1ST) { target_pos = open_1st_step_position; }
-    else if (aaf_action == OPEN_2ND) { target_pos = open_2nd_step_position; }
-    else { target_pos = step_position_open; }
+    target_pos = Operate_GetTargetPosition(aaf_action);
 
     if (LinSleep_AbortOnFault() == 1U) { return; }
 

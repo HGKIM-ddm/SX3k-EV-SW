@@ -92,8 +92,6 @@
 #define LIN_CONTROL_LEN       8U
 #define LIN_RESPONSE_LEN      8U
 
-#define OPEN_1ST_POSITION 1300U
-#define OPEN_2ND_POSITION 900U
 #define AAF_1ST_OPEN_ANGLE 60U //@@ 기존 83 에서 변경 예정 25% -> 75% 전체 110
 #define AAF_2ST_OPEN_ANGLE 30U // @@ 기존 55에서 변경 예정 50% -> 50% 전체 110
 

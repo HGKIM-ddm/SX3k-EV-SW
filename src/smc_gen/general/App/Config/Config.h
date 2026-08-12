@@ -61,8 +61,6 @@ extern unsigned int flap_move;
 extern unsigned int step_position_open;
 extern unsigned int step_position_close;
 extern unsigned int limit_step_position;
-extern unsigned int open_1st_step_position;
-extern unsigned int open_2nd_step_position;
 extern unsigned int protection_function;
 extern unsigned int voltage_protection_function; //8.5, 16.5v 구간 open 시도
 extern unsigned int protection_Mode_step;

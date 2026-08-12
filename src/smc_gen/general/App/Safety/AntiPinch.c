@@ -1,33 +1,5 @@
 #include "AntiPinch.h"
 #include "Service.h"
-/* =========================================================================================
- * Anti-Pinch Movement Helper Functions
- * ========================================================================================= */
-static unsigned int AntiPinch_GetTargetPosition(unsigned int action)
-{
-    unsigned int target_pos;
-
-    switch (action)
-    {
-    case CLOSE:   
-                target_pos = step_position_close; 
-                break;
-    case OPEN_1ST: 
-                target_pos = step_position_open + (unsigned int)(((unsigned long)(step_position_close - step_position_open) * AAF_1ST_OPEN_ANGLE) / AAF_FULL_ANGLE); 
-                break;
-    case OPEN_2ND:
-                target_pos = step_position_open + (unsigned int)(((unsigned long)(step_position_close - step_position_open) * AAF_2ST_OPEN_ANGLE) / AAF_FULL_ANGLE);
-                break;
-    case OPEN:
-                target_pos = step_position_open; 
-                break;
-    default: 
-                target_pos = step_position_open;
-                break;
-    }
-
-    return target_pos;
-}
 
 /***********************************************************************************************************************
  * Function Name: Antipinch_PrevOpen
@@ -103,8 +75,12 @@ static void Antipinch_PrevOpen(void)
         break;
 
     case 4:
-        //if ((aaf_action == OPEN) && (step_position <= step_position_open + limit_step_position))
-        if (((aaf_action == OPEN) || (aaf_action == DIAG_MODE_OPEN) || ((aaf_action == DIAG_MODE_AUTO) && (diag_mode_auto_dir == OPEN))) && (step_position <= (step_position_open + limit_step_position)))
+        if (((aaf_action == OPEN)                                              ||
+             (aaf_action == OPEN_1ST)                                          ||
+             (aaf_action == OPEN_2ND)                                          ||
+             (aaf_action == DIAG_MODE_OPEN)                                    ||
+             ((aaf_action == DIAG_MODE_AUTO) && (diag_mode_auto_dir == OPEN))) &&
+            (step_position <= (Operate_GetTargetPosition(aaf_action) + limit_step_position)))
         {
             Drv8889_Off();
             motor_start = OFF;
@@ -265,8 +241,12 @@ static void Antipinch_PrevClose(void)
         break;
 
     case 4:
-        //if ((aaf_action == CLOSE) && (step_position >= step_position_close - limit_step_position))
-        if (((aaf_action == CLOSE) || (aaf_action == DIAG_MODE_CLOSE) || ((aaf_action == DIAG_MODE_AUTO) && (diag_mode_auto_dir == CLOSE))) && (step_position >= (step_position_close - limit_step_position)))
+        if (((aaf_action == CLOSE)                                              ||
+             (aaf_action == OPEN_1ST)                                           ||
+             (aaf_action == OPEN_2ND)                                           ||
+             (aaf_action == DIAG_MODE_CLOSE)                                    ||
+             ((aaf_action == DIAG_MODE_AUTO) && (diag_mode_auto_dir == CLOSE))) &&
+            (step_position >= (Operate_GetTargetPosition(aaf_action) - limit_step_position)))
         {
             Drv8889_Off();
             motor_start = OFF;
