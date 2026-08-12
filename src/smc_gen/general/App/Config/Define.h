@@ -24,7 +24,7 @@
 //Current CodeName
 #define VEHICLE_CODENAME SX3K_EV_AAF1
 
-#define FW_VERSION 0x01U  
+#define FW_VERSION 0x02U  
 
  /* ==================================================================== */
 
