@@ -678,16 +678,16 @@ void MCU_Sleep(void)
     {
         return;
     }
-    
-    // 1. 종료 상태 플래그 설정
-    power_chk = Normal_Shutdown;
-    First_Powerchk = 1U;
 
     if (lin_nrst_low_flag == ON)
     {
         lin_sleep_step = 9U;      /* 저전압 가드 한번 더*/
         return;
     }
+
+    // 1. 종료 상태 플래그 설정
+    power_chk = Normal_Shutdown;
+    First_Powerchk = 1U;
 
     // 2. 필요 시 플래시 메모리에 데이터 저장
     if (step_check_flag == 2U)
