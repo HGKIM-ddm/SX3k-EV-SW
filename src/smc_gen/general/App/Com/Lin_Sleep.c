@@ -271,7 +271,11 @@ static void LinSleep_CheckCompletion(void)
     }
     else
     {
-        // 아직 목표 위치에 도달하지 않았고 스톨도 아니면 계속 구동 상태 유지
+        if ((protection_function == ON) || ((Open_fault_check == 1U) || (Short_fault_check == 1U)) || ((AAFx_InitStatus == DURING_INITIALIZATION) && (adc_avr <= ADC_UNDER_VOLTAGE_7V)))
+        {
+            Error_UnknownStatus();
+            lin_sleep_step = 8U;
+        }
     }
 }
 
