@@ -513,7 +513,7 @@ void Lin_TxCheck(void)
 
 void Lin_BusCheck(void)
 {
-    if ((G_Timer1ms.LinBusInactive >= LIN_BUS_CHK_TIME_4_SEC) && (lin_bus_inactive_flag == OFF))
+    if ((G_Timer1ms.LinBusInactive >= LIN_BUS_CHK_TIME_4_SEC) && (lin_bus_inactive_flag == OFF) && (antipinch_action_on == OFF))
     {
         lin_bus_inactive_flag = ON;
         lin_sleep_step = 0U;
@@ -524,8 +524,7 @@ void Lin_BusCheck(void)
         aaf_action = FLAP_STOP;
         aaf_action_complete_chk = FLAP_STOP;
         softstart_complete = OFF;
-        motor_step_value = STEP_TIME_1000RPM;
-
+   
         G_Timer1msFlag.External10sCheckFlag = OFF; // 10s chk timer off
         G_Timer1ms.External10sCheck = 0U;
 

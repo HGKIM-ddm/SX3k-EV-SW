@@ -1,6 +1,8 @@
 #include "Lin_Sleep.h"
 #include "Service.h"
 
+static uint8_t Sleep_Stall = OFF;
+
 /***********************************************************************************************************************
  * Function Name: LinSleep_StopMotorAndReset
  * Description  : 모터 구동 정지 및 제어 변수 리셋 (Case 0, 4 공통)
@@ -13,7 +15,31 @@ static void LinSleep_StopMotorAndReset(void)
     G_Timer1msFlag.StallTimeFlag = 0U;
     G_Timer1ms.StallTime = 0U;
     softstart_complete = OFF;
-    motor_step_value = STEP_TIME_1000RPM;
+
+}
+
+static uint8_t LinSleep_AbortOnFault(void)
+{
+    if ((AAFx_Motor_Fault   == 0U)       &&
+        (AAFx_Circuit_Short == NO_ERROR) &&
+        (AAFx_Circuit_Open  == NO_ERROR))
+    {
+        return 0U;
+    }
+
+    LinSleep_StopMotorAndReset();
+
+    aaf_step      = AAF_INITIALIZATION;
+    aaf_init_step = WAIT_INITIALIZATION;
+
+    AAF_Tx_Position      = UNKOWN_POSITION;
+    AAFx_Position_Status = Unknown_Status;
+    AAFx_InitStatus      = DURING_INITIALIZATION;
+
+    motor_stall_flag = MOTOR_NORMAL;
+
+    lin_sleep_step = 8U;   
+    return 1U;
 }
 
 /***********************************************************************************************************************
@@ -25,11 +51,12 @@ static void LinSleep_StopMotorAndReset(void)
  ***********************************************************************************************************************/
 static void LinSleep_Reset(void)
 {
-    LinSleep_StopMotorAndReset(); 
-    
-    // Case 0에만 있는 추가 초기화
+    LinSleep_StopMotorAndReset();
+
     G_Timer1msFlag.InitFailCheckFlag = 0U;
     G_Timer1ms.InitFailCheck = 0U;
+
+    Sleep_Stall = OFF;
 
     lin_sleep_step = 1U;
 }
@@ -57,7 +84,7 @@ static void LinSleep_Delay(void)
  * Function Name: LinSleep_ParsingCommand
  * Description  : LIN Sleep 진입 전 마지막 수신 명령을 해석하여 Sleep 전 최종 구동 방향을 결정함
  *                - AAF_LINOut == 0 : 정상 종료 조건, 마지막 마스터 명령을 수행한 후 Sleep 진입
- *                - AAF_LINOut == 1 : 비정상 종료/LIN 단선 조건, OPEN 방향으로 이동 후 Sleep 진입
+ *                - AAF_LINOut == 1 : 비정상 종료/LIN 단선 조건, OPEN 방향으로 이동 후 Sleep 진입 (case 2)
  * Called By    : LinSleep_Cycle1
  * Arguments    : void
  * Return Value : void
@@ -72,18 +99,20 @@ static void LinSleep_ParsingCommand(void)
         }
         else if ((lin_aaf_command == OPEN) ||
                  (lin_aaf_command == OPEN_1ST) ||
-                 (lin_aaf_command == OPEN_2ND))
+                 (lin_aaf_command == OPEN_2ND) ||
+                 (lin_aaf_command == CLOSE))
         {
             Drv8889_Wakeup();
 
-            aaf_action = lin_aaf_command;
-            lin_sleep_step = 3U;
-        }
-        else if (lin_aaf_command == CLOSE)
-        {
-            Drv8889_Wakeup();
+            if (fail_safety_flag == ON)
+            {
+                aaf_action = OPEN;
+            }
+            else
+            {
+                aaf_action = lin_aaf_command;
+            }
 
-            aaf_action = CLOSE;
             lin_sleep_step = 3U;
         }
         else
@@ -114,6 +143,8 @@ static void LinSleep_ParsingCommand(void)
  ***********************************************************************************************************************/
 static void LinSleep_StartMotor(void)
 {
+    if (LinSleep_AbortOnFault() == 1U) { return; }
+
     if ((aaf_action == OPEN) || (aaf_action == OPEN_1ST) || (aaf_action == OPEN_2ND))
     {
         Motor_Open2();
@@ -156,20 +187,9 @@ static void LinSleep_CheckCompletion(void)
     unsigned int target_pos;
 
     // 기본 OPEN 목표 위치는 FULL OPEN 기준 위치
-    target_pos = step_position_open;
+    target_pos = Operate_GetTargetPosition(aaf_action);
 
-    if (aaf_action == OPEN_1ST)
-    {
-        target_pos = OPEN_1ST_POSITION;
-    }
-    else if (aaf_action == OPEN_2ND)
-    {
-        target_pos = OPEN_2ND_POSITION;
-    }
-    else
-    {
-        // OPEN 또는 CLOSE인 경우 별도 target_pos 변경 없음
-    }
+    if (LinSleep_AbortOnFault() == 1U) { return; }
 
     if (((aaf_action == OPEN) ||
          (aaf_action == OPEN_1ST) ||
@@ -206,8 +226,8 @@ static void LinSleep_CheckCompletion(void)
         TRQ_COUNT = MOTOR_STALL_CHK_NORMAL_VALUE;
         motor_stall_flag = MOTOR_NORMAL;
 
-        // close stopper 후 800ms 대기 단계로 이동
-        // 다음 단계에서 OPEN 방향으로 약 5도 복귀함
+        Sleep_Stall    = OFF;
+
         lin_sleep_step = 5U;
     }
 
@@ -221,8 +241,6 @@ static void LinSleep_CheckCompletion(void)
 
         AAF_Tx_Position = CLOSE;
         AAFx_Position_Status = Close_Status;
-
-        // Sleep 전 CLOSE 도달 완료 상태이므로 정상 초기화 완료 상태로 보고
         AAFx_InitStatus = NORMAL_FINISHED_INITIALIZATION;
 
         Operate_SelectTxPostion();
@@ -234,11 +252,11 @@ static void LinSleep_CheckCompletion(void)
     }
 
     // 조건 4: 목표 위치 도달 전 스톨 발생
-    // 목표 위치 도달 조건을 만족하지 못한 상태에서 스톨이 발생하면
-    // 현재 위치를 신뢰할 수 없으므로 UNKNOWN / DURING_INITIALIZATION 상태로 저장함.
     else if (motor_stall_flag == MOTOR_STALL)
     {
         LinSleep_StopMotorAndReset();
+
+        motor_stall_flag = MOTOR_NORMAL;
 
         aaf_step = AAF_INITIALIZATION;
         aaf_init_step = WAIT_INITIALIZATION;
@@ -247,10 +265,9 @@ static void LinSleep_CheckCompletion(void)
         AAFx_Position_Status = Unknown_Status;
         AAFx_InitStatus = DURING_INITIALIZATION;
 
-        motor_stall_flag = MOTOR_NORMAL;
-
+        Sleep_Stall    = ON;
         // 최종 Sleep 단계로 이동
-        lin_sleep_step = 8U;
+        lin_sleep_step = 5U;
     }
     else
     {
@@ -278,8 +295,15 @@ static void LinSleep_Stall_Delay(void)
         G_Timer1msFlag.LinSleepModeFlag = 0U;
         G_Timer1ms.LinSleepMode = 0U;
 
-        /* OPEN 방향 약 5도 복귀 구동 시작 단계로 이동 */
-        lin_sleep_step = 6U;
+        if ((Sleep_Stall == ON) && (aaf_action == OPEN))
+        {
+            Sleep_Stall    = OFF;
+            lin_sleep_step = 8U;
+        }
+        else
+        {
+            lin_sleep_step = 6U;
+        }
     }
 }
 
@@ -302,15 +326,6 @@ static void LinSleep_Stall_Open(void)
     /* 모터 구동 시작 */
     motor_start = ON;
 
-        /*
-     * Soft Stop 1단계:
-     * CLOSE stopper 후 OPEN 방향 약 5도 복귀 구간은 짧은 거리이므로
-     * 기존 속도보다 느린 속도로 복귀한다.
-     * 만약 motor_step_value = STEP_TIME_SLEEP_BACKOFF;를 넣었는데도 속도가 안 느려지면, Motor_SoftStart()나 Motor_Action() 쪽에서 motor_step_value를 다시 덮어쓰고 있을 가능성
-     * 0527 우상민
-     */
-    //motor_step_value = STEP_TIME_SLEEP_BACKOFF;
-
     /* 스톨 상태 및 타이머 초기화 */
     motor_stall_flag = MOTOR_NORMAL;
     G_Timer1ms.StallTime = 0U;
@@ -330,56 +345,69 @@ static void LinSleep_Stall_Open(void)
  * Arguments    : void
  * Return Value : void
  ***********************************************************************************************************************/
-//0526 우상민
 static void LinSleep_Stall_Stop(void)
 {
-    /* OPEN 방향으로 약 5도 복귀 완료
-     * CLOSE 위치에서 limit_step_position만큼 OPEN 방향으로 빠지면 완료로 판단
-     */
-
     unsigned int sleep_backoff_step;
 
-    sleep_backoff_step = step_position_close - (limit_step_position / SLEEP_BACKOFF_DIVIDER);    
-
-    if (step_position <= (sleep_backoff_step))
+    /* 이상 stall 후 OPEN 파킹 경로 */
+    if (Sleep_Stall == ON)
     {
-        LinSleep_StopMotorAndReset();
-        
-        /* 실제 위치는 stopper에서 약간 빠졌지만, Sleep 전 최종 상태는 CLOSE로 보고 */
-        AAF_Tx_Position = CLOSE;
-        AAFx_Position_Status = Close_Status;
-        AAFx_InitStatus = NORMAL_FINISHED_INITIALIZATION;
+        /* OPEN stopper 감지 시 정지.
+         * 위치 조건은 스텝 펄스는 계속 흐르는데 stall 이 오지 않는 경우의 하한이다. */
+        if ((motor_stall_flag == MOTOR_STALL) ||
+            (step_position <= (step_position_open + limit_step_position)))
+        {
+            LinSleep_StopMotorAndReset();
 
-        Operate_SelectTxPostion();
+            motor_stall_flag = MOTOR_NORMAL;
 
-        aaf_step = FINISHED_OPERATE;
-
-        /* 최종 Sleep 단계로 이동 */
-        lin_sleep_step = 8U;
+            Sleep_Stall    = OFF;
+            lin_sleep_step = 8U;
+        }
+        else
+        {
+            /* OPEN 방향 계속 구동 */
+        }
     }
-    /* OPEN 복귀 중 다시 스톨이 발생하면 위치 신뢰 불가 처리 */
-    else if (motor_stall_flag == MOTOR_STALL)
-    {
-        LinSleep_StopMotorAndReset();
-
-        aaf_step = AAF_INITIALIZATION;
-        aaf_init_step = WAIT_INITIALIZATION;
-
-        AAF_Tx_Position = UNKOWN_POSITION;
-        AAFx_Position_Status = Unknown_Status;
-        AAFx_InitStatus = DURING_INITIALIZATION;
-
-        motor_stall_flag = MOTOR_NORMAL;
-
-        /* 최종 Sleep 단계로 이동 */
-        lin_sleep_step = 8U;
-    }
+    /* 정상 close stopper 후 백오프 완료 판정 */
     else
     {
-        /* 아직 약 5도 복귀 완료 전이면 계속 OPEN 방향 구동 유지 */
+        sleep_backoff_step = step_position_close - (limit_step_position / SLEEP_BACKOFF_DIVIDER);
+
+        if (step_position <= sleep_backoff_step)
+        {
+            LinSleep_StopMotorAndReset();
+
+            AAF_Tx_Position      = CLOSE;
+            AAFx_Position_Status = Close_Status;
+            AAFx_InitStatus      = NORMAL_FINISHED_INITIALIZATION;
+
+            Operate_SelectTxPostion();
+
+            aaf_step       = FINISHED_OPERATE;
+            lin_sleep_step = 8U;
+        }
+        else if (motor_stall_flag == MOTOR_STALL)
+        {
+            LinSleep_StopMotorAndReset();
+
+            aaf_step      = AAF_INITIALIZATION;
+            aaf_init_step = WAIT_INITIALIZATION;
+
+            AAF_Tx_Position      = UNKOWN_POSITION;
+            AAFx_Position_Status = Unknown_Status;
+            AAFx_InitStatus      = DURING_INITIALIZATION;
+
+            motor_stall_flag = MOTOR_NORMAL;
+
+            lin_sleep_step = 8U;
+        }
+        else
+        {
+            /* 아직 백오프 완료 전 */
+        }
     }
 }
-
 
 /***********************************************************************************************************************
  * Function Name: LinSleep_Final
@@ -458,8 +486,8 @@ static void LinSleep_UnderVoltageRecovery(void)
     R_PORT_ResetAltFunc(Port10, 9U, Input);
 
     /* 5. EN Port, TxD Port를 Low로 변경 */
-    PORT.P10 &= ~_PORT_Pn10_OUTPUT_HIGH; // TxD Low
-    PORT.P10 &= ~_PORT_Pn3_OUTPUT_HIGH;  // EN Low
+    // PORT.P10 &= ~_PORT_Pn10_OUTPUT_HIGH; // TxD Low
+    // PORT.P10 &= ~_PORT_Pn3_OUTPUT_HIGH;  // EN Low
 
     /* 6. Interrupt Enable */
     EI();
@@ -480,7 +508,16 @@ static void LinSleep_UnderVoltageRecovery(void)
 static void McuSleep_ExternalOff(void)
 {
     Drv8889_Sleep();        // 모터 드라이버 슬립 전환
-    LinTrcv_Off();  // LIN 트랜시버 전원 차단
+
+   if (lin_nrst_low_flag == ON)
+    {
+        LinTrcv_On();       /* 저전압 : 트랜시버 유지 (INTP5 wake 및 복구 경로 확보) */
+    }
+    else
+    {
+        LinTrcv_Off();
+    }
+
     Drv8889_ScsActive();   // SPI 통신 핀 활성화
 }
 
@@ -638,7 +675,13 @@ void MCU_Sleep(void)
     {
         return;
     }
-    
+
+    if (lin_nrst_low_flag == ON)
+    {
+        lin_sleep_step = 9U;      /* 저전압 가드 한번 더*/
+        return;
+    }
+
     // 1. 종료 상태 플래그 설정
     power_chk = Normal_Shutdown;
     First_Powerchk = 1U;
@@ -706,7 +749,6 @@ void Lin_WakeupFromSleep(void)
 
         /* Soft start 및 모터 속도 초기화 */
         softstart_complete = OFF;
-        motor_step_value = STEP_TIME_1000RPM;
 
         /* 수정된 부분: 초기화가 완전히 끝나지 않았다면 무조건 초기화 루프로 진입 */
         if (AAFx_InitStatus != NORMAL_FINISHED_INITIALIZATION)

@@ -82,7 +82,6 @@ unsigned long long step_position = 0;
 unsigned int dir_state = 0;
 unsigned int init_move_step = 0;
 unsigned int AAF_OpenLoad = 0;
-unsigned int motor_step_value = 0;
 volatile unsigned int softstart_complete = 0;
 
 unsigned int motor_stall_flag = 0;
@@ -97,8 +96,6 @@ unsigned int flap_move = FLAP_STOP;
 unsigned int step_position_open = 0;
 unsigned int step_position_close = 0;
 unsigned int limit_step_position = 0;
-unsigned int open_1st_step_position = 0;
-unsigned int open_2nd_step_position = 0;
 unsigned int protection_function = 0;
 unsigned int voltage_protection_function = 0;  //8.5, 16.5v 구간 open 시도
 unsigned int protection_Mode_step = 0;

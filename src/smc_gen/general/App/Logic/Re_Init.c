@@ -26,9 +26,11 @@ static void Step_Check(void)
         (step_range           <= STEP_POSITION_MINIMUM_RANGE)               ||
         (step_range           >  STEP_POSITION_MAXIMUM_RANGE)               || 
         (step_position        == REFERENCE_POSITION)                        ||
-        (step_position        <  step_position_open  + limit_step_position) || 
-        (step_position        >  step_position_close - limit_step_position) || 
+        // (step_position        <  step_position_open  + limit_step_position) || 
+        // (step_position        >  step_position_close - limit_step_position) || 
         
+		((step_position + limit_step_position) < step_position_open)        ||
+        (step_position > (step_position_close + limit_step_position))       ||
         /* 2. 초기화 실패(Zero) 체크 */
         (step_position_close  == 0U)                                        || 
         (step_position_open   == 0U)                                        || 

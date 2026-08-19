@@ -199,7 +199,7 @@ static void Operate_NormalProcess(void)
     }
     else if (aaf_action == OPEN_1ST)
     {
-        target_pos = step_position_open + (unsigned int)(((unsigned long)(step_position_close - step_position_open) * AAF_1ST_OPEN_ANGLE) / AAF_FULL_ANGLE);
+        target_pos = Operate_GetTargetPosition(OPEN_1ST);
         
         if (step_position > (target_pos + ERROR_RANGE)) {
             Operate_NormalAction(OPEN);
@@ -212,7 +212,7 @@ static void Operate_NormalProcess(void)
     }
     else if (aaf_action == OPEN_2ND)
     {
-        target_pos = step_position_open + (unsigned int)(((unsigned long)(step_position_close - step_position_open) * AAF_2ST_OPEN_ANGLE) / AAF_FULL_ANGLE);
+        target_pos = Operate_GetTargetPosition(OPEN_2ND);
         
         if (step_position > (target_pos + ERROR_RANGE)) {
             Operate_NormalAction(OPEN);
@@ -342,7 +342,7 @@ static void Operate_CheckRange(void)
     }
     else if (aaf_action == OPEN_1ST)
     {
-        target_pos = step_position_open + (unsigned int)(((unsigned long)(step_position_close - step_position_open) * AAF_1ST_OPEN_ANGLE) / AAF_FULL_ANGLE);
+        target_pos = Operate_GetTargetPosition(OPEN_1ST);
         
         if (((flap_move == OPEN) && (step_position <= target_pos)) || 
             ((flap_move == CLOSE) && (step_position >= target_pos)))
@@ -358,7 +358,7 @@ static void Operate_CheckRange(void)
     }
     else if (aaf_action == OPEN_2ND)
     {
-        target_pos = step_position_open + (unsigned int)(((unsigned long)(step_position_close - step_position_open) * AAF_2ST_OPEN_ANGLE) / AAF_FULL_ANGLE);
+        target_pos = Operate_GetTargetPosition(OPEN_2ND);
         
         if (((flap_move == OPEN) && (step_position <= target_pos)) || 
             ((flap_move == CLOSE) && (step_position >= target_pos)))
@@ -461,7 +461,6 @@ static void Operate_HandleStall(void)
 		Drv8889_Off2();
 		motor_start = OFF;
 		softstart_complete = OFF;
-		motor_step_value = STEP_TIME_1000RPM;
 		antipinch_original_action = aaf_action;
 		
 		if (aaf_action == DIAG_MODE_OPEN)
@@ -616,7 +615,6 @@ static void Operate_Finish(void)
 	G_Timer1ms.StallCheck = 0U;		 // test
 	G_Timer1msFlag.StallCheckFlag = 0U; // test
 	softstart_complete = OFF;
-	motor_step_value = STEP_TIME_1000RPM;
 	G_Timer1msFlag.InitCheckFlag = 0U;						  // test
 	G_Timer1ms.InitCheck = 0U;							  // test
 	G_Timer1msFlag.StallTimeFlag = 0U;								  // stall reset
@@ -644,6 +642,55 @@ static void Operate_Finish(void)
 		aaf_action_complete_chk = FLAP_STOP;
 		aaf_step = AAF_WAITING;
 	}
+}
+
+/***********************************************************************************************************************
+ * Function Name: Operate_GetTargetPosition
+ * Description  : 동작 지령에 대한 목표 step 위치를 반환한다.
+ *                step_position_open / step_position_close 에서 파생되는 값이므로
+ *                전역 변수로 보관하지 않고 사용 시점마다 계산한다.
+ *                (보관하면 위치 학습을 건너뛰는 경로 - FDL 복원 - 에서 갱신이 누락됨)
+ * Called By    : Operate_NormalProcess, Operate_CheckRange,
+ *                LinSleep_CheckCompletion, Antipinch_PrevOpen/PrevClose
+ ***********************************************************************************************************************/
+unsigned int Operate_GetTargetPosition(unsigned int action)
+{
+    unsigned int  target_pos;
+    unsigned long range;
+
+    range = (unsigned long)(step_position_close - step_position_open);
+
+    switch (action)
+    {
+    case CLOSE:
+    case DIAG_MODE_CLOSE:
+        target_pos = step_position_close;
+        break;
+
+    case OPEN_1ST:
+        target_pos = step_position_open +
+                     (unsigned int)((range * AAF_1ST_OPEN_ANGLE) / AAF_FULL_ANGLE);
+        break;
+
+    case OPEN_2ND:
+        target_pos = step_position_open +
+                     (unsigned int)((range * AAF_2ST_OPEN_ANGLE) / AAF_FULL_ANGLE);
+        break;
+
+    case DIAG_MODE_AUTO:
+        /* Auto 는 현재 진행 방향에 따라 목표가 바뀐다 */
+        if (diag_mode_auto_dir == CLOSE) { target_pos = step_position_close; }
+        else                             { target_pos = step_position_open;  }
+        break;
+
+    case OPEN:
+    case DIAG_MODE_OPEN:
+    default:
+        target_pos = step_position_open;
+        break;
+    }
+
+    return target_pos;
 }
 
 /***********************************************************************************************************************

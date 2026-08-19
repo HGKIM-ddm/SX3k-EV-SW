@@ -60,8 +60,7 @@ static void Lin_Wakeup(void)
 
         /* Soft start 및 모터 속도 관련 변수 초기화 */
         softstart_complete = OFF;
-        motor_step_value = STEP_TIME_1000RPM;
-
+     
         /* Sleep 중 진행하던 동작은 중단 처리 */
         aaf_action = FLAP_STOP;
         aaf_action_complete_chk = FLAP_STOP;

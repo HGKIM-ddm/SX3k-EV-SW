@@ -191,7 +191,6 @@ static void Error_CheckShort(void)
         G_Timer1msFlag.StallTimeFlag = 0U;
         G_Timer1ms.StallTime = 0U;
         softstart_complete = OFF;
-        motor_step_value = STEP_TIME_1000RPM;
         AAFx_InitStatus = DURING_INITIALIZATION;          
         AAF_Tx_Position = UNKOWN_POSITION;
         AAFx_Position_Status = Unknown_Status;
@@ -260,7 +259,6 @@ static void Error_CheckOpen(void)
         G_Timer1msFlag.StallTimeFlag = 0U;
         G_Timer1ms.StallTime = 0U;
         softstart_complete = OFF;
-        motor_step_value = STEP_TIME_1000RPM;
         AAFx_InitStatus = DURING_INITIALIZATION;         
         AAF_Tx_Position = UNKOWN_POSITION;
         AAFx_Position_Status = Unknown_Status;
@@ -402,7 +400,6 @@ void Error_UnknownStatus(void)
 	G_Timer1msFlag.StallTimeFlag = 0U;
 	G_Timer1ms.StallTime = 0U;
 	softstart_complete = OFF;
-	motor_step_value = STEP_TIME_1000RPM;
 	AAF_Tx_Position = UNKOWN_POSITION;
 	AAFx_Position_Status = Unknown_Status;
 	AAFx_InitStatus = DURING_INITIALIZATION;

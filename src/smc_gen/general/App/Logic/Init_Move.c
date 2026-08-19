@@ -69,7 +69,6 @@ static void Init_StallCheck(uint8_t next_step, uint8_t retry_step, uint8_t dir)
         G_Timer1msFlag.StallTimeFlag = 0U;
         G_Timer1ms.StallTime = 0U;
         softstart_complete = OFF;
-        motor_step_value = STEP_TIME_1000RPM;
         G_Timer1msFlag.InitFailCheckFlag = 0U;
         G_Timer1ms.InitFailCheck = 0U;
 
@@ -155,7 +154,6 @@ static void Init_CheckLimitArrival(void)
         Drv8889_Off();
         motor_start = OFF;
         softstart_complete = OFF;
-        motor_step_value = STEP_TIME_1000RPM;
         G_Timer1msFlag.InitFailCheckFlag = 0U;
         G_Timer1ms.InitFailCheck = 0U;
         
@@ -172,7 +170,6 @@ static void Init_CheckLimitArrival(void)
         G_Timer1msFlag.External10sCheckFlag = OFF;
         G_Timer1ms.External10sCheck = 0U;
         softstart_complete = OFF;
-        motor_step_value = STEP_TIME_1000RPM;
         G_Timer1msFlag.InitFailCheckFlag = 0U;
         G_Timer1ms.InitFailCheck = 0U;
 
@@ -246,8 +243,6 @@ static void InitMove_Cycle2(void)
         break;
     case 12:
         limit_step_position = (step_position_close - step_position_open) * AAF_ERROR_ANGLE / AAF_FULL_ANGLE;
-        open_1st_step_position = (unsigned int)(((unsigned long)(step_position_close - step_position_open) * AAF_1ST_OPEN_ANGLE) / AAF_FULL_ANGLE); //overflow 방지
-        open_2nd_step_position = (unsigned int)(((unsigned long)(step_position_close - step_position_open) * AAF_2ST_OPEN_ANGLE) / AAF_FULL_ANGLE); //overflow 방지
 		init_move_step = 13U;
         break;
     case 13:
