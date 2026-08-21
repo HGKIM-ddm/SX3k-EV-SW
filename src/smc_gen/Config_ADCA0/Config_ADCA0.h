@@ -65,7 +65,7 @@ Macro definitions
 #define _ADC0_STABILIZATION_TIME_TABLE6           (0x00000008UL)
 #define _ADC0_STABILIZATION_TIME_TABLE7           (0x00000008UL)
 #define _ADC0_SG1_START_POINTER                   (0x00000000UL)
-#define _ADC0_SG1_END_POINTER                     (0x00000000UL)
+#define _ADC0_SG1_END_POINTER                     (0x00000001UL)
 
 /***********************************************************************************************************************
 Typedef definitions

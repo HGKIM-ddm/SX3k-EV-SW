@@ -1,7 +1,6 @@
 #!gbuild
 [Subproject]
         -Isrc/smc_gen/Config_ADCA0
-        -Isrc/smc_gen/Config_CSIH0
         -Isrc/smc_gen/Config_INTC
         -Isrc/smc_gen/Config_PORT
         -Isrc/smc_gen/Config_STBC
@@ -23,9 +22,6 @@
 src/smc_gen/Config_ADCA0/Config_ADCA0.c
 src/smc_gen/Config_ADCA0/Config_ADCA0.h
 src/smc_gen/Config_ADCA0/Config_ADCA0_user.c
-src/smc_gen/Config_CSIH0/Config_CSIH0.c
-src/smc_gen/Config_CSIH0/Config_CSIH0.h
-src/smc_gen/Config_CSIH0/Config_CSIH0_user.c
 src/smc_gen/Config_INTC/Config_INTC.c
 src/smc_gen/Config_INTC/Config_INTC.h
 src/smc_gen/Config_INTC/Config_INTC_user.c
