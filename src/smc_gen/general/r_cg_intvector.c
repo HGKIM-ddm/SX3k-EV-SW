@@ -14,7 +14,7 @@
 * following link:
 * http://www.renesas.com/disclaimer
 *
-* Copyright (C) 2018, 2024 Renesas Electronics Corporation. All rights reserved.
+* Copyright (C) 2018, 2025 Renesas Electronics Corporation. All rights reserved.
 ***********************************************************************************************************************/
 
 /***********************************************************************************************************************
@@ -105,25 +105,21 @@ extern void eiint27(void);
 /* CSIG0 receive status interrupt; */
 extern void eiint28(void);
 /* CSIH0 communication status interrupt; */
-extern void r_Config_CSIH0_interrupt_send(void);
+extern void eiint29(void);
 /* CSIH0 receive status interrupt; */
 extern void eiint30(void);
 /* CSIH0 communication error interrupt; */
-extern void r_Config_CSIH0_interrupt_error(void);
+extern void eiint31(void);
 /* CSIH0 job completion interrupt; */
 extern void eiint32(void);
 /* RLIN30 interrupt; */
-//extern void eiint33(void);
-extern void Lin_Interrupt(void);
+extern void eiint33(void);
 /* RLIN30 transmit interrupt; */
-//extern void eiint34(void);
-extern void Lin_Transmit_Interrupt(void);
+extern void eiint34(void);
 /* RLIN30 receive complete interrupt; */
-//extern void eiint35(void);
-extern void Lin_ReceiveComplete_Interrupt(void);
+extern void eiint35(void);
 /* RLIN30 status interrupt; */
-//extern void eiint36(void);
-extern void Lin_Status_Interrupt(void);
+extern void eiint36(void);
 /* External interrupt; */
 extern void eiint37(void);
 /* External interrupt; */
@@ -829,27 +825,23 @@ void * const INT_Vectors[] = {
     /* CSIG0 receive status interrupt; */
     (void *)eiint28,
     /* CSIH0 communication status interrupt; */
-    (void *)r_Config_CSIH0_interrupt_send,
+    (void *)eiint29,
     /* CSIH0 receive status interrupt; */
     (void *)eiint30,
     /* CSIH0 communication error interrupt; */
-    (void *)r_Config_CSIH0_interrupt_error,
+    (void *)eiint31,
     /* CSIH0 job completion interrupt; */
-       (void*)eiint32,
-/* RLIN30 interrupt; */
-//(void *)eiint33,
-(void*)Lin_Interrupt,
-/* RLIN30 transmit interrupt; */
-//(void *)eiint34,
-(void*)Lin_Transmit_Interrupt,
-/* RLIN30 receive complete interrupt; */
-//(void *)eiint35,
-(void*)Lin_ReceiveComplete_Interrupt,
-/* RLIN30 status interrupt; */
-//(void *)eiint36,
-(void*)Lin_Status_Interrupt,
-/* External interrupt; */
-(void*)eiint37,
+    (void *)eiint32,
+    /* RLIN30 interrupt; */
+    (void *)eiint33,
+    /* RLIN30 transmit interrupt; */
+    (void *)eiint34,
+    /* RLIN30 receive complete interrupt; */
+    (void *)eiint35,
+    /* RLIN30 status interrupt; */
+    (void *)eiint36,
+    /* External interrupt; */
+    (void *)eiint37,
     /* External interrupt; */
     (void *)eiint38,
     /* External interrupt; */

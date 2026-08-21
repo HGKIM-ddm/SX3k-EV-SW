@@ -14,12 +14,12 @@
 * following link:
 * http://www.renesas.com/disclaimer
 *
-* Copyright (C) 2018, 2024 Renesas Electronics Corporation. All rights reserved.
+* Copyright (C) 2018, 2025 Renesas Electronics Corporation. All rights reserved.
 ***********************************************************************************************************************/
 
 /***********************************************************************************************************************
 * File Name        : Config_ADCA0.h
-* Component Version: 1.9.0
+* Component Version: 1.10.0
 * Device(s)        : R7F701695
 * Description      : This file implements device driver for Config_ADCA0.
 ***********************************************************************************************************************/
@@ -65,7 +65,7 @@ Macro definitions
 #define _ADC0_STABILIZATION_TIME_TABLE6           (0x00000008UL)
 #define _ADC0_STABILIZATION_TIME_TABLE7           (0x00000008UL)
 #define _ADC0_SG1_START_POINTER                   (0x00000000UL)
-#define _ADC0_SG1_END_POINTER                     (0x00000000UL)
+#define _ADC0_SG1_END_POINTER                     (0x00000001UL)
 
 /***********************************************************************************************************************
 Typedef definitions

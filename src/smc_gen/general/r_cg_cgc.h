@@ -14,12 +14,12 @@
 * following link:
 * http://www.renesas.com/disclaimer
 *
-* Copyright (C) 2018, 2024 Renesas Electronics Corporation. All rights reserved.
+* Copyright (C) 2018, 2025 Renesas Electronics Corporation. All rights reserved.
 ***********************************************************************************************************************/
 
 /***********************************************************************************************************************
 * File Name        : r_cg_cgc.h
-* Version          : 1.7.0
+* Version          : 1.8.0
 * Device(s)        : R7F701695
 * Description      : This file contains macro define for clock setting according to Clocks tabs setting.
 ***********************************************************************************************************************/

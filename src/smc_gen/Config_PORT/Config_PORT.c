@@ -14,12 +14,12 @@
 * following link:
 * http://www.renesas.com/disclaimer
 *
-* Copyright (C) 2018, 2024 Renesas Electronics Corporation. All rights reserved.
+* Copyright (C) 2018, 2025 Renesas Electronics Corporation. All rights reserved.
 ***********************************************************************************************************************/
 
 /***********************************************************************************************************************
 * File Name        : Config_PORT.c
-* Component Version: 1.7.1
+* Component Version: 1.8.0
 * Device(s)        : R7F701695
 * Description      : This file implements device driver for Config_PORT.
 ***********************************************************************************************************************/
@@ -72,12 +72,22 @@ void R_Config_PORT_Create(void)
     PORT.PIPC0 = _PORT_PIPC_INIT;
     PORT.PIPC10 = _PORT_PIPC_INIT;
     /* PORT0 setting */
-    PORT.PU0 = _PORT_PUn0_PULLUP_OFF | _PORT_PUn1_PULLUP_OFF | _PORT_PUn2_PULLUP_OFF | _PORT_PUn3_PULLUP_OFF;
-    PORT.PD0 = _PORT_PDn0_PULLDOWN_OFF | _PORT_PDn1_PULLDOWN_OFF | _PORT_PDn2_PULLDOWN_OFF | _PORT_PDn3_PULLDOWN_OFF;
-    PORT.PIS0 = _PORT_PIS0_DEFAULT_VALUE | _PORT_PISn0_TYPE_SHMT4 | _PORT_PISn1_TYPE_SHMT4 | _PORT_PISn2_TYPE_SHMT4 | 
-                _PORT_PISn3_TYPE_SHMT4;
-    PORT.PM0 = _PORT_PM0_DEFAULT_VALUE | _PORT_PMn0_MODE_INPUT | _PORT_PMn1_MODE_UNUSED | _PORT_PMn2_MODE_UNUSED | 
-               _PORT_PMn3_MODE_UNUSED;
+    PORT.PPCMD0 = _WRITE_PROTECT_COMMAND;
+    PORT.PDSC0 = _PORT_PDSCn1_SLOW_MODE_SELECT | _PORT_PDSCn2_SLOW_MODE_SELECT | _PORT_PDSCn3_SLOW_MODE_SELECT;
+    PORT.PDSC0 = (uint32_t) ~(_PORT_PDSCn1_SLOW_MODE_SELECT | _PORT_PDSCn2_SLOW_MODE_SELECT | 
+                 _PORT_PDSCn3_SLOW_MODE_SELECT);
+    PORT.PDSC0 = _PORT_PDSCn1_SLOW_MODE_SELECT | _PORT_PDSCn2_SLOW_MODE_SELECT | _PORT_PDSCn3_SLOW_MODE_SELECT;
+    PORT.PPCMD0 = _WRITE_PROTECT_COMMAND;
+    PORT.PODC0 = _PORT_PODCn1_OPEN_DRAIN | _PORT_PODCn2_PUSH_PULL | _PORT_PODCn3_PUSH_PULL;
+    PORT.PODC0 = (uint32_t) ~(_PORT_PODCn1_OPEN_DRAIN | _PORT_PODCn2_PUSH_PULL | _PORT_PODCn3_PUSH_PULL);
+    PORT.PODC0 = _PORT_PODCn1_OPEN_DRAIN | _PORT_PODCn2_PUSH_PULL | _PORT_PODCn3_PUSH_PULL;
+    PORT.PBDC0 = _PORT_PBDCn1_MODE_ENABLE | _PORT_PBDCn2_MODE_DISABLED | _PORT_PBDCn3_MODE_DISABLED;
+    PORT.PU0 = _PORT_PUn0_PULLUP_OFF;
+    PORT.PD0 = _PORT_PDn0_PULLDOWN_OFF;
+    PORT.PIS0 = _PORT_PIS0_DEFAULT_VALUE | _PORT_PISn0_TYPE_SHMT4;
+    PORT.P0 = _PORT_Pn1_OUTPUT_LOW | _PORT_Pn2_OUTPUT_HIGH | _PORT_Pn3_OUTPUT_LOW;
+    PORT.PM0 = _PORT_PM0_DEFAULT_VALUE | _PORT_PMn0_MODE_INPUT | _PORT_PMn1_MODE_OUTPUT | _PORT_PMn2_MODE_OUTPUT | 
+               _PORT_PMn3_MODE_OUTPUT;
     PORT.PIBC0 = _PORT_PIBCn0_INPUT_BUFFER_ENABLE;
     /* PORT8 setting */
     PORT.PPCMD8 = _WRITE_PROTECT_COMMAND;
@@ -85,7 +95,7 @@ void R_Config_PORT_Create(void)
     PORT.PODC8 = (uint32_t) ~(_PORT_PODCn0_PUSH_PULL);
     PORT.PODC8 = _PORT_PODCn0_PUSH_PULL;
     PORT.PBDC8 = _PORT_PBDCn0_MODE_DISABLED;
-    PORT.P8 = _PORT_Pn0_OUTPUT_LOW;
+    PORT.P8 = _PORT_Pn0_OUTPUT_HIGH;
     PORT.PM8 = _PORT_PM8_DEFAULT_VALUE | _PORT_PMn0_MODE_OUTPUT | _PORT_PMn1_MODE_UNUSED;
     /* PORT9 setting */
     PORT.PPCMD9 = _WRITE_PROTECT_COMMAND;

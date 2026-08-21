@@ -14,12 +14,12 @@
 * following link:
 * http://www.renesas.com/disclaimer
 *
-* Copyright (C) 2018, 2024 Renesas Electronics Corporation. All rights reserved.
+* Copyright (C) 2018, 2025 Renesas Electronics Corporation. All rights reserved.
 ***********************************************************************************************************************/
 
 /***********************************************************************************************************************
 * File Name        : Config_TAUD0_13_user.c
-* Component Version: 1.7.0
+* Component Version: 1.8.0
 * Device(s)        : R7F701695
 * Description      : This file implements device driver for Config_TAUD0_13.
 ***********************************************************************************************************************/
@@ -36,7 +36,6 @@ Includes
 #include "r_cg_macrodriver.h"
 #include "r_cg_userdefine.h"
 #include "Config_TAUD0_13.h"
-#include "Config.h"
 /* Start user code for include. Do not edit comment generated here */
 /* End user code. Do not edit comment generated here */
 

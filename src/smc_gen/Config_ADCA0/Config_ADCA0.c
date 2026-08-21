@@ -14,12 +14,12 @@
 * following link:
 * http://www.renesas.com/disclaimer
 *
-* Copyright (C) 2018, 2024 Renesas Electronics Corporation. All rights reserved.
+* Copyright (C) 2018, 2025 Renesas Electronics Corporation. All rights reserved.
 ***********************************************************************************************************************/
 
 /***********************************************************************************************************************
 * File Name        : Config_ADCA0.c
-* Component Version: 1.9.0
+* Component Version: 1.10.0
 * Device(s)        : R7F701695
 * Description      : This file implements device driver for Config_ADCA0.
 ***********************************************************************************************************************/
@@ -68,6 +68,8 @@ void R_Config_ADCA0_Create(void)
     /* Set ADC0 virtual channel setting */
     ADCA0.VCR00.UINT32 = _ADC_MPX_DISABLE | _ADC_VIRTUAL_CHANNEL_END_INT_DISABLE | _ADC_LIMIT_TABLE_SELECT_0 | 
                          _ADC_PHYSICAL_CHANNEL_ANI05;
+    ADCA0.VCR01.UINT32 = _ADC_MPX_DISABLE | _ADC_VIRTUAL_CHANNEL_END_INT_DISABLE | _ADC_LIMIT_TABLE_SELECT_1 | 
+                         _ADC_PHYSICAL_CHANNEL_ANI00;
     /* Set ADC0 operation setting */
     ADCA0.ADCR.UINT32 = _ADC_SYNC_SUSPEND | _ADC_12_BIT_MODE | _ADC_RIGHT_ALIGNED;
     ADCA0.SMPCR.UINT32 = _ADC_SAMPLING_24_CYCLES;
@@ -82,8 +84,11 @@ void R_Config_ADCA0_Create(void)
     ADCA0.ULLMTBR6.UINT32 = _ADC0_UPPER_LIMIT_TABLE6 | _ADC0_LOWER_LIMIT_TABLE6;
     ADCA0.ULLMTBR7.UINT32 = _ADC0_UPPER_LIMIT_TABLE7 | _ADC0_LOWER_LIMIT_TABLE7;
     /* Set ADC0 self-diagnosis setting */
-    ADCA0.DGCTL0.UINT32 = _ADC_SELF_DIAG_VOLTAGE_LEVEL_1;
+    ADCA0.DGCTL0.UINT32 = _ADC_SELF_DIAG_VOLTAGE_LEVEL_0;
     ADCA0.DGCTL1.UINT32 |= _ADC_SELF_DIAG_CH05_SEL_ANI05;
+    ADCA0.DGCTL1.UINT32 |= _ADC_SELF_DIAG_CH00_SEL_ANI00;
+    /* Set ADC0 T&H setting */
+    ADCA0.THER.UINT32 = _ADC_TH0_DISABLED;
     /* Set ADC0 scan group setting */
     ADCA0.SGCR1.UINT32 = _ADC_SG_SCAN_MODE_CONTINUOUS | _ADC_SG_SCAN_END_INT_ENABLE | _ADC_SG_CHANNEL_REPEAT_TIME_4;
     ADCA0.SGVCSP1.UINT32 = _ADC0_SG1_START_POINTER;

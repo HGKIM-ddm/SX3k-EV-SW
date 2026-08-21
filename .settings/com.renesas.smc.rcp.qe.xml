@@ -1,0 +1,903 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<QE>
+    <Segment id="Project">
+        <Setting id="SrcGeneratedPath" value="src/smc_gen"/>
+    </Segment>
+    <Segment id="Pin">
+        <Setting id="AP0_0" value="ADCA0I0"/>
+        <Setting id="AP0_5" value="ADCA0I5"/>
+        <Setting id="P0_3" value="P0_3"/>
+        <Setting id="P0_0" value="P0_0"/>
+        <Setting id="P0_2" value="P0_2"/>
+        <Setting id="P0_1" value="P0_1"/>
+        <Setting id="P10_6" value="TAUD0O13"/>
+        <Setting id="X1" value="X1"/>
+        <Setting id="P10_4" value="P10_4"/>
+        <Setting id="X2" value="X2"/>
+        <Setting id="P10_5" value="P10_5"/>
+        <Setting id="P8_0" value="P8_0"/>
+        <Setting id="P10_2" value="P10_2"/>
+        <Setting id="P10_3" value="P10_3"/>
+        <Setting id="P9_1" value="P9_1"/>
+        <Setting id="P10_0" value="P10_0"/>
+        <Setting id="P8_1" value="INTP5"/>
+        <Setting id="P10_1" value="TAUD0O3"/>
+        <Setting id="P9_0" value="TAUJ1O1"/>
+    </Segment>
+    <Segment id="Device">
+        <Setting id="Series" value="RH850F1x"/>
+        <Setting id="Group" value="RH850F1KMS1"/>
+        <Setting id="Board" value="Custom User Board"/>
+        <Setting id="PartNo" value="R7F701695"/>
+        <Setting id="PinCount" value="48"/>
+    </Segment>
+    <Segment id="Component">
+        <Setting id="Config_TAUD0_3" value="CG"/>
+        <Setting id="Config_TAUJ1" value="CG"/>
+        <Setting id="Config_INTC" value="CG"/>
+        <Setting id="Config_WDT0" value="CG"/>
+        <Setting id="Config_PORT" value="CG"/>
+        <Setting id="Config_ADCA0" value="CG"/>
+        <Setting id="Config_STBC" value="CG"/>
+        <Setting id="Config_TAUD0_13" value="CG"/>
+        <Segment component="com.renesas.smc.tools.swcomponent.codegenerator.rh850.intervaltimer" id="Config_TAUD0_3" source="com.renesas.smc.tools.swcomponent.codegenerator.source">
+            <Setting id="IntervalUnit" value="ms"/>
+            <Setting id="Generates" value="Disable"/>
+            <Setting id="IntEnable" value="Enable"/>
+            <Setting id="Prescaler" value="PCLK128"/>
+            <Setting id="Bauevalue" value="1"/>
+            <Setting id="IntPriority" value="Level15"/>
+            <Setting id="Operation" value="CK0"/>
+            <Setting id="IntervalValue" value="1"/>
+        </Segment>
+        <Segment component="com.renesas.smc.tools.swcomponent.codegenerator.rh850.pwm" id="Config_TAUJ1" source="com.renesas.smc.tools.swcomponent.codegenerator.source">
+            <Setting id="slavechannel3" value="Disable"/>
+            <Setting id="slavechannel2" value="Disable"/>
+            <Setting id="slavechannel1" value="Enable"/>
+            <Setting id="Prescaler" value="PCLK8"/>
+            <Setting id="Bauevalue" value="1"/>
+            <Setting id="Operation" value="CK0"/>
+            <Setting id="masterchannelsel" value="channel0"/>
+            <Segment id="SLAVE11">
+                <Setting id="dutyvalue" value="50"/>
+                <Setting id="slaveIntEnable" value="Enable"/>
+                <Setting id="slaveIntPriority" value="Level15"/>
+                <Setting id="salveoutput" value="outputah"/>
+            </Segment>
+            <Segment id="SLAVE10">
+                <Setting id="dutyvalue" value="50"/>
+                <Setting id="slaveIntEnable" value="Enable"/>
+                <Setting id="slaveIntPriority" value="Level15"/>
+                <Setting id="salveoutput" value="outputah"/>
+            </Segment>
+            <Segment id="SLAVE13">
+                <Setting id="dutyvalue" value="50"/>
+                <Setting id="slaveIntEnable" value="Enable"/>
+                <Setting id="slaveIntPriority" value="Level15"/>
+                <Setting id="salveoutput" value="outputah"/>
+            </Segment>
+            <Segment id="SLAVE12">
+                <Setting id="dutyvalue" value="50"/>
+                <Setting id="slaveIntEnable" value="Enable"/>
+                <Setting id="slaveIntPriority" value="Level15"/>
+                <Setting id="salveoutput" value="outputah"/>
+            </Segment>
+            <Segment id="SLAVE1">
+                <Setting id="dutyvalue" value="50"/>
+                <Setting id="slaveIntEnable" value="Disable"/>
+                <Setting id="slaveIntPriority" value="Level15"/>
+                <Setting id="salveoutput" value="outputah"/>
+            </Segment>
+            <Segment id="SLAVE15">
+                <Setting id="dutyvalue" value="50"/>
+                <Setting id="slaveIntEnable" value="Enable"/>
+                <Setting id="slaveIntPriority" value="Level15"/>
+                <Setting id="salveoutput" value="outputah"/>
+            </Segment>
+            <Segment id="SLAVE2">
+                <Setting id="dutyvalue" value="50"/>
+                <Setting id="slaveIntEnable" value="Enable"/>
+                <Setting id="slaveIntPriority" value="Level15"/>
+                <Setting id="salveoutput" value="outputah"/>
+            </Segment>
+            <Segment id="SLAVE14">
+                <Setting id="dutyvalue" value="50"/>
+                <Setting id="slaveIntEnable" value="Enable"/>
+                <Setting id="slaveIntPriority" value="Level15"/>
+                <Setting id="salveoutput" value="outputah"/>
+            </Segment>
+            <Segment id="SLAVE3">
+                <Setting id="dutyvalue" value="50"/>
+                <Setting id="slaveIntEnable" value="Enable"/>
+                <Setting id="slaveIntPriority" value="Level15"/>
+                <Setting id="salveoutput" value="outputah"/>
+            </Segment>
+            <Segment id="MASTER0">
+                <Setting id="IntervalUnit" value="ms"/>
+                <Setting id="IntEnable" value="Enable"/>
+                <Setting id="IntPriority" value="Level7"/>
+                <Setting id="IntervalValue" value="2"/>
+            </Segment>
+            <Segment id="SLAVE4">
+                <Setting id="dutyvalue" value="50"/>
+                <Setting id="slaveIntEnable" value="Enable"/>
+                <Setting id="slaveIntPriority" value="Level15"/>
+                <Setting id="salveoutput" value="outputah"/>
+            </Segment>
+            <Segment id="SLAVE5">
+                <Setting id="dutyvalue" value="50"/>
+                <Setting id="slaveIntEnable" value="Enable"/>
+                <Setting id="slaveIntPriority" value="Level15"/>
+                <Setting id="salveoutput" value="outputah"/>
+            </Segment>
+            <Segment id="SLAVE6">
+                <Setting id="dutyvalue" value="50"/>
+                <Setting id="slaveIntEnable" value="Enable"/>
+                <Setting id="slaveIntPriority" value="Level15"/>
+                <Setting id="salveoutput" value="outputah"/>
+            </Segment>
+            <Segment id="SLAVE7">
+                <Setting id="dutyvalue" value="50"/>
+                <Setting id="slaveIntEnable" value="Enable"/>
+                <Setting id="slaveIntPriority" value="Level15"/>
+                <Setting id="salveoutput" value="outputah"/>
+            </Segment>
+            <Segment id="MASTER4">
+                <Setting id="IntervalUnit" value="us"/>
+                <Setting id="IntEnable" value="Enable"/>
+                <Setting id="IntPriority" value="Level15"/>
+                <Setting id="IntervalValue" value="10000"/>
+            </Segment>
+            <Segment id="SLAVE8">
+                <Setting id="dutyvalue" value="50"/>
+                <Setting id="slaveIntEnable" value="Enable"/>
+                <Setting id="slaveIntPriority" value="Level15"/>
+                <Setting id="salveoutput" value="outputah"/>
+            </Segment>
+            <Segment id="MASTER12">
+                <Setting id="IntervalUnit" value="us"/>
+                <Setting id="IntEnable" value="Enable"/>
+                <Setting id="IntPriority" value="Level15"/>
+                <Setting id="IntervalValue" value="10000"/>
+            </Segment>
+            <Segment id="SLAVE9">
+                <Setting id="dutyvalue" value="50"/>
+                <Setting id="slaveIntEnable" value="Enable"/>
+                <Setting id="slaveIntPriority" value="Level15"/>
+                <Setting id="salveoutput" value="outputah"/>
+            </Segment>
+            <Segment id="MASTER2">
+                <Setting id="IntervalUnit" value="us"/>
+                <Setting id="IntEnable" value="Enable"/>
+                <Setting id="IntPriority" value="Level15"/>
+                <Setting id="IntervalValue" value="10000"/>
+            </Segment>
+            <Segment id="MASTER10">
+                <Setting id="IntervalUnit" value="us"/>
+                <Setting id="IntEnable" value="Enable"/>
+                <Setting id="IntPriority" value="Level15"/>
+                <Setting id="IntervalValue" value="10000"/>
+            </Segment>
+            <Segment id="MASTER8">
+                <Setting id="IntervalUnit" value="us"/>
+                <Setting id="IntEnable" value="Enable"/>
+                <Setting id="IntPriority" value="Level15"/>
+                <Setting id="IntervalValue" value="10000"/>
+            </Segment>
+            <Segment id="MASTER6">
+                <Setting id="IntervalUnit" value="us"/>
+                <Setting id="IntEnable" value="Enable"/>
+                <Setting id="IntPriority" value="Level15"/>
+                <Setting id="IntervalValue" value="10000"/>
+            </Segment>
+            <Segment id="MASTER14">
+                <Setting id="IntervalUnit" value="us"/>
+                <Setting id="IntEnable" value="Enable"/>
+                <Setting id="IntPriority" value="Level15"/>
+                <Setting id="IntervalValue" value="10000"/>
+            </Segment>
+        </Segment>
+        <Segment component="com.renesas.smc.tools.swcomponent.codegenerator.rh850.icu" id="Config_INTC" source="com.renesas.smc.tools.swcomponent.codegenerator.source">
+            <Setting id="nmiType" value="falling"/>
+            <Setting id="enableNMI" value="disable"/>
+            <Segment id="IRQ11">
+                <Setting id="intpType" value="falling"/>
+                <Setting id="enableINTP" value="disable"/>
+                <Setting id="intpPriority" value="Level15"/>
+            </Segment>
+            <Segment id="IRQ2">
+                <Setting id="intpType" value="falling"/>
+                <Setting id="enableINTP" value="disable"/>
+                <Setting id="intpPriority" value="Level15"/>
+            </Segment>
+            <Segment id="IRQ3">
+                <Setting id="intpType" value="falling"/>
+                <Setting id="enableINTP" value="disable"/>
+                <Setting id="intpPriority" value="Level15"/>
+            </Segment>
+            <Segment id="IRQ0">
+                <Setting id="intpType" value="falling"/>
+                <Setting id="enableINTP" value="disable"/>
+                <Setting id="intpPriority" value="Level15"/>
+            </Segment>
+            <Segment id="IRQ1">
+                <Setting id="intpType" value="falling"/>
+                <Setting id="enableINTP" value="disable"/>
+                <Setting id="intpPriority" value="Level15"/>
+            </Segment>
+            <Segment id="IRQ10">
+                <Setting id="intpType" value="falling"/>
+                <Setting id="enableINTP" value="disable"/>
+                <Setting id="intpPriority" value="Level15"/>
+            </Segment>
+            <Segment id="IRQ4">
+                <Setting id="intpType" value="falling"/>
+                <Setting id="enableINTP" value="disable"/>
+                <Setting id="intpPriority" value="Level15"/>
+            </Segment>
+            <Segment id="IRQ5">
+                <Setting id="intpType" value="falling"/>
+                <Setting id="enableINTP" value="enable"/>
+                <Setting id="intpPriority" value="Level15"/>
+            </Segment>
+        </Segment>
+        <Segment component="com.renesas.smc.tools.swcomponent.codegenerator.rh850.wdt" id="Config_WDT0" source="com.renesas.smc.tools.swcomponent.codegenerator.source">
+            <Setting id="INTSelect" value="INTEnable"/>
+            <Setting id="WinOpenSetting" value="Percent100"/>
+            <Setting id="OverflowSetting" value="Overflow12"/>
+            <Setting id="OperationMode" value="SoftwareMode"/>
+            <Setting id="INTPriority" value="Level15"/>
+            <Setting id="ErrorSetting" value="ResetMode"/>
+        </Segment>
+        <Segment component="com.renesas.smc.tools.swcomponent.codegenerator.rh850.port" id="Config_PORT" source="com.renesas.smc.tools.swcomponent.codegenerator.source">
+            <Segment id="JPORT0_Chan">
+                <Segment id="JPORTx0_Item">
+                    <Setting id="UseStatus" value="Unuse"/>
+                    <Setting id="bidirectional" value="bidirectionalUnuse"/>
+                    <Setting id="resistorstatus" value="resistorUnuse"/>
+                    <Setting id="Output1" value="Output1Unuse"/>
+                    <Setting id="Opendrain" value="opendrainUnuse"/>
+                    <Setting id="inputbuffer" value="shmt4Item"/>
+                </Segment>
+                <Segment id="JPORTx4_Item">
+                    <Setting id="UseStatus" value="Unuse"/>
+                    <Setting id="bidirectional" value="bidirectionalUnuse"/>
+                    <Setting id="resistorstatus" value="resistorUnuse"/>
+                    <Setting id="Output1" value="Output1Unuse"/>
+                    <Setting id="Opendrain" value="opendrainUnuse"/>
+                </Segment>
+                <Segment id="JPORTx3_Item">
+                    <Setting id="UseStatus" value="Unuse"/>
+                    <Setting id="bidirectional" value="bidirectionalUnuse"/>
+                    <Setting id="resistorstatus" value="resistorUnuse"/>
+                    <Setting id="Output1" value="Output1Unuse"/>
+                    <Setting id="Opendrain" value="opendrainUnuse"/>
+                    <Setting id="drivestrength" value="lowerItem"/>
+                    <Setting id="inputbuffer" value="shmt4Item"/>
+                </Segment>
+                <Segment id="JPORTx2_Item">
+                    <Setting id="UseStatus" value="Unuse"/>
+                    <Setting id="bidirectional" value="bidirectionalUnuse"/>
+                    <Setting id="resistorstatus" value="resistorUnuse"/>
+                    <Setting id="Output1" value="Output1Unuse"/>
+                    <Setting id="Opendrain" value="opendrainUnuse"/>
+                    <Setting id="drivestrength" value="lowerItem"/>
+                    <Setting id="inputbuffer" value="shmt4Item"/>
+                </Segment>
+                <Segment id="JPORTx1_Item">
+                    <Setting id="UseStatus" value="Unuse"/>
+                    <Setting id="bidirectional" value="bidirectionalUnuse"/>
+                    <Setting id="resistorstatus" value="resistorUnuse"/>
+                    <Setting id="Output1" value="Output1Unuse"/>
+                    <Setting id="Opendrain" value="opendrainUnuse"/>
+                    <Setting id="drivestrength" value="lowerItem"/>
+                    <Setting id="inputbuffer" value="shmt4Item"/>
+                </Segment>
+                <Segment id="JPORTx5_Item">
+                    <Setting id="UseStatus" value="Unuse"/>
+                    <Setting id="bidirectional" value="bidirectionalUnuse"/>
+                    <Setting id="resistorstatus" value="resistorUnuse"/>
+                    <Setting id="Output1" value="Output1Unuse"/>
+                    <Setting id="Opendrain" value="opendrainUnuse"/>
+                    <Setting id="drivestrength" value="lowerItem"/>
+                    <Setting id="inputbuffer" value="shmt4Item"/>
+                </Segment>
+            </Segment>
+            <Segment id="PORT0_Check">
+                <Setting id="PortnEnable" value="Enable"/>
+            </Segment>
+            <Segment id="APORT0_Chan">
+                <Segment id="APORTx2_Item">
+                    <Setting id="UseStatus" value="Unuse"/>
+                    <Setting id="bidirectional" value="bidirectionalUnuse"/>
+                    <Setting id="Output1" value="Output1Unuse"/>
+                </Segment>
+                <Segment id="APORTx4_Item">
+                    <Setting id="UseStatus" value="Unuse"/>
+                    <Setting id="bidirectional" value="bidirectionalUnuse"/>
+                    <Setting id="Output1" value="Output1Unuse"/>
+                </Segment>
+                <Segment id="APORTx0_Item">
+                    <Setting id="UseStatus" value="Unuse"/>
+                    <Setting id="bidirectional" value="bidirectionalUnuse"/>
+                    <Setting id="Output1" value="Output1Unuse"/>
+                </Segment>
+                <Segment id="APORTx1_Item">
+                    <Setting id="UseStatus" value="Unuse"/>
+                    <Setting id="bidirectional" value="bidirectionalUnuse"/>
+                    <Setting id="Output1" value="Output1Unuse"/>
+                </Segment>
+                <Segment id="APORTx5_Item">
+                    <Setting id="UseStatus" value="Unuse"/>
+                    <Setting id="bidirectional" value="bidirectionalUnuse"/>
+                    <Setting id="Output1" value="Output1Unuse"/>
+                </Segment>
+                <Segment id="APORTx6_Item">
+                    <Setting id="UseStatus" value="Unuse"/>
+                    <Setting id="bidirectional" value="bidirectionalUnuse"/>
+                    <Setting id="Output1" value="Output1Unuse"/>
+                </Segment>
+                <Segment id="APORTx3_Item">
+                    <Setting id="UseStatus" value="Unuse"/>
+                    <Setting id="bidirectional" value="bidirectionalUnuse"/>
+                    <Setting id="Output1" value="Output1Unuse"/>
+                </Segment>
+                <Segment id="APORTx7_Item">
+                    <Setting id="UseStatus" value="Unuse"/>
+                    <Setting id="bidirectional" value="bidirectionalUnuse"/>
+                    <Setting id="Output1" value="Output1Unuse"/>
+                </Segment>
+            </Segment>
+            <Segment id="PORT9_Check">
+                <Setting id="PortnEnable" value="Enable"/>
+            </Segment>
+            <Segment id="PORT0_Chan">
+                <Segment id="PORTx3_Item">
+                    <Setting id="UseStatus" value="Out"/>
+                    <Setting id="bidirectional" value="bidirectionalUnuse"/>
+                    <Setting id="resistorstatus" value="resistorUnuse"/>
+                    <Setting id="Output1" value="Output1Unuse"/>
+                    <Setting id="Opendrain" value="opendrainUnuse"/>
+                    <Setting id="drivestrength" value="lowerItem"/>
+                    <Setting id="inputbuffer" value="shmt4Item"/>
+                </Segment>
+                <Segment id="PORTx0_Item">
+                    <Setting id="UseStatus" value="In"/>
+                    <Setting id="bidirectional" value="bidirectionalUnuse"/>
+                    <Setting id="resistorstatus" value="resistorUnuse"/>
+                    <Setting id="Output1" value="Output1Unuse"/>
+                    <Setting id="Opendrain" value="opendrainUnuse"/>
+                    <Setting id="drivestrength" value="lowerItem"/>
+                    <Setting id="inputbuffer" value="shmt4Item"/>
+                </Segment>
+                <Segment id="PORTx2_Item">
+                    <Setting id="UseStatus" value="Out"/>
+                    <Setting id="bidirectional" value="bidirectionalUnuse"/>
+                    <Setting id="resistorstatus" value="resistorUnuse"/>
+                    <Setting id="Output1" value="Output1Use"/>
+                    <Setting id="Opendrain" value="opendrainUnuse"/>
+                    <Setting id="drivestrength" value="lowerItem"/>
+                    <Setting id="inputbuffer" value="shmt4Item"/>
+                </Segment>
+                <Segment id="PORTx1_Item">
+                    <Setting id="UseStatus" value="Out"/>
+                    <Setting id="bidirectional" value="bidirectionalUse"/>
+                    <Setting id="resistorstatus" value="resistorUnuse"/>
+                    <Setting id="Output1" value="Output1Unuse"/>
+                    <Setting id="Opendrain" value="opendrainUse"/>
+                    <Setting id="drivestrength" value="lowerItem"/>
+                    <Setting id="inputbuffer" value="shmt4Item"/>
+                </Segment>
+            </Segment>
+            <Segment id="APORT0_Check">
+                <Setting id="PortnEnable" value="Disable"/>
+            </Segment>
+            <Segment id="PORT9_Chan">
+                <Segment id="PORTx0_Item">
+                    <Setting id="UseStatus" value="Unuse"/>
+                    <Setting id="bidirectional" value="bidirectionalUnuse"/>
+                    <Setting id="resistorstatus" value="resistorUnuse"/>
+                    <Setting id="Output1" value="Output1Unuse"/>
+                    <Setting id="Opendrain" value="opendrainUnuse"/>
+                    <Setting id="inputbuffer" value="shmt4Item"/>
+                </Segment>
+                <Segment id="PORTx1_Item">
+                    <Setting id="UseStatus" value="Out"/>
+                    <Setting id="bidirectional" value="bidirectionalUnuse"/>
+                    <Setting id="resistorstatus" value="resistorUnuse"/>
+                    <Setting id="Output1" value="Output1Unuse"/>
+                    <Setting id="Opendrain" value="opendrainUnuse"/>
+                    <Setting id="inputbuffer" value="shmt4Item"/>
+                </Segment>
+            </Segment>
+            <Segment id="PORT10_Chan">
+                <Segment id="PORTx4_Item">
+                    <Setting id="UseStatus" value="Out"/>
+                    <Setting id="bidirectional" value="bidirectionalUnuse"/>
+                    <Setting id="resistorstatus" value="resistorPulldown"/>
+                    <Setting id="Output1" value="Output1Unuse"/>
+                    <Setting id="Opendrain" value="opendrainUnuse"/>
+                    <Setting id="drivestrength" value="lowerItem"/>
+                    <Setting id="inputbuffer" value="shmt4Item"/>
+                </Segment>
+                <Segment id="PORTx3_Item">
+                    <Setting id="UseStatus" value="Out"/>
+                    <Setting id="bidirectional" value="bidirectionalUnuse"/>
+                    <Setting id="resistorstatus" value="resistorUnuse"/>
+                    <Setting id="Output1" value="Output1Unuse"/>
+                    <Setting id="Opendrain" value="opendrainUnuse"/>
+                    <Setting id="drivestrength" value="lowerItem"/>
+                    <Setting id="inputbuffer" value="shmt4Item"/>
+                </Segment>
+                <Segment id="PORTx7_Item">
+                    <Setting id="UseStatus" value="Unuse"/>
+                    <Setting id="bidirectional" value="bidirectionalUnuse"/>
+                    <Setting id="resistorstatus" value="resistorUnuse"/>
+                    <Setting id="Output1" value="Output1Unuse"/>
+                    <Setting id="Opendrain" value="opendrainUnuse"/>
+                    <Setting id="drivestrength" value="lowerItem"/>
+                    <Setting id="inputbuffer" value="shmt4Item"/>
+                </Segment>
+                <Segment id="PORTx8_Item">
+                    <Setting id="UseStatus" value="Unuse"/>
+                    <Setting id="bidirectional" value="bidirectionalUnuse"/>
+                    <Setting id="resistorstatus" value="resistorUnuse"/>
+                    <Setting id="Output1" value="Output1Unuse"/>
+                    <Setting id="Opendrain" value="opendrainUnuse"/>
+                    <Setting id="drivestrength" value="lowerItem"/>
+                    <Setting id="inputbuffer" value="shmt4Item"/>
+                </Segment>
+                <Segment id="PORTx10_Item">
+                    <Setting id="UseStatus" value="Unuse"/>
+                    <Setting id="bidirectional" value="bidirectionalUnuse"/>
+                    <Setting id="resistorstatus" value="resistorUnuse"/>
+                    <Setting id="Output1" value="Output1Unuse"/>
+                    <Setting id="Opendrain" value="opendrainUnuse"/>
+                    <Setting id="drivestrength" value="lowerItem"/>
+                    <Setting id="inputbuffer" value="shmt4Item"/>
+                </Segment>
+                <Segment id="PORTx0_Item">
+                    <Setting id="UseStatus" value="Out"/>
+                    <Setting id="bidirectional" value="bidirectionalUnuse"/>
+                    <Setting id="resistorstatus" value="resistorUnuse"/>
+                    <Setting id="Output1" value="Output1Unuse"/>
+                    <Setting id="Opendrain" value="opendrainUnuse"/>
+                    <Setting id="drivestrength" value="lowerItem"/>
+                    <Setting id="inputbuffer" value="shmt4Item"/>
+                </Segment>
+                <Segment id="PORTx2_Item">
+                    <Setting id="UseStatus" value="Out"/>
+                    <Setting id="bidirectional" value="bidirectionalUnuse"/>
+                    <Setting id="resistorstatus" value="resistorUnuse"/>
+                    <Setting id="Output1" value="Output1Unuse"/>
+                    <Setting id="Opendrain" value="opendrainUnuse"/>
+                    <Setting id="drivestrength" value="lowerItem"/>
+                    <Setting id="inputbuffer" value="shmt4Item"/>
+                </Segment>
+                <Segment id="PORTx6_Item">
+                    <Setting id="UseStatus" value="Unuse"/>
+                    <Setting id="bidirectional" value="bidirectionalUnuse"/>
+                    <Setting id="resistorstatus" value="resistorUnuse"/>
+                    <Setting id="Output1" value="Output1Unuse"/>
+                    <Setting id="Opendrain" value="opendrainUnuse"/>
+                    <Setting id="drivestrength" value="lowerItem"/>
+                    <Setting id="inputbuffer" value="shmt4Item"/>
+                </Segment>
+                <Segment id="PORTx9_Item">
+                    <Setting id="UseStatus" value="Unuse"/>
+                    <Setting id="bidirectional" value="bidirectionalUnuse"/>
+                    <Setting id="resistorstatus" value="resistorUnuse"/>
+                    <Setting id="Output1" value="Output1Unuse"/>
+                    <Setting id="Opendrain" value="opendrainUnuse"/>
+                    <Setting id="drivestrength" value="lowerItem"/>
+                    <Setting id="inputbuffer" value="shmt4Item"/>
+                </Segment>
+                <Segment id="PORTx1_Item">
+                    <Setting id="UseStatus" value="Unuse"/>
+                    <Setting id="bidirectional" value="bidirectionalUnuse"/>
+                    <Setting id="resistorstatus" value="resistorUnuse"/>
+                    <Setting id="Output1" value="Output1Unuse"/>
+                    <Setting id="Opendrain" value="opendrainUnuse"/>
+                    <Setting id="drivestrength" value="lowerItem"/>
+                    <Setting id="inputbuffer" value="shmt4Item"/>
+                </Segment>
+                <Segment id="PORTx5_Item">
+                    <Setting id="UseStatus" value="In"/>
+                    <Setting id="bidirectional" value="bidirectionalUnuse"/>
+                    <Setting id="resistorstatus" value="resistorUnuse"/>
+                    <Setting id="Output1" value="Output1Unuse"/>
+                    <Setting id="Opendrain" value="opendrainUnuse"/>
+                    <Setting id="drivestrength" value="lowerItem"/>
+                    <Setting id="inputbuffer" value="shmt4Item"/>
+                </Segment>
+            </Segment>
+            <Segment id="PORT8_Check">
+                <Setting id="PortnEnable" value="Enable"/>
+            </Segment>
+            <Segment id="PORT10_Check">
+                <Setting id="PortnEnable" value="Enable"/>
+            </Segment>
+            <Segment id="JPORT0_Check">
+                <Setting id="PortnEnable" value="Disable"/>
+            </Segment>
+            <Segment id="PORT8_Chan">
+                <Segment id="PORTx0_Item">
+                    <Setting id="UseStatus" value="Out"/>
+                    <Setting id="bidirectional" value="bidirectionalUnuse"/>
+                    <Setting id="resistorstatus" value="resistorUnuse"/>
+                    <Setting id="Output1" value="Output1Use"/>
+                    <Setting id="Opendrain" value="opendrainUnuse"/>
+                    <Setting id="inputbuffer" value="shmt4Item"/>
+                </Segment>
+                <Segment id="PORTx1_Item">
+                    <Setting id="UseStatus" value="Unuse"/>
+                    <Setting id="bidirectional" value="bidirectionalUnuse"/>
+                    <Setting id="resistorstatus" value="resistorUnuse"/>
+                    <Setting id="Output1" value="Output1Unuse"/>
+                    <Setting id="Opendrain" value="opendrainUnuse"/>
+                    <Setting id="inputbuffer" value="shmt4Item"/>
+                </Segment>
+            </Segment>
+        </Segment>
+        <Segment component="com.renesas.smc.tools.swcomponent.codegenerator.rh850.ad" id="Config_ADCA0" source="com.renesas.smc.tools.swcomponent.codegenerator.source">
+            <Setting id="upperLimit7" value="4095"/>
+            <Setting id="mpxStabilizationTime0" value="1"/>
+            <Setting id="upperLimit6" value="4095"/>
+            <Setting id="mpxStabilizationTime1" value="1"/>
+            <Setting id="upperLimit5" value="4095"/>
+            <Setting id="mpxStabilizationTime2" value="1"/>
+            <Setting id="upperLimit4" value="4095"/>
+            <Setting id="mpxStabilizationTime3" value="1"/>
+            <Setting id="upperLimit3" value="4095"/>
+            <Setting id="mpxStabilizationTime4" value="1"/>
+            <Setting id="upperLimit2" value="4095"/>
+            <Setting id="mpxStabilizationTime5" value="1"/>
+            <Setting id="upperLimit1" value="4095"/>
+            <Setting id="mpxStabilizationTime6" value="1"/>
+            <Setting id="upperLimit0" value="4095"/>
+            <Setting id="grpBEnableSelfdiagnosis" value="unchecked"/>
+            <Setting id="samplingSelect" value="24cycles"/>
+            <Setting id="lowerLimit5" value="0"/>
+            <Setting id="errIntPriority" value="Level15"/>
+            <Setting id="lowerLimit4" value="0"/>
+            <Setting id="lowerLimit3" value="0"/>
+            <Setting id="lowerLimit2" value="0"/>
+            <Setting id="grpAScanGroupSelect" value="scanGroup1"/>
+            <Setting id="lowerLimit7" value="0"/>
+            <Setting id="lowerLimit6" value="0"/>
+            <Setting id="lowerLimit1" value="0"/>
+            <Setting id="lowerLimit0" value="0"/>
+            <Setting id="suspendSelect" value="synSuspend"/>
+            <Setting id="grp3EndPointer" value="0"/>
+            <Setting id="overwriteErrorIntEnable" value="checked"/>
+            <Setting id="readAndClearEnable" value="unchecked"/>
+            <Setting id="usedAutomicSampling" value="unchecked"/>
+            <Setting id="samplingCountSetting" value="samplingCount2"/>
+            <Setting id="th0" value="Disable"/>
+            <Setting id="th2" value="Disable"/>
+            <Setting id="th4" value="Disable"/>
+            <Setting id="grpBStartTrigger" value="unchecked"/>
+            <Setting id="useScanGroup1" value="checked"/>
+            <Setting id="useScanGroup2" value="unchecked"/>
+            <Setting id="selfDiagnosticLevelSelect" value="type0"/>
+            <Setting id="grpAEnableSelfdiagnosis" value="unchecked"/>
+            <Setting id="grpBScanGroupSelect" value="scanGroup1"/>
+            <Setting id="useScanGroup3" value="unchecked"/>
+            <Setting id="useScanGroup4" value="unchecked"/>
+            <Setting id="errorIntEnable" value="checked"/>
+            <Setting id="limitIntEnable" value="checked"/>
+            <Setting id="samplingClockSetting" value="ADCLK_8"/>
+            <Setting id="grp2EndPointer" value="0"/>
+            <Setting id="grpAStartTrigger" value="unchecked"/>
+            <Setting id="grp2StartPointer" value="0"/>
+            <Setting id="grp3StartPointer" value="0"/>
+            <Setting id="bitSelectMode" value="12bitMode"/>
+            <Setting id="alignmentControl" value="rightAligned"/>
+            <Setting id="grp1StartPointer" value="0"/>
+            <Setting id="mpxStabilizationTime7" value="1"/>
+            <Setting id="grp1EndPointer" value="1"/>
+            <Segment id="Scan group 1">
+                <Setting id="grpEndIntPriority" value="Level15"/>
+                <Setting id="hwTriggerEnable" value="unchecked"/>
+                <Setting id="validEdge" value="fallingEdge"/>
+                <Setting id="scanTimesSetting" value="oneTime"/>
+                <Setting id="repeatTimesSetting" value="fourTimes"/>
+                <Setting id="scanGrpEndIntEnable" value="checked"/>
+                <Setting id="scanModeSetting" value="continuousScanMode"/>
+                <Setting id="triggerInputSignal" value="externalTriggerPin"/>
+            </Segment>
+            <Segment id="Scan group 2">
+                <Setting id="grpEndIntPriority" value="Level15"/>
+                <Setting id="hwTriggerEnable" value="unchecked"/>
+                <Setting id="validEdge" value="fallingEdge"/>
+                <Setting id="scanTimesSetting" value="oneTime"/>
+                <Setting id="repeatTimesSetting" value="oneTime"/>
+                <Setting id="scanGrpEndIntEnable" value="checked"/>
+                <Setting id="scanModeSetting" value="multicycleScanMode"/>
+                <Setting id="triggerInputSignal" value="externalTriggerPin"/>
+            </Segment>
+            <Segment id="Scan group 3">
+                <Setting id="grpEndIntPriority" value="Level15"/>
+                <Setting id="hwTriggerEnable" value="unchecked"/>
+                <Setting id="validEdge" value="fallingEdge"/>
+                <Setting id="scanTimesSetting" value="oneTime"/>
+                <Setting id="repeatTimesSetting" value="oneTime"/>
+                <Setting id="scanGrpEndIntEnable" value="checked"/>
+                <Setting id="scanModeSetting" value="multicycleScanMode"/>
+                <Setting id="triggerInputSignal" value="externalTriggerPin"/>
+            </Segment>
+            <Segment id="ADCA_VIRTUAL_CHANNEL07">
+                <Setting id="mpxValueSetting" value="0"/>
+                <Setting id="limitTableSelect" value="notChecked"/>
+                <Setting id="SelfDiagnosticChanSelect" value="ANIn00"/>
+                <Setting id="mpxEnable" value="unchecked"/>
+                <Setting id="mpxTimeSelect" value="table0"/>
+                <Setting id="physicalChanSelect" value="ADCAnI0"/>
+                <Setting id="endIntEnable" value="checked"/>
+                <Setting id="OnchipPulldown" value="unchecked"/>
+            </Segment>
+            <Segment id="ADCA_VIRTUAL_CHANNEL18">
+                <Setting id="mpxValueSetting" value="0"/>
+                <Setting id="limitTableSelect" value="notChecked"/>
+                <Setting id="SelfDiagnosticChanSelect" value="ANIn00"/>
+                <Setting id="mpxEnable" value="unchecked"/>
+                <Setting id="mpxTimeSelect" value="table0"/>
+                <Setting id="physicalChanSelect" value="ADCAnI0"/>
+                <Setting id="endIntEnable" value="checked"/>
+                <Setting id="OnchipPulldown" value="unchecked"/>
+            </Segment>
+            <Segment id="ADCA_VIRTUAL_CHANNEL08">
+                <Setting id="mpxValueSetting" value="0"/>
+                <Setting id="limitTableSelect" value="notChecked"/>
+                <Setting id="SelfDiagnosticChanSelect" value="ANIn00"/>
+                <Setting id="mpxEnable" value="unchecked"/>
+                <Setting id="mpxTimeSelect" value="table0"/>
+                <Setting id="physicalChanSelect" value="ADCAnI0"/>
+                <Setting id="endIntEnable" value="checked"/>
+                <Setting id="OnchipPulldown" value="unchecked"/>
+            </Segment>
+            <Segment id="ADCA_VIRTUAL_CHANNEL19">
+                <Setting id="mpxValueSetting" value="0"/>
+                <Setting id="limitTableSelect" value="notChecked"/>
+                <Setting id="SelfDiagnosticChanSelect" value="ANIn00"/>
+                <Setting id="mpxEnable" value="unchecked"/>
+                <Setting id="mpxTimeSelect" value="table0"/>
+                <Setting id="physicalChanSelect" value="ADCAnI0"/>
+                <Setting id="endIntEnable" value="checked"/>
+                <Setting id="OnchipPulldown" value="unchecked"/>
+            </Segment>
+            <Segment id="ADCA_VIRTUAL_CHANNEL09">
+                <Setting id="mpxValueSetting" value="0"/>
+                <Setting id="limitTableSelect" value="notChecked"/>
+                <Setting id="SelfDiagnosticChanSelect" value="ANIn00"/>
+                <Setting id="mpxEnable" value="unchecked"/>
+                <Setting id="mpxTimeSelect" value="table0"/>
+                <Setting id="physicalChanSelect" value="ADCAnI0"/>
+                <Setting id="endIntEnable" value="checked"/>
+                <Setting id="OnchipPulldown" value="unchecked"/>
+            </Segment>
+            <Segment id="ADCA_VIRTUAL_CHANNEL10">
+                <Setting id="mpxValueSetting" value="0"/>
+                <Setting id="limitTableSelect" value="notChecked"/>
+                <Setting id="SelfDiagnosticChanSelect" value="ANIn00"/>
+                <Setting id="mpxEnable" value="unchecked"/>
+                <Setting id="mpxTimeSelect" value="table0"/>
+                <Setting id="physicalChanSelect" value="ADCAnI0"/>
+                <Setting id="endIntEnable" value="checked"/>
+                <Setting id="OnchipPulldown" value="unchecked"/>
+            </Segment>
+            <Segment id="ADCA_VIRTUAL_CHANNEL00">
+                <Setting id="mpxValueSetting" value="0"/>
+                <Setting id="limitTableSelect" value="table0"/>
+                <Setting id="SelfDiagnosticChanSelect" value="ANIn05"/>
+                <Setting id="mpxEnable" value="unchecked"/>
+                <Setting id="mpxTimeSelect" value="table0"/>
+                <Setting id="physicalChanSelect" value="ADCAnI5"/>
+                <Setting id="endIntEnable" value="unchecked"/>
+                <Setting id="OnchipPulldown" value="unchecked"/>
+            </Segment>
+            <Segment id="ADCA_VIRTUAL_CHANNEL11">
+                <Setting id="mpxValueSetting" value="0"/>
+                <Setting id="limitTableSelect" value="notChecked"/>
+                <Setting id="SelfDiagnosticChanSelect" value="ANIn00"/>
+                <Setting id="mpxEnable" value="unchecked"/>
+                <Setting id="mpxTimeSelect" value="table0"/>
+                <Setting id="physicalChanSelect" value="ADCAnI0"/>
+                <Setting id="endIntEnable" value="checked"/>
+                <Setting id="OnchipPulldown" value="unchecked"/>
+            </Segment>
+            <Segment id="ADCA_VIRTUAL_CHANNEL01">
+                <Setting id="mpxValueSetting" value="0"/>
+                <Setting id="limitTableSelect" value="table1"/>
+                <Setting id="SelfDiagnosticChanSelect" value="ANIn00"/>
+                <Setting id="mpxEnable" value="unchecked"/>
+                <Setting id="mpxTimeSelect" value="table0"/>
+                <Setting id="physicalChanSelect" value="ADCAnI0"/>
+                <Setting id="endIntEnable" value="unchecked"/>
+                <Setting id="OnchipPulldown" value="unchecked"/>
+            </Segment>
+            <Segment id="ADCA_VIRTUAL_CHANNEL12">
+                <Setting id="mpxValueSetting" value="0"/>
+                <Setting id="limitTableSelect" value="notChecked"/>
+                <Setting id="SelfDiagnosticChanSelect" value="ANIn00"/>
+                <Setting id="mpxEnable" value="unchecked"/>
+                <Setting id="mpxTimeSelect" value="table0"/>
+                <Setting id="physicalChanSelect" value="ADCAnI0"/>
+                <Setting id="endIntEnable" value="checked"/>
+                <Setting id="OnchipPulldown" value="unchecked"/>
+            </Segment>
+            <Segment id="ADCA_VIRTUAL_CHANNEL02">
+                <Setting id="mpxValueSetting" value="0"/>
+                <Setting id="limitTableSelect" value="notChecked"/>
+                <Setting id="SelfDiagnosticChanSelect" value="ANIn00"/>
+                <Setting id="mpxEnable" value="unchecked"/>
+                <Setting id="mpxTimeSelect" value="table0"/>
+                <Setting id="physicalChanSelect" value="ADCAnI0"/>
+                <Setting id="endIntEnable" value="checked"/>
+                <Setting id="OnchipPulldown" value="unchecked"/>
+            </Segment>
+            <Segment id="ADCA_VIRTUAL_CHANNEL13">
+                <Setting id="mpxValueSetting" value="0"/>
+                <Setting id="limitTableSelect" value="notChecked"/>
+                <Setting id="SelfDiagnosticChanSelect" value="ANIn00"/>
+                <Setting id="mpxEnable" value="unchecked"/>
+                <Setting id="mpxTimeSelect" value="table0"/>
+                <Setting id="physicalChanSelect" value="ADCAnI0"/>
+                <Setting id="endIntEnable" value="checked"/>
+                <Setting id="OnchipPulldown" value="unchecked"/>
+            </Segment>
+            <Segment id="ADCA_VIRTUAL_CHANNEL03">
+                <Setting id="mpxValueSetting" value="0"/>
+                <Setting id="limitTableSelect" value="notChecked"/>
+                <Setting id="SelfDiagnosticChanSelect" value="ANIn00"/>
+                <Setting id="mpxEnable" value="unchecked"/>
+                <Setting id="mpxTimeSelect" value="table0"/>
+                <Setting id="physicalChanSelect" value="ADCAnI0"/>
+                <Setting id="endIntEnable" value="checked"/>
+                <Setting id="OnchipPulldown" value="unchecked"/>
+            </Segment>
+            <Segment id="ADCA_VIRTUAL_CHANNEL14">
+                <Setting id="mpxValueSetting" value="0"/>
+                <Setting id="limitTableSelect" value="notChecked"/>
+                <Setting id="SelfDiagnosticChanSelect" value="ANIn00"/>
+                <Setting id="mpxEnable" value="unchecked"/>
+                <Setting id="mpxTimeSelect" value="table0"/>
+                <Setting id="physicalChanSelect" value="ADCAnI0"/>
+                <Setting id="endIntEnable" value="checked"/>
+                <Setting id="OnchipPulldown" value="unchecked"/>
+            </Segment>
+            <Segment id="ADCA_VIRTUAL_CHANNEL04">
+                <Setting id="mpxValueSetting" value="0"/>
+                <Setting id="limitTableSelect" value="notChecked"/>
+                <Setting id="SelfDiagnosticChanSelect" value="ANIn00"/>
+                <Setting id="mpxEnable" value="unchecked"/>
+                <Setting id="mpxTimeSelect" value="table0"/>
+                <Setting id="physicalChanSelect" value="ADCAnI0"/>
+                <Setting id="endIntEnable" value="checked"/>
+                <Setting id="OnchipPulldown" value="unchecked"/>
+            </Segment>
+            <Segment id="ADCA_VIRTUAL_CHANNEL15">
+                <Setting id="mpxValueSetting" value="0"/>
+                <Setting id="limitTableSelect" value="notChecked"/>
+                <Setting id="SelfDiagnosticChanSelect" value="ANIn00"/>
+                <Setting id="mpxEnable" value="unchecked"/>
+                <Setting id="mpxTimeSelect" value="table0"/>
+                <Setting id="physicalChanSelect" value="ADCAnI0"/>
+                <Setting id="endIntEnable" value="checked"/>
+                <Setting id="OnchipPulldown" value="unchecked"/>
+            </Segment>
+            <Segment id="ADCA_VIRTUAL_CHANNEL05">
+                <Setting id="mpxValueSetting" value="0"/>
+                <Setting id="limitTableSelect" value="notChecked"/>
+                <Setting id="SelfDiagnosticChanSelect" value="ANIn00"/>
+                <Setting id="mpxEnable" value="unchecked"/>
+                <Setting id="mpxTimeSelect" value="table0"/>
+                <Setting id="physicalChanSelect" value="ADCAnI0"/>
+                <Setting id="endIntEnable" value="checked"/>
+                <Setting id="OnchipPulldown" value="unchecked"/>
+            </Segment>
+            <Segment id="ADCA_VIRTUAL_CHANNEL16">
+                <Setting id="mpxValueSetting" value="0"/>
+                <Setting id="limitTableSelect" value="notChecked"/>
+                <Setting id="SelfDiagnosticChanSelect" value="ANIn00"/>
+                <Setting id="mpxEnable" value="unchecked"/>
+                <Setting id="mpxTimeSelect" value="table0"/>
+                <Setting id="physicalChanSelect" value="ADCAnI0"/>
+                <Setting id="endIntEnable" value="checked"/>
+                <Setting id="OnchipPulldown" value="unchecked"/>
+            </Segment>
+            <Segment id="ADCA_VIRTUAL_CHANNEL06">
+                <Setting id="mpxValueSetting" value="0"/>
+                <Setting id="limitTableSelect" value="notChecked"/>
+                <Setting id="SelfDiagnosticChanSelect" value="ANIn00"/>
+                <Setting id="mpxEnable" value="unchecked"/>
+                <Setting id="mpxTimeSelect" value="table0"/>
+                <Setting id="physicalChanSelect" value="ADCAnI0"/>
+                <Setting id="endIntEnable" value="checked"/>
+                <Setting id="OnchipPulldown" value="unchecked"/>
+            </Segment>
+            <Segment id="ADCA_VIRTUAL_CHANNEL17">
+                <Setting id="mpxValueSetting" value="0"/>
+                <Setting id="limitTableSelect" value="notChecked"/>
+                <Setting id="SelfDiagnosticChanSelect" value="ANIn00"/>
+                <Setting id="mpxEnable" value="unchecked"/>
+                <Setting id="mpxTimeSelect" value="table0"/>
+                <Setting id="physicalChanSelect" value="ADCAnI0"/>
+                <Setting id="endIntEnable" value="checked"/>
+                <Setting id="OnchipPulldown" value="unchecked"/>
+            </Segment>
+        </Segment>
+        <Segment component="com.renesas.smc.tools.swcomponent.codegenerator.rh850.stbc" id="Config_STBC" source="com.renesas.smc.tools.swcomponent.codegenerator.source">
+            <Setting id="WDTA0NMI" value="Disable"/>
+            <Setting id="f2INTRTCA0R" value="Disable"/>
+            <Setting id="INTRCANGRECC0" value="Disable"/>
+            <Setting id="INTRCAN0REC" value="Disable"/>
+            <Setting id="INTWDTA0" value="Disable"/>
+            <Setting id="f2INTRTCA0AL" value="Disable"/>
+            <Setting id="f1INTRTCA0R" value="Disable"/>
+            <Setting id="STBCMode" value="deepStop"/>
+            <Setting id="f2INTRTCA01S" value="Disable"/>
+            <Setting id="TNMI" value="Disable"/>
+            <Setting id="INTP14" value="Disable"/>
+            <Setting id="INTP15" value="Disable"/>
+            <Setting id="INTP16" value="Disable"/>
+            <Setting id="INTP17" value="Disable"/>
+            <Setting id="INTP10" value="Disable"/>
+            <Setting id="INTP11" value="Disable"/>
+            <Setting id="INTP0" value="Disable"/>
+            <Setting id="INTP12" value="Disable"/>
+            <Setting id="INTP13" value="Disable"/>
+            <Setting id="INTP18" value="Disable"/>
+            <Setting id="INTP19" value="Disable"/>
+            <Setting id="f1INTRTCA01S" value="Disable"/>
+            <Setting id="f1INTTAUJ0I1" value="Disable"/>
+            <Setting id="INTP9" value="Disable"/>
+            <Setting id="f1INTTAUJ0I2" value="Disable"/>
+            <Setting id="f1INTTAUJ2I0" value="Disable"/>
+            <Setting id="INTADCA0I1" value="Disable"/>
+            <Setting id="f1INTTAUJ0I0" value="Disable"/>
+            <Setting id="INTADCA0I2" value="Disable"/>
+            <Setting id="f1INTTAUJ2I3" value="Disable"/>
+            <Setting id="f1INTTAUJ0I3" value="Disable"/>
+            <Setting id="f1INTTAUJ2I1" value="Disable"/>
+            <Setting id="f1INTTAUJ2I2" value="Disable"/>
+            <Setting id="INTP2" value="Disable"/>
+            <Setting id="INTP1" value="Disable"/>
+            <Setting id="INTP4" value="Disable"/>
+            <Setting id="INTP3" value="Disable"/>
+            <Setting id="INTP20" value="Disable"/>
+            <Setting id="INTP6" value="Disable"/>
+            <Setting id="INTP5" value="Enable"/>
+            <Setting id="INTADCA0I0" value="Disable"/>
+            <Setting id="INTP8" value="Disable"/>
+            <Setting id="INTP7" value="Disable"/>
+            <Setting id="INTP21" value="Disable"/>
+            <Setting id="INTP22" value="Disable"/>
+            <Setting id="INTP23" value="Disable"/>
+            <Setting id="WUTRG1" value="Disable"/>
+            <Setting id="WUTRG0" value="Disable"/>
+            <Setting id="f2INTTAUJ2I3" value="Disable"/>
+            <Setting id="f2INTTAUJ2I2" value="Disable"/>
+            <Setting id="f2INTTAUJ0I3" value="Disable"/>
+            <Setting id="f2INTTAUJ2I1" value="Disable"/>
+            <Setting id="f2INTTAUJ0I2" value="Disable"/>
+            <Setting id="f2INTTAUJ2I0" value="Disable"/>
+            <Setting id="f2INTTAUJ0I1" value="Disable"/>
+            <Setting id="f2INTTAUJ0I0" value="Disable"/>
+            <Setting id="f1INTRTCA0AL" value="Disable"/>
+            <Setting id="INTLVIL" value="Disable"/>
+            <Setting id="INTDCUTDI" value="Disable"/>
+            <Setting id="INTKR0" value="Disable"/>
+        </Segment>
+        <Segment component="com.renesas.smc.tools.swcomponent.codegenerator.rh850.intervaltimer" id="Config_TAUD0_13" source="com.renesas.smc.tools.swcomponent.codegenerator.source">
+            <Setting id="IntervalUnit" value="us"/>
+            <Setting id="Generates" value="Disable"/>
+            <Setting id="IntEnable" value="Enable"/>
+            <Setting id="Prescaler" value="PCLK16"/>
+            <Setting id="Bauevalue" value="1"/>
+            <Setting id="IntPriority" value="Level15"/>
+            <Setting id="Operation" value="CK1"/>
+            <Setting id="IntervalValue" value="5"/>
+        </Segment>
+    </Segment>
+</QE>

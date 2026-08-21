@@ -14,7 +14,7 @@
 * following link:
 * http://www.renesas.com/disclaimer
 *
-* Copyright (C) 2018, 2024 Renesas Electronics Corporation. All rights reserved.
+* Copyright (C) 2018, 2025 Renesas Electronics Corporation. All rights reserved.
 ***********************************************************************************************************************/
 
 /***********************************************************************************************************************
@@ -36,7 +36,6 @@ Includes
 #include "Config_STBC.h"
 #include "Config_INTC.h"
 #include "Config_WDT0.h"
-#include "Config_CSIH0.h"
 #include "Config_TAUD0_13.h"
 #include "Config_TAUJ1.h"
 #include "r_cg_cgc.h"

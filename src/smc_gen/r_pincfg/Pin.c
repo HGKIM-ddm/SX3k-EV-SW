@@ -14,7 +14,7 @@
 * following link:
 * http://www.renesas.com/disclaimer
 *
-* Copyright (C) 2018, 2024 Renesas Electronics Corporation. All rights reserved.
+* Copyright (C) 2018, 2025 Renesas Electronics Corporation. All rights reserved.
 ***********************************************************************************************************************/
 
 /***********************************************************************************************************************
@@ -51,40 +51,6 @@ Global variables and functions
 ***********************************************************************************************************************/
 void R_Pins_Create(void)
 {
-    /* Set CSIH0SC(P0_2) pin */
-    PORT.PIBC0 &= _PORT_CLEAR_BIT2;
-    PORT.PBDC0 &= _PORT_CLEAR_BIT2;
-    PORT.PM0 |= _PORT_SET_BIT2;
-    PORT.PMC0 &= _PORT_CLEAR_BIT2;
-    PORT.PIPC0 &= _PORT_CLEAR_BIT2;
-    PORT.PFC0 |= _PORT_SET_BIT2;
-    PORT.PFCE0 |= _PORT_SET_BIT2;
-    PORT.PFCAE0 &= _PORT_CLEAR_BIT2;
-    PORT.PIPC0 |= _PORT_SET_BIT2;
-    PORT.PMC0 |= _PORT_SET_BIT2;
-
-    /* Set CSIH0SI(P0_1) pin */
-    PORT.PIBC0 &= _PORT_CLEAR_BIT1;
-    PORT.PBDC0 &= _PORT_CLEAR_BIT1;
-    PORT.PM0 |= _PORT_SET_BIT1;
-    PORT.PMC0 &= _PORT_CLEAR_BIT1;
-    PORT.PFC0 |= _PORT_SET_BIT1;
-    PORT.PFCE0 |= _PORT_SET_BIT1;
-    PORT.PFCAE0 &= _PORT_CLEAR_BIT1;
-    PORT.PMC0 |= _PORT_SET_BIT1;
-
-    /* Set CSIH0SO(P0_3) pin */
-    PORT.PIBC0 &= _PORT_CLEAR_BIT3;
-    PORT.PBDC0 &= _PORT_CLEAR_BIT3;
-    PORT.PM0 |= _PORT_SET_BIT3;
-    PORT.PMC0 &= _PORT_CLEAR_BIT3;
-    PORT.PIPC0 &= _PORT_CLEAR_BIT3;
-    PORT.PFC0 |= _PORT_SET_BIT3;
-    PORT.PFCE0 |= _PORT_SET_BIT3;
-    PORT.PFCAE0 &= _PORT_CLEAR_BIT3;
-    PORT.PIPC0 |= _PORT_SET_BIT3;
-    PORT.PMC0 |= _PORT_SET_BIT3;
-
     /* Set INTP5(P8_1) pin */
     PORT.PIBC8 &= _PORT_CLEAR_BIT1;
     PORT.PBDC8 &= _PORT_CLEAR_BIT1;

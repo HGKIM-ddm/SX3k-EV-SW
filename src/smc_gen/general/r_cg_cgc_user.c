@@ -14,12 +14,12 @@
 * following link:
 * http://www.renesas.com/disclaimer
 *
-* Copyright (C) 2018, 2024 Renesas Electronics Corporation. All rights reserved.
+* Copyright (C) 2018, 2025 Renesas Electronics Corporation. All rights reserved.
 ***********************************************************************************************************************/
 
 /***********************************************************************************************************************
 * File Name        : r_cg_cgc_user.c
-* Version          : 1.7.0
+* Version          : 1.8.0
 * Device(s)        : R7F701695
 * Description      : This file is reserved for the user to add custom clock initialize code.
 ***********************************************************************************************************************/

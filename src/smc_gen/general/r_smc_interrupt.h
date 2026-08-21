@@ -14,12 +14,12 @@
 * following link:
 * http://www.renesas.com/disclaimer
 *
-* Copyright (C) 2018, 2024 Renesas Electronics Corporation. All rights reserved.
+* Copyright (C) 2018, 2025 Renesas Electronics Corporation. All rights reserved.
 ***********************************************************************************************************************/
 
 /***********************************************************************************************************************
 * File Name        : r_smc_interrupt.h
-* Version          : 1.5.0
+* Version          : 1.6.0
 * Device(s)        : R7F701695
 * Description      : This file implements interrupt priority setting.
 ***********************************************************************************************************************/
@@ -135,7 +135,7 @@ Macro definitions
 #define INTC_TAUD0_INTTAUD0I10_2_PRIORITY                      _INT_PRIORITY_LOWEST
 #define INTC_TAUD0_INTTAUD0I12_2_PRIORITY                      _INT_PRIORITY_LOWEST
 #define INTC_TAUD0_INTTAUD0I14_2_PRIORITY                      _INT_PRIORITY_LOWEST
-#define INTC_TAUJ1_INTTAUJ1I0_PRIORITY                         _INT_PRIORITY_LOWEST
+#define INTC_TAUJ1_INTTAUJ1I0_PRIORITY                         _INT_PRIORITY_7
 #define INTC_TAUJ1_INTTAUJ1I1_PRIORITY                         _INT_PRIORITY_LOWEST
 #define INTC_TAUJ1_INTTAUJ1I2_PRIORITY                         _INT_PRIORITY_LOWEST
 #define INTC_TAUJ1_INTTAUJ1I3_PRIORITY                         _INT_PRIORITY_LOWEST

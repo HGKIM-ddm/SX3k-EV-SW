@@ -1,27 +1,28 @@
 /***********************************************************************************************************************
- * DISCLAIMER
- * This software is supplied by Renesas Electronics Corporation and is only intended for use with Renesas products.
- * No other uses are authorized. This software is owned by Renesas Electronics Corporation and is protected under all
- * applicable laws, including copyright laws.
- * THIS SOFTWARE IS PROVIDED "AS IS" AND RENESAS MAKES NO WARRANTIES REGARDING THIS SOFTWARE, WHETHER EXPRESS, IMPLIED
- * OR STATUTORY, INCLUDING BUT NOT LIMITED TO WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
- * NON-INFRINGEMENT.  ALL SUCH WARRANTIES ARE EXPRESSLY DISCLAIMED.TO THE MAXIMUM EXTENT PERMITTED NOT PROHIBITED BY
- * LAW, NEITHER RENESAS ELECTRONICS CORPORATION NOR ANY OF ITS AFFILIATED COMPANIES SHALL BE LIABLE FOR ANY DIRECT,
- * INDIRECT, SPECIAL, INCIDENTAL OR CONSEQUENTIAL DAMAGES FOR ANY REASON RELATED TO THIS SOFTWARE, EVEN IF RENESAS OR
- * ITS AFFILIATES HAVE BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
- * Renesas reserves the right, without notice, to make changes to this software and to discontinue the availability
- * of this software. By using this software, you agree to the additional terms and conditions found by accessing the
- * following link:
- * http://www.renesas.com/disclaimer
- *
- * Copyright (C) 2018, 2024 Renesas Electronics Corporation. All rights reserved.
- ***********************************************************************************************************************/
+* DISCLAIMER
+* This software is supplied by Renesas Electronics Corporation and is only intended for use with Renesas products.
+* No other uses are authorized. This software is owned by Renesas Electronics Corporation and is protected under all
+* applicable laws, including copyright laws.
+* THIS SOFTWARE IS PROVIDED "AS IS" AND RENESAS MAKES NO WARRANTIES REGARDING THIS SOFTWARE, WHETHER EXPRESS, IMPLIED
+* OR STATUTORY, INCLUDING BUT NOT LIMITED TO WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+* NON-INFRINGEMENT.  ALL SUCH WARRANTIES ARE EXPRESSLY DISCLAIMED.TO THE MAXIMUM EXTENT PERMITTED NOT PROHIBITED BY
+* LAW, NEITHER RENESAS ELECTRONICS CORPORATION NOR ANY OF ITS AFFILIATED COMPANIES SHALL BE LIABLE FOR ANY DIRECT,
+* INDIRECT, SPECIAL, INCIDENTAL OR CONSEQUENTIAL DAMAGES FOR ANY REASON RELATED TO THIS SOFTWARE, EVEN IF RENESAS OR
+* ITS AFFILIATES HAVE BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
+* Renesas reserves the right, without notice, to make changes to this software and to discontinue the availability
+* of this software. By using this software, you agree to the additional terms and conditions found by accessing the
+* following link:
+* http://www.renesas.com/disclaimer
+*
+* Copyright (C) 2018, 2025 Renesas Electronics Corporation. All rights reserved.
+***********************************************************************************************************************/
+
 /***********************************************************************************************************************
- * File Name        : r_cg_main.c
- * Version          : 1.0.151
- * Device(s)        : R7F701695
- * Description      : This file implements main function.
- ***********************************************************************************************************************/
+* File Name        : r_cg_main.c
+* Version          : 1.0.151
+* Device(s)        : R7F701695
+* Description      : This file implements main function.
+***********************************************************************************************************************/
 /***********************************************************************************************************************
 Pragma directive
 ***********************************************************************************************************************/
@@ -59,15 +60,15 @@ static void AAF_App(void);
 void r_main_userinit(void);
 
 /***********************************************************************************************************************
- * Function Name: main
- * Description  : This function implements main function.
- * Arguments    : None
- * Return Value : None
- ***********************************************************************************************************************/
-int main(void)
+* Function Name: main
+* Description  : This function implements main function.
+* Arguments    : None
+* Return Value : None
+***********************************************************************************************************************/
+void main(void)
 {
-	r_main_userinit();
-	/* Start user code for main. Do not edit comment generated here */
+    r_main_userinit();
+    /* Start user code for main. Do not edit comment generated here */
 
 	R_Config_TAUD0_3_Start();
 	R_Config_TAUD0_13_Start();
@@ -93,21 +94,21 @@ int main(void)
 }
 
 /***********************************************************************************************************************
- * Function Name: r_main_userinit
- * Description  : This function adds user code before implementing main function.
- * Arguments    : None
- * Return Value : None
- ***********************************************************************************************************************/
+* Function Name: r_main_userinit
+* Description  : This function adds user code before implementing main function.
+* Arguments    : None
+* Return Value : None
+***********************************************************************************************************************/
 void r_main_userinit(void)
 {
-	DI();
-	/* Start user code for r_main_userinit. Do not edit comment generated here */
+    DI();
+    /* Start user code for r_main_userinit. Do not edit comment generated here */
 	#ifdef UDS
 	SET_INTBP(0xE400u);  	// interrupt vector base relocation
 	#endif	
 	/* End user code. Do not edit comment generated here */
-	R_Systeminit();
-	EI();
+    R_Systeminit();
+    EI();
 }
 
 /* Start user code for adding. Do not edit comment generated here */
