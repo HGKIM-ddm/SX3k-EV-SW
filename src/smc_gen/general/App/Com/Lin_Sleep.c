@@ -548,7 +548,7 @@ static void McuSleep_InternalModuleStop(void)
     R_Config_INTC_Create();         // 인터럽트 컨트롤러 재설정 (Wake-up 준비)
     R_Config_INTC_INTP5_Start(); 
 
-    R_Config_CSIH0_Stop();          // SPI 모듈 정지
+    //R_Config_CSIH0_Stop();          // SPI 모듈 정지
     R_Config_ADCA0_Halt();          // ADC 모듈 정지
     R_Config_TAUD0_13_Stop();       // 타이머 정지
     R_Config_TAUD0_3_Stop();        // 타이머 정지

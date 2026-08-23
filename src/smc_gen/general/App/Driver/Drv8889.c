@@ -57,7 +57,7 @@ static void Drv8889_SpiTransfer(uint16_t * const tx_buf, uint16_t * const rx_buf
   
     Drv8889_ScsActive();
 
-    (void)R_Config_CSIH0_Send_Receive(tx_buf, 1U, rx_buf, _CSIH_SELECT_CHIP_0);
+    // (void)R_Config_CSIH0_Send_Receive(tx_buf, 1U, rx_buf, _CSIH_SELECT_CHIP_0);
 
     (void)Drv8889_WaitSpiComplete();
 

@@ -60,7 +60,7 @@ static void SpiCheck_SendCommand(void)
 {
     Drv8889_ScsActive(); // CS Low
 
-    R_Config_CSIH0_Send_Receive(&rx_16bit_spi_id[9], 1U, &rx_16bit_spi[9], _CSIH_SELECT_CHIP_0);
+    // R_Config_CSIH0_Send_Receive(&rx_16bit_spi_id[9], 1U, &rx_16bit_spi[9], _CSIH_SELECT_CHIP_0);
 
     spi_action_step = 1U;
 }

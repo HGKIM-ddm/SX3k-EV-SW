@@ -72,7 +72,7 @@ int main(void)
 	R_Config_TAUD0_3_Start();
 	R_Config_TAUD0_13_Start();
 	R_Config_ADCA0_ScanGroup1_OperationOn();
-	R_Config_CSIH0_Start();
+	// R_Config_CSIH0_Start();
 	Lin_SlaveInit();
 	R_Config_WDT0_Create();
 	R_Config_WDT0_Restart();
