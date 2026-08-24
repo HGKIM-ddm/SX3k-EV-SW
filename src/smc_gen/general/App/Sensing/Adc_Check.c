@@ -60,8 +60,9 @@ void ADC_GetStatus(void)
 	{
 		INTC1.ICADCA0I0.BIT.RFADCA0I0 = 0U;
 		
-		R_Config_ADCA0_ScanGroup1_GetResult(scan_results, 1U); //KR
-		bat_adc = scan_results[0]; //KR
+		R_Config_ADCA0_ScanGroup1_GetResult(scan_results, 2U);   /* VC00 + VC01 */
+		bat_adc   = scan_results[0];    /* VC00 = ADCA0I5 : 배터리 전압 */
+		TRQ_COUNT = scan_results[1];    /* VC01 = ADCA0I0 : 토크카운트  */
 
 		adc_sum = 0U;
 

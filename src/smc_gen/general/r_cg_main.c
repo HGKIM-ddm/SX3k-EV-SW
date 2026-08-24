@@ -137,8 +137,6 @@ static void AAF_Init(void)
 
 	Drv8889_SpiInit();
 
-	TRQ_COUNT = (unsigned int)(rx_16bit_spi[9] & 0xFFU);
-
 	G_Timer1msFlag.VoltCheckDelayFlag = 1; // POWER ON AFTER 500ms
 
 	diag_mode_auto_dir = OPEN;
