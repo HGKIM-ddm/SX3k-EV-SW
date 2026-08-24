@@ -8,6 +8,9 @@ void Motor_Open(void);
 void Motor_Open2(void);
 void Motor_Close(void);
 void Motor_Close2(void);
+void Motor_On(void);
+void Motor_Off(void);
+
 #endif
 
 

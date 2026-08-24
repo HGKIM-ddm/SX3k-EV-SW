@@ -146,12 +146,12 @@ void Motor_Open(void)
 {
 	if (AAF_location_type == RH_TYPE)
 	{
-		Drv8889_DirCCW(); // CCW
+		Drv8434a_DirCCW(); // CCW
 		dir_state = OPEN;
 	}
 	else if (AAF_location_type == LH_TYPE)
 	{
-		Drv8889_DirCW(); // CW
+		Drv8434a_DirCW(); // CW
 		dir_state = OPEN;
 	}
 	else
@@ -164,12 +164,12 @@ void Motor_Open2(void)
 {
 	if (AAF_location_type == RH_TYPE)
 	{
-		Drv8889_DirCCW(); // CCW
+		Drv8434a_DirCCW(); // CCW
 		dir_state = OPEN;
 	}
 	else if (AAF_location_type == LH_TYPE)
 	{
-		Drv8889_DirCW(); // CW
+		Drv8434a_DirCW(); // CW
 		dir_state = OPEN;
 	}
 	else
@@ -183,12 +183,12 @@ void Motor_Close(void)
 {
 	if (AAF_location_type == RH_TYPE)
 	{
-		Drv8889_DirCW(); // MCU_DIR
+		Drv8434a_DirCW(); // MCU_DIR
 		dir_state = CLOSE;
 	}
 	else if (AAF_location_type == LH_TYPE)
 	{
-		Drv8889_DirCCW(); // MCU_DIR
+		Drv8434a_DirCCW(); // MCU_DIR
 		dir_state = CLOSE;
 	}
 	else
@@ -201,16 +201,29 @@ void Motor_Close2(void)
 {
 	if (AAF_location_type == RH_TYPE)
 	{
-		Drv8889_DirCW(); // MCU_DIR
+		Drv8434a_DirCW(); // MCU_DIR
 		dir_state = CLOSE;
 	}
 	else if (AAF_location_type == LH_TYPE)
 	{
-		Drv8889_DirCCW(); // MCU_DIR
+		Drv8434a_DirCCW(); // MCU_DIR
 		dir_state = CLOSE;
 	}
 	else
 	{
 		//invaild
 	}
+}
+
+void Motor_On(void)
+{
+    Drv8434a_ON();
+}
+
+void Motor_Off(void)
+{
+    Drv8434a_OFF();
+
+    G_Timer1msFlag.StallTimeFlag = 0U;
+    G_Timer1ms.StallTime         = 0U;
 }
