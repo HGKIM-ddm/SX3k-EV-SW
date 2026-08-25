@@ -226,4 +226,5 @@ void Motor_Off(void)
 
     G_Timer1msFlag.StallTimeFlag = 0U;
     G_Timer1ms.StallTime         = 0U;
+    ADC_TrqCountReset();
 }

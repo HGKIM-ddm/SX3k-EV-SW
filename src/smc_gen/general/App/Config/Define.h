@@ -138,11 +138,28 @@
 #define Initial_Value 0U
 
 /***********************************************************************************************************************
- * 3. Position & Movement Defines
+ * 3. Motor Defines 
 ***********************************************************************************************************************/
 #define TRQ_BUF_SIZE 4U
 #define TRQ_SAMPLE_PERIOD 2U
 
+#define MOTOR_CW_STALL_CHK_HIGH_VALUE 255U  // 180
+#define MOTOR_CCW_STALL_CHK_HIGH_VALUE 255U // 180
+
+#define INIT_STALL_TH 30U
+#define STALL_TH 15U 
+
+#define STALL_CNT_DEFAULT 30000U
+#define STALL_CHK_WAIT_TIME 250U // 250
+
+#define MOTOR_NORMAL 0U
+#define MOTOR_STALL 1U
+#define MOTOR_FAULT 0x100U
+
+
+/***********************************************************************************************************************
+ * 3. Position & Movement Defines
+***********************************************************************************************************************/
 #define CLOSE 0U
 #define OPEN_1ST 1U
 #define OPEN_2ND 2U
@@ -318,21 +335,7 @@
  * 6. Stall Check & Motor Faults
 ***********************************************************************************************************************/
 
-#define MOTOR_STALL_CHK_NORMAL_VALUE 160U
-#define MOTOR_CW_STALL_CHK_HIGH_VALUE 255U  // 180
-#define MOTOR_CCW_STALL_CHK_HIGH_VALUE 255U // 180
 
-#define INIT_STALL_TH 30U
-#define STALL_TH_LOW_VOLTAGE 15U  
-#define STALL_TH_NORMAL_VOLTAGE 15U  
-#define STALL_TH_HIGH_VOLTAGE 15U  
-
-#define STALL_CNT_DEFAULT 30000U
-#define STALL_CHK_WAIT_TIME 250U // 250
-
-#define MOTOR_NORMAL 0U
-#define MOTOR_STALL 1U
-#define MOTOR_FAULT 0x100U
 
 /***********************************************************************************************************************
  * 7. AAF Specifics

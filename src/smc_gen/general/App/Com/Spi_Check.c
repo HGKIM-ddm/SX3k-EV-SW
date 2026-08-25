@@ -133,7 +133,6 @@ static void SpiCheck_Delay2(void)
 static void SpiCheck_HandleData(void)
 {
     /* 1. 변수 파싱 */
-    trq_cnt = (unsigned int)(rx_16bit_spi[9] & 0xFFU);
     AAF_UVLO        = rx_16bit_spi[9] & 0x2000U;  /* B13 저전압 */
     AAF_CPUV        = rx_16bit_spi[9] & 0x1000U;  /* B12 차지펌프 저전압 */
     AAF_OverCurrent = rx_16bit_spi[9] & 0x0800U;  /* B11 OCP */

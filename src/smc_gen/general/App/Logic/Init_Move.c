@@ -21,7 +21,6 @@ static void Init_StartMotor(uint8_t next_step, uint8_t dir, uint8_t is_case0)
     // (Case 0, 6, 9)
     motor_stall_flag = MOTOR_NORMAL;
     G_Timer1ms.StallTime = 0U;
-    trq_cnt = MOTOR_STALL_CHK_NORMAL_VALUE;
     G_Timer1ms.TrqCheck = 0U;
     AAF_Tx_Position = UNKOWN_POSITION;
     AAFx_Position_Status = Unknown_Status;
@@ -121,7 +120,6 @@ static void Init_MoveLimitPosition(void)
 		motor_stall_flag = MOTOR_NORMAL; // stall reset
 		// G_Timer1msFlag.StallTimeFlag = 0;			 stall reset
 		G_Timer1ms.StallTime = 0U;							  // stall reset
-		trq_cnt = MOTOR_STALL_CHK_NORMAL_VALUE; // stall reset
 		G_Timer1ms.TrqCheck = 0U;
 
 		init_move_step = 14U;

@@ -35,7 +35,6 @@ static void Communication_Check(void)
 {
     Lin_RxCheck();
     Lin_TxCheck();
-    Spi_Check();
     Lin_NrstCheck();
 }   
 
@@ -91,6 +90,8 @@ void App_HwCheck(void)
     Error_CheckAfterIGN();
 
     ADC_GetStatus();
+
+    ADC_TrqCountSample();
 }
 
 /***********************************************************************************************************************
