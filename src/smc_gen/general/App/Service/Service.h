@@ -8,6 +8,8 @@
 #include "Adc_Check.h"
 #include "Stall_Check.h"
 
+#include "Drv8434a.h"
+
 #include "AntiPinch.h"
 #include "Error_Check.h"
 #include "FailSafety_Mode.h"
