@@ -1,68 +1,105 @@
 #include "Adc_Check.h"
 
+/***********************************************************************************************************************
+ * Function Name: ADC_TrqCountReset
+ * Description  : 토크카운트 이동평균 상태 초기화. 모터 정지 / 방향전환 시 호출.
+ ***********************************************************************************************************************/
+void ADC_TrqCountReset(void)
+{
+    uint8_t i;
+ 
+    for (i = 0U; i < TRQ_BUF_SIZE; i++)
+    {
+        trq_buf[i] = 0U;
+    }
+ 
+    trq_buf_index     = 0U;
+    trq_buf_count        	= 0U;
+    trq_sum         = 0U;
+    trq_cnt       = 0U;
+    trq_cnt_avg   = 0U;
+    trq_cnt_valid = 0U;
+}
+
+/***********************************************************************************************************************
+ * Function Name: ADC_TrqCountSample
+ * Description  : 2 ms 주기로 TRQ_CNT(ADCA0I0 / 가상채널01)를 읽어 이동평균을 갱신하고
+ *                스톨 판정을 수행한다.
+ * Called By    : App_HwCheck
+ *
+ *  ※ ADCA0 는 Continuous Scan 모드로 상시 변환 중이므로 DR 레지스터에는 항상 최신값이 있다.
+ *    따라서 여기서는 스캔종료 인터럽트 플래그(RFADCA0I0)를 건드리지 않는다.
+ *    플래그는 배터리 전압 경로(ADC_GetStatus)가 10 ms 핸드셰이크용으로 단독 사용한다.
+ ***********************************************************************************************************************/
+void ADC_TrqCountSample(void)
+{
+    G_Timer1msFlag.TrqCheckFlag = 1U;              /* 2 ms 샘플 타이머 구동 */
+ 
+    if (motor_start != ON)
+    {
+        ADC_TrqCountReset();
+        G_Timer1ms.TrqCheck = 0U;
+        return;
+    }
+ 
+    if (G_Timer1ms.TrqCheck < TRQ_SAMPLE_PERIOD)
+    {
+        return;
+    }
+ 
+    G_Timer1ms.TrqCheck = 0U;
+ 
+   	if (R_Config_ADCA0_ScanGroup1_GetResult(trq_scan, 2U) != MD_OK)
+    {
+        return;
+    }
+ 
+    trq_cnt = trq_scan[1];              /* VC01 = ADCA0I0 : 토크카운트 */
+ 
+    /* 이동평균 갱신 */
+    trq_sum        -= (uint32_t)trq_buf[trq_buf_index];
+    trq_buf[trq_buf_index] = (uint16_t)trq_cnt;
+    trq_sum        += (uint32_t)trq_buf[trq_buf_index];
+ 
+    trq_buf_index++;
+    if (trq_buf_index >= TRQ_BUF_SIZE)
+    {
+        trq_buf_index = 0U;
+    }
+ 
+    if (trq_buf_count < TRQ_BUF_SIZE)
+    {
+        trq_buf_count++;
+    }
+ 
+    if (trq_buf_count >= TRQ_BUF_SIZE)
+    {
+        trq_cnt_avg   = (unsigned int)(trq_sum / TRQ_BUF_SIZE);
+        trq_cnt_valid = 1U;
+    }
+ 
+    /* 판정 : 구 Spi_Check.c 의 호출 위치를 그대로 계승 (2 ms 주기) */
+    if (AAF_Maximum_Torque_Test_Mode == OFF)
+    {
+        StallCheck_ChangeStallTh();
+        Stall_Check();
+    }
+    else
+    {
+        motor_stall_flag = MOTOR_NORMAL;
+    }
+}
+
 void ADC_GetStatus(void)
 {
 	G_Timer1msFlag.AdcCheckFlag = 1U;
-#if 0
-	if ((G_Timer1ms.AdcCheck >= 10U) && (voltage_chk_delay_complete == 1U))
-	{
-		G_Timer1msFlag.AdcErrorCheckFlag = 1;
 
-		while (INTC1.ICADCA0I0.BIT.RFADCA0I0 == 0)
-		{
-			if (G_Timer1ms.AdcErrorCheck >= 100)
-			{
-				G_Timer1msFlag.AdcErrorCheckFlag = 0;
-				G_Timer1ms.AdcErrorCheck = 0;
-				adc_fail = 1;
-				break;
-			}
-		}
-
-		G_Timer1msFlag.AdcErrorCheckFlag = 0;
-		G_Timer1ms.AdcErrorCheck = 0;
-
-		/*
-		while (!INTC1.ICADCA0I0.BIT.RFADCA0I0)
-		{
-
-		}
-		*/
-
-		INTC1.ICADCA0I0.BIT.RFADCA0I0 = 0;
-		R_Config_ADCA0_ScanGroup1_GetResult(&bat_adc, 8);
-
-		adc_sum = 0;
-
-		for (int i = 8; i >= 0; i--)
-		{
-			adc_chk[i + 1] = adc_chk[i];
-			adc_sum += adc_chk[i];
-		}
-
-		adc_chk[0] = bat_adc;
-
-		adc_sum += adc_chk[0];
-
-		adc_avr = adc_sum / 10U;
-
-		adc_chk_ok_flag++;
-
-		if (adc_chk_ok_flag >= 10U)
-		{
-			adc_chk_ok_flag = 10;
-		}
-
-		G_Timer1ms.AdcCheck = 0;
-	}
-#endif
 	if (adc_chk_ready == 1U)
 	{
 		INTC1.ICADCA0I0.BIT.RFADCA0I0 = 0U;
 		
 		R_Config_ADCA0_ScanGroup1_GetResult(scan_results, 2U);   /* VC00 + VC01 */
-		bat_adc   = scan_results[0];    /* VC00 = ADCA0I5 : 배터리 전압 */
-		TRQ_COUNT = scan_results[1];    /* VC01 = ADCA0I0 : 토크카운트  */
+		bat_adc = scan_results[0];      /* VC00 = ADCA0I5 : 배터리 전압 */
 
 		adc_sum = 0U;
 

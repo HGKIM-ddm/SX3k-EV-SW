@@ -76,7 +76,7 @@ void r_Config_TAUD0_3_interrupt(void)
     TIMER_1MS(InitMove);
     TIMER_1MS(AdcCheck);
     TIMER_1MS(External10sCheck);
-    TIMER_1MS(Spi);
+    TIMER_1MS(TrqCheck);
     TIMER_1MS(InitCheck);
     TIMER_1MS(StallCheck);
     TIMER_1MS(ProtectionMode);

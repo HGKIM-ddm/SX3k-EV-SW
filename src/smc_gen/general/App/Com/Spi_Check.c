@@ -133,7 +133,7 @@ static void SpiCheck_Delay2(void)
 static void SpiCheck_HandleData(void)
 {
     /* 1. 변수 파싱 */
-    TRQ_COUNT = (unsigned int)(rx_16bit_spi[9] & 0xFFU);
+    trq_cnt = (unsigned int)(rx_16bit_spi[9] & 0xFFU);
     AAF_UVLO        = rx_16bit_spi[9] & 0x2000U;  /* B13 저전압 */
     AAF_CPUV        = rx_16bit_spi[9] & 0x1000U;  /* B12 차지펌프 저전압 */
     AAF_OverCurrent = rx_16bit_spi[9] & 0x0800U;  /* B11 OCP */
@@ -167,7 +167,7 @@ static void SpiCheck_HandleData(void)
     }
     #endif
 
-    G_Timer1ms.Spi = 0U;
+    G_Timer1ms.TrqCheck = 0U;
 
     if (AAF_Maximum_Torque_Test_Mode == OFF)
     {
@@ -191,17 +191,17 @@ static void SpiCheck_HandleData(void)
 static void SpiCheck_Init(void)
 {
     // Condition 1: Voltage Status Change
-    if ((voltage_status_change == ON) && (motor_start == OFF) && (G_Timer1ms.Spi >= 20U))
+    if ((voltage_status_change == ON) && (motor_start == OFF) && (G_Timer1ms.TrqCheck >= 20U))
     {
         SpiCheck_ExecuteVoltageChange();
     }
     // Condition 2: Motor ON (Fast Polling)
-    else if ((motor_start == ON) && (G_Timer1ms.Spi >= 2U) && (G_Timer1us.Motor <= (STEP_TIME_1250RPM / 2U)) && (spi_action_step == 0U))
+    else if ((motor_start == ON) && (G_Timer1ms.TrqCheck >= 2U) && (G_Timer1us.Motor <= (STEP_TIME_1250RPM / 2U)) && (spi_action_step == 0U))
     {
         SpiCheck_SendCommand();
     }
     // Condition 3: Idle (Slow Polling)
-    else if ((G_Timer1ms.Spi >= 50U) && (G_Timer1us.Motor == 0U) && (spi_action_step == 0U))
+    else if ((G_Timer1ms.TrqCheck >= 50U) && (G_Timer1us.Motor == 0U) && (spi_action_step == 0U))
     {
 
         SpiCheck_CurrentLimitingSelect(); 

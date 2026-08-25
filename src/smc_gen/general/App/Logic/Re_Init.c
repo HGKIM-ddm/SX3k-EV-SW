@@ -94,7 +94,7 @@ void Re_Init(void)
 	G_Timer1msFlag.DiagAutoModeFlag = OFF;
 	diag_mode_auto_action = OFF;
 	aaf_action = 0U;
-	TRQ_COUNT = MOTOR_STALL_CHK_NORMAL_VALUE; // stall reset
+	trq_cnt = MOTOR_STALL_CHK_NORMAL_VALUE; // stall reset
 	aaf_step = AAF_INITIALIZATION;					  // MCU is reset, AAF is initialized.
 	aaf_init_step = START_INITIALIZATION;			  // MCU is reset, AAF is initialized.
 	AAFx_Position_Status = Unknown_Status;

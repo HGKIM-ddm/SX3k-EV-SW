@@ -14,10 +14,19 @@ extern unsigned int AAF_DriveMode;
 extern unsigned int lin_aaf_request_command;
 extern uint8_t  highspeed_command_hold_flag;
 extern unsigned int cumulative_stall_count;
+
+extern unsigned int trq_cnt;
+extern unsigned int trq_buf[TRQ_BUF_SIZE];
+extern unsigned int trq_buf_index;
+extern unsigned int trq_buf_count;
+extern unsigned int trq_sum;
+extern unsigned int trq_cnt_avg;
+extern unsigned int trq_cnt_valid;                              
+extern unsigned int trq_scan[2];
 /*******************************************************************************
  * Drv8889 Register
  ******************************************************************************/
-extern unsigned int TRQ_COUNT;
+
 extern uint16_t TRQ_COUNT_Buffer[4000U];
 extern unsigned int TRQ_COUNT_Index;
 extern uint8_t TRQ_COUNT_LogEnable;
@@ -213,7 +222,7 @@ extern unsigned int AAFx_InitStatus_Temporary;
 typedef struct {
     unsigned int InitMove;
     unsigned int AdcCheck;
-    unsigned int Spi;
+    unsigned int TrqCheck;
     unsigned int InitCheck;
     unsigned int StallCheck;
     unsigned int ProtectionMode;
@@ -252,7 +261,7 @@ typedef struct {
     unsigned int InitMoveFlag;
     unsigned int AdcCheckFlag;
     unsigned int FdlFlag;
-    unsigned int SpiFlag;
+    unsigned int TrqCheckFlag;
     unsigned int InitCheckFlag;
     unsigned int StallCheckFlag;
     unsigned int ProtectionModeFlag;

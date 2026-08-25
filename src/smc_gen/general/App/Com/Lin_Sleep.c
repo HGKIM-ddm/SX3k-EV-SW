@@ -152,8 +152,8 @@ static void LinSleep_StartMotor(void)
         motor_start = ON;
         motor_stall_flag = MOTOR_NORMAL;
         G_Timer1ms.StallTime = 0U;
-        TRQ_COUNT = MOTOR_STALL_CHK_NORMAL_VALUE;
-        G_Timer1ms.Spi = 0U;
+        trq_cnt = MOTOR_STALL_CHK_NORMAL_VALUE;
+        G_Timer1ms.TrqCheck = 0U;
         
         lin_sleep_step = 4U;
     }
@@ -164,8 +164,8 @@ static void LinSleep_StartMotor(void)
         motor_start = ON;
         motor_stall_flag = MOTOR_NORMAL;
         G_Timer1ms.StallTime = 0U;
-        TRQ_COUNT = MOTOR_STALL_CHK_NORMAL_VALUE;
-        G_Timer1ms.Spi = 0U;
+        trq_cnt = MOTOR_STALL_CHK_NORMAL_VALUE;
+        G_Timer1ms.TrqCheck = 0U;
         
         lin_sleep_step = 4U;
     }
@@ -223,7 +223,7 @@ static void LinSleep_CheckCompletion(void)
         step_position = step_position_close;
 
         // stall 상태 초기화
-        TRQ_COUNT = MOTOR_STALL_CHK_NORMAL_VALUE;
+        trq_cnt = MOTOR_STALL_CHK_NORMAL_VALUE;
         motor_stall_flag = MOTOR_NORMAL;
 
         Sleep_Stall    = OFF;
@@ -329,8 +329,8 @@ static void LinSleep_Stall_Open(void)
     /* 스톨 상태 및 타이머 초기화 */
     motor_stall_flag = MOTOR_NORMAL;
     G_Timer1ms.StallTime = 0U;
-    TRQ_COUNT = MOTOR_STALL_CHK_NORMAL_VALUE;
-    G_Timer1ms.Spi = 0U;
+    trq_cnt = MOTOR_STALL_CHK_NORMAL_VALUE;
+    G_Timer1ms.TrqCheck = 0U;
 
     /* OPEN 방향 복귀 완료 여부 확인 단계로 이동 */
     lin_sleep_step = 7U;
@@ -553,8 +553,8 @@ static void McuSleep_InternalModuleStop(void)
     R_Config_TAUD0_13_Stop();       // 타이머 정지
     R_Config_TAUD0_3_Stop();        // 타이머 정지
 
-    G_Timer1msFlag.SpiFlag = 0U;          // 관련 플래그 초기화
-    G_Timer1ms.Spi = 0U;
+    G_Timer1msFlag.TrqCheckFlag = 0U;          // 관련 플래그 초기화
+    G_Timer1ms.TrqCheck = 0U;
 }
 
 /***********************************************************************************************************************

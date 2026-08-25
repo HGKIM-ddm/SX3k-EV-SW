@@ -12,6 +12,14 @@ uint8_t  highspeed_command_hold_flag = 0U; // 고속 주행모드에서 명령 �
 
 unsigned int cumulative_stall_count = 7; // 누적 스톨 카운트, 7 이상이면 스톨로 판단
 
+unsigned int trq_cnt = 0U;
+unsigned int trq_buf[TRQ_BUF_SIZE] = {0U};
+unsigned int trq_buf_index = 0U;
+unsigned int trq_buf_count = 0U;
+unsigned int trq_sum = 0U;
+unsigned int trq_cnt_avg = 0U;
+unsigned int trq_cnt_valid = 0U;                              
+unsigned int trq_scan[2] = {0U};
 
  /*******************************************************************************
   * Drv8889 Register
@@ -65,7 +73,7 @@ uint16_t fault_clear[1] = {
 /*******************************************************************************
  * Drv8889 Register
  ******************************************************************************/
-unsigned int TRQ_COUNT = 0U;
+
 
 //for UI test
 uint16_t TRQ_COUNT_Buffer[4000U] = {0U,};

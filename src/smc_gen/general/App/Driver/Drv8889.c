@@ -27,10 +27,10 @@ static uint8_t Drv8889_WaitSpiComplete(void)
 
 static void Drv8889_Wait1ms(void)
 {
-    G_Timer1msFlag.SpiFlag = 1U;
+    G_Timer1msFlag.TrqCheckFlag = 1U;
     while (1)
     {
-        if (G_Timer1ms.Spi >= 1U)
+        if (G_Timer1ms.TrqCheck >= 1U)
         {
             break;
         }
@@ -39,13 +39,13 @@ static void Drv8889_Wait1ms(void)
 
 static void Drv8889_WaitUs(uint16_t us_delay)
 {
-    G_Timer1usFlag.SpiFlag = 1U;
+    G_Timer1usFlag.TrqCheckFlag = 1U;
     while (1)
     {
-        if (G_Timer1us.Spi >= us_delay)
+        if (G_Timer1us.TrqCheck >= us_delay)
         {
-            G_Timer1usFlag.SpiFlag = 0U;
-            G_Timer1us.Spi = 0U;
+            G_Timer1usFlag.TrqCheckFlag = 0U;
+            G_Timer1us.TrqCheck = 0U;
             break;
         }
     }
