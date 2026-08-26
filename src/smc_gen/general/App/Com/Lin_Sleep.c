@@ -691,12 +691,6 @@ void MCU_Sleep(void)
     // 4. 슬립 대비 포트 설정 (누설 전류 방지)
     McuSleep_PortConfig();
 
-    // // 5. 내부 주변장치 클럭 정지
-    // McuSleep_InternalModuleStop();
-
-    // // 6. Deep Stop 모드 진입 (Wake-up 이벤트 발생 전까지 정지)
-    // McuSleep_DeepStop();
-    
 }
 
 
