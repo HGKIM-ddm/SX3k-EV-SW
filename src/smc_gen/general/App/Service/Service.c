@@ -28,7 +28,7 @@ static void Mode_Check(void)
 
 /***********************************************************************************************************************
  * Function Name: Communication_Check
- * Description  : Handles all communication related checks (LIN Rx/Tx, SPI).
+ * Description  : Handles all communication related checks (LIN Rx/Tx).
  * Called By    : App_SwLogic
  ***********************************************************************************************************************/
 static void Communication_Check(void)

@@ -228,3 +228,20 @@ void Motor_Off(void)
     G_Timer1ms.StallTime         = 0U;
     ADC_TrqCountReset();
 }
+
+void Motor_Wakeup(void)
+{
+    Drv8434a_Wakeup();                                      /* nSLEEP High */
+
+    Drv8434a_SetStepMode(DRV8434A_STEP_1_8);
+    Drv8434a_SetStallMode(DRV8434A_STALL_TORQUE_COUNT);
+    Drv8434a_StallReportDisable();
+
+    Drv8434a_VrefOn();
+}
+
+void Motor_Sleep(void)
+{
+    Drv8434a_Sleep();
+    ADC_TrqCountReset();
+}

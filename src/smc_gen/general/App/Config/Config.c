@@ -179,7 +179,7 @@ unsigned int adc_chk_ok_flag = 0;
 unsigned int adc_chk_ready = 0;
 uint16_t scan_results[6] = {0,};
 
-unsigned int voltage_status_spi = 0;
+unsigned int volt_stat = 0;
 unsigned int voltage_status_change = 0;
 unsigned int voltage_status_change_complete = 0;
 unsigned int voltage_chk_delay_complete = 0;

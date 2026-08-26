@@ -10,7 +10,7 @@
  ***********************************************************************************************************************/
 static void Protection_Reset(void)
 {
-    Drv8889_Off2();
+    Motor_Off();
     motor_start = OFF;
     G_Timer1msFlag.StallTimeFlag = 0U;
     G_Timer1ms.StallTime = 0U; // stall reset
@@ -51,7 +51,7 @@ static void Protection_StartMotor(void)
     if ((AAF_Tx_Position != OPEN))
 	{
         Motor_Open2();                    // dir OPEN
-       	Drv8889_On();                        // drv on
+       	Motor_On();                        // drv on
         motor_start = ON;                // step start
         G_Timer1msFlag.StallCheckFlag = ON;    // test
         motor_stall_flag = MOTOR_NORMAL; // stall reset
@@ -78,7 +78,7 @@ static void Protection_StallCheck(void)
     // if ((motor_stall_flag == MOTOR_STALL) || (G_Timer1ms.InitCheck >= 4500U))
     if ((step_position <= (step_position_open + limit_step_position)) || (motor_stall_flag == MOTOR_STALL))
     {
-        Drv8889_Off2();
+        Motor_Off();
         motor_start = OFF;
         G_Timer1msFlag.StallTimeFlag = 0U;
         G_Timer1ms.StallTime = 0U; // stall reset

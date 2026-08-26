@@ -518,7 +518,7 @@ void Lin_BusCheck(void)
         lin_bus_inactive_flag = ON;
         lin_sleep_step = 0U;
 
-        Drv8889_Off2();                           // drv off
+        Motor_Off();                           // drv off
         motor_start = OFF;                        // step stop
 
         aaf_action = FLAP_STOP;

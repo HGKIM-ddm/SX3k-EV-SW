@@ -15,7 +15,7 @@ static void Init_StartMotor(uint8_t next_step, uint8_t dir, uint8_t is_case0)
     if (dir == OPEN) Motor_Open2();
     else             Motor_Close2();
 
-    Drv8889_On();
+    Motor_On();
     motor_start = ON;
     
     // (Case 0, 6, 9)
@@ -51,7 +51,7 @@ static void Init_StallCheck(uint8_t next_step, uint8_t retry_step, uint8_t dir)
 {
     if ((motor_stall_flag == MOTOR_STALL) || (G_Timer1ms.InitCheck >= 8000U))
     {
-        Drv8889_Off();
+        Motor_Off();
         motor_start = OFF;
         
         if (dir == CLOSE) 
@@ -113,7 +113,7 @@ static void Init_MoveLimitPosition(void)
 	if (step_position <= step_position_open + limit_step_position)
 	{
 		Motor_Close2();						 // dir CLOSE
-		Drv8889_On();							 // drv on
+		Motor_On();							 // drv on
 		motor_start = ON;					 // step start
 		//G_Timer1msFlag.External10sCheckFlag = ON; // 10s chk timer on
 
@@ -149,7 +149,7 @@ static void Init_CheckLimitArrival(void)
     // stall or obd
     if (is_stall_error)
     {
-        Drv8889_Off();
+        Motor_Off();
         motor_start = OFF;
         softstart_complete = OFF;
         G_Timer1msFlag.InitFailCheckFlag = 0U;
@@ -161,7 +161,7 @@ static void Init_CheckLimitArrival(void)
     }
     else if (step_position >= step_position_open + limit_step_position)
     {
-        Drv8889_Off();
+        Motor_Off();
         motor_start = OFF;
         G_Timer1msFlag.StallTimeFlag = 0U;
         G_Timer1ms.StallTime = 0U; 

@@ -66,8 +66,8 @@ src/smc_gen/general/r_smc_intprg.c
 src/smc_gen/general/App/Config/Config.c
 src/smc_gen/general/App/Config/Config.h
 src/smc_gen/general/App/Config/Define.h
-src/smc_gen/general/App/Driver/Drv8889.c
-src/smc_gen/general/App/Driver/Drv8889.h
+src/smc_gen/general/App/Driver/Drv8434a.c
+src/smc_gen/general/App/Driver/Drv8434a.h
 src/smc_gen/general/App/Driver/Dio.c
 src/smc_gen/general/App/Driver/Dio.h
 src/smc_gen/general/App/Driver/Lin_Driver.c
@@ -98,8 +98,6 @@ src/smc_gen/general/App/Logic/Operating_Mode.c
 src/smc_gen/general/App/Logic/Operating_Mode.h
 src/smc_gen/general/App/Safety/Protection_Mode.c
 src/smc_gen/general/App/Safety/Protection_Mode.h
-src/smc_gen/general/App/Com/Spi_Check.c
-src/smc_gen/general/App/Com/Spi_Check.h
 src/smc_gen/general/App/Com/Lin_Service.c
 src/smc_gen/general/App/Com/Lin_Service.h
 src/smc_gen/general/App/Logic/HighSpeed_Mode.c

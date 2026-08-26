@@ -56,6 +56,32 @@ void ADC_TrqCountSample(void)
  
     trq_cnt = trq_scan[1];              /* VC01 = ADCA0I0 : 토크카운트 */
  
+    #ifdef ENABLE_TORQUE_LIN_COMMUNICATION
+
+    // if (AAF_Tx_Position == DIAG_MODE_AUTO) {
+    //     if (TRQ_COUNT_Index < 4000U){
+    //         TRQ_COUNT_Buffer[TRQ_COUNT_Index] = TRQ_COUNT;
+    //         TRQ_COUNT_Index++;
+    //     }
+    // }
+    
+    if (TRQ_COUNT_LogEnable == 1U)
+    {
+        // 모터 구동 중 2ms마다 여기가 호출됨
+        if (TRQ_COUNT_Index < 4000U)
+        {
+            TRQ_COUNT_Buffer[TRQ_COUNT_Index] = TRQ_COUNT;
+            TRQ_COUNT_Index++;
+        }
+        else
+        {
+            // 4000개가 넘어가면(약 8초) 강제 종료
+            TRQ_COUNT_LogEnable = 0U;
+            TRQ_COUNT_TxReady = 1U; 
+        }
+    }
+    #endif
+
     /* 이동평균 갱신 */
     trq_sum        -= (uint32_t)trq_buf[trq_buf_index];
     trq_buf[trq_buf_index] = (uint16_t)trq_cnt;
@@ -78,7 +104,7 @@ void ADC_TrqCountSample(void)
         trq_cnt_valid = 1U;
     }
  
-    /* 판정 : 구 Spi_Check.c 의 호출 위치를 그대로 계승 (2 ms 주기) */
+    /* 판정 : (2 ms 주기) */
     if (AAF_Maximum_Torque_Test_Mode == OFF)
     {
         StallCheck_ChangeStallTh();
@@ -155,19 +181,19 @@ void ADC_GetStatus(void)
 
 void ADC_UpdateVoltStat(void)
 {
-	if (voltage_status_spi == 0U) //	6 ohm
+	if (volt_stat == 0U) //	6 ohm
 	{
 		if ((bat_adc >= 500U) && (adc_avr < ADC_VOLTAGE_10V) && (motor_start == OFF))
 		{
-			voltage_status_spi = LOW_VOLTAGE;
+			volt_stat = LOW_VOLTAGE;
 		}
 		else if ((bat_adc >= 500U) && (adc_avr >= ADC_VOLTAGE_15V) && (motor_start == OFF))
         {
-            voltage_status_spi = HIGH_VOLTAGE;
+            volt_stat = HIGH_VOLTAGE;
         }
 		else
 		{
-			voltage_status_spi = NORMAL_VOLTAGE;
+			volt_stat = NORMAL_VOLTAGE;
 		}
 
 		voltage_status_change = ON;

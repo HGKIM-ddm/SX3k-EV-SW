@@ -12,7 +12,7 @@ static void Antipinch_PrevOpen(void)
     {
     case 0:
         Motor_Close();                
-        Drv8889_On2();                       
+        Motor_On();                       
         motor_start = ON;               
         G_Timer1msFlag.InitCheckFlag = 1U;     
 
@@ -27,7 +27,7 @@ static void Antipinch_PrevOpen(void)
     case 1:
         if ((motor_stall_flag == MOTOR_STALL) || (G_Timer1ms.InitCheck >= 8000U))
         {
-            Drv8889_Off();
+            Motor_Off();
             motor_start = OFF;
             G_Timer1msFlag.StallTimeFlag = 0U;
             G_Timer1ms.StallTime = 0U; 
@@ -60,7 +60,7 @@ static void Antipinch_PrevOpen(void)
 
     case 3:
         Motor_Open();    
-        Drv8889_On2();         
+        Motor_On();         
         motor_start = ON; 
 
         G_Timer1ms.StallTime = 0U;                                           
@@ -81,7 +81,7 @@ static void Antipinch_PrevOpen(void)
              ((aaf_action == DIAG_MODE_AUTO) && (diag_mode_auto_dir == OPEN))) &&
             (step_position <= (Operate_GetTargetPosition(aaf_action) + limit_step_position)))
         {
-            Drv8889_Off();
+            Motor_Off();
             motor_start = OFF;
             
             // 진단 모드 여부에 따른 분기
@@ -130,7 +130,7 @@ static void Antipinch_PrevOpen(void)
         }
         else if ((motor_stall_flag == MOTOR_STALL) || (G_Timer1ms.InitCheck >= 8000U))
         {
-            Drv8889_Off();
+            Motor_Off();
             motor_start = OFF;
             G_Timer1msFlag.StallTimeFlag = 0U;
             G_Timer1ms.StallTime = 0U;
@@ -174,7 +174,7 @@ static void Antipinch_PrevClose(void)
     {
     case 0:
         Motor_Open();   
-        Drv8889_On2();       
+        Motor_On();       
 
         G_Timer1ms.StallTime = 0U; 
 
@@ -191,7 +191,7 @@ static void Antipinch_PrevClose(void)
     case 1:
         if ((motor_stall_flag == MOTOR_STALL) || (G_Timer1ms.InitCheck >= 8000U))
         {
-            Drv8889_Off();
+            Motor_Off();
             motor_start = OFF;
             G_Timer1msFlag.StallTimeFlag = 0U;
             G_Timer1ms.StallTime = 0U; 
@@ -226,7 +226,7 @@ static void Antipinch_PrevClose(void)
 
     case 3:
         Motor_Close();   
-        Drv8889_On2();        
+        Motor_On();        
         motor_start = ON; 
         motor_stall_flag = MOTOR_NORMAL; 
 
@@ -246,7 +246,7 @@ static void Antipinch_PrevClose(void)
              ((aaf_action == DIAG_MODE_AUTO) && (diag_mode_auto_dir == CLOSE))) &&
             (step_position >= (Operate_GetTargetPosition(aaf_action) - limit_step_position)))
         {
-            Drv8889_Off();
+            Motor_Off();
             motor_start = OFF;
 
             if (Diag_Mode != 0U)
@@ -294,7 +294,7 @@ static void Antipinch_PrevClose(void)
         }
         else if ((motor_stall_flag == MOTOR_STALL) || (G_Timer1ms.InitCheck >= 8000U))
         {
-            Drv8889_Off();
+            Motor_Off();
             motor_start = OFF;
             G_Timer1msFlag.StallTimeFlag = 0U;
             G_Timer1ms.StallTime = 0U;
@@ -310,7 +310,7 @@ static void Antipinch_PrevClose(void)
 
     case 5:
         Motor_Open();    
-        Drv8889_On2();         
+        Motor_On();         
         motor_start = ON; 
         G_Timer1msFlag.InitCheckFlag = 1U; 
         aaf_action = OPEN;
@@ -325,7 +325,7 @@ static void Antipinch_PrevClose(void)
     case 6:
         if ((motor_stall_flag == MOTOR_STALL) || (G_Timer1ms.InitCheck >= 8000U))
         {
-            Drv8889_Off();
+            Motor_Off();
             motor_start = OFF;
             G_Timer1msFlag.StallTimeFlag = 0U;
             G_Timer1ms.StallTime = 0U; 

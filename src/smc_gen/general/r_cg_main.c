@@ -131,11 +131,9 @@ static void AAF_Init(void)
 	/* lin transceiver on */
 	LinTrcv_On();
 
-	Drv8889_GpioInit();
+	Drv8434a_GpioInit();
 
 	AAF_SetType();
-
-	Drv8889_SpiInit();
 
 	G_Timer1msFlag.VoltCheckDelayFlag = 1; // POWER ON AFTER 500ms
 

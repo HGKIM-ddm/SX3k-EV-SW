@@ -47,7 +47,7 @@ static void Lin_Wakeup(void)
         G_Timer1ms.LinSleepMode = 0U;
 
         /* Sleep 중 모터가 동작하고 있었을 수 있으므로 모터 정지 */
-        Drv8889_Off2();
+        Motor_Off();
         motor_start = OFF;
 
         /* Stall timer 초기화 */

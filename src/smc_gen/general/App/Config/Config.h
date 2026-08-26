@@ -147,7 +147,7 @@ extern unsigned int adc_chk_ok_flag;
 extern unsigned int adc_chk_ready;
 extern uint16_t scan_results[6]; //Only SX3k [6]
 
-extern unsigned int voltage_status_spi;
+extern unsigned int volt_stat;
 extern unsigned int voltage_status_change;
 extern unsigned int voltage_status_change_complete;
 extern unsigned int voltage_chk_delay_complete;

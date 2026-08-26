@@ -65,7 +65,7 @@ static void Operate_SetupAction(void) {
 	}
 	else if (lin_aaf_command == DIAG_MODE_AUTO) // lin init command chk
 	{
-		Drv8889_Wakeup();
+		Motor_Wakeup();
 
 		if (diag_mode_auto_action == ON)
 		{
@@ -111,7 +111,7 @@ static void Operate_SetupAction(void) {
  ***********************************************************************************************************************/
 static void Operate_Action(unsigned int action)
 {
-    Drv8889_Wakeup();
+    Motor_Wakeup();
     G_Timer1ms.DiagAutoMode = 0U;
     G_Timer1msFlag.DiagAutoModeFlag = OFF;
     diag_mode_auto_action = OFF;
@@ -240,7 +240,7 @@ static void Operate_NormalAction(unsigned int direction)
 	if (direction == OPEN) Motor_Open2();
     else Motor_Close2();
 
-    Drv8889_On();
+    Motor_On();
     motor_start = ON;
     G_Timer1msFlag.External10sCheckFlag = ON; 
     G_Timer1msFlag.StallCheckFlag = ON;
@@ -296,7 +296,7 @@ static void Operate_DiagAction(unsigned int direction, unsigned int is_auto)
     if (direction == OPEN) Motor_Open2();
     else Motor_Close2();
 
-    Drv8889_On();
+    Motor_On();
     motor_start = ON;
     G_Timer1msFlag.StallCheckFlag = ON;
     G_Timer1ms.StallTime = 0;
@@ -456,7 +456,7 @@ static void Operate_HandleStall(void)
 	// if(((motor_stall_flag == MOTOR_STALL) && (G_Timer1ms.StallCheck >= 100)) || (G_Timer1ms.InitCheck >= 4800))
 	if ((motor_stall_flag == MOTOR_STALL) && (G_Timer1ms.StallCheck >= 100U))
 	{
-		Drv8889_Off2();
+		Motor_Off();
 		motor_start = OFF;
 		softstart_complete = OFF;
 		antipinch_original_action = aaf_action;
@@ -588,7 +588,7 @@ switch (aaf_init_step)
  ***********************************************************************************************************************/
 static void Operate_Finish(void)
 {
-	Drv8889_Off2();							  // drv of
+	Motor_Off();							  // drv of
 	motor_start = OFF;					  // step stop
 	G_Timer1msFlag.External10sCheckFlag = OFF; // 10s chk timer off
 	G_Timer1ms.External10sCheck = 0U;
@@ -768,16 +768,16 @@ void Torque_TestMode(void)
     {
     case OPEN:        /* 0x03 - 스토퍼 무시하고 OPEN 방향 계속 밀기 */
         Motor_Open();
-        Drv8889_On();
+        Motor_On();
         motor_start = ON;
         break;
     case CLOSE:       /* 0x00 - 스토퍼 무시하고 CLOSE 방향 계속 밀기 */
         Motor_Close();
-        Drv8889_On();
+        Motor_On();
         motor_start = ON;
         break;
     case UNKOWN_POSITION:  /* 0x07 - STOP */
-        Drv8889_Off2();
+        Motor_Off();
         motor_start = OFF;
         break;
     default:

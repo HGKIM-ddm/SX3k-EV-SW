@@ -55,7 +55,7 @@ void Limp_Home(void)
 			if ((AAF_Tx_Position != OPEN))
 			{
 				Motor_Open();					 // dir OPEN
-				Drv8889_On2();						 // drv on
+				Motor_On();						 // drv on
 				motor_start = ON;				 // step start
 				G_Timer1msFlag.StallCheckFlag = ON;	 // test
 				motor_stall_flag = MOTOR_NORMAL; // stall reset
@@ -72,7 +72,7 @@ void Limp_Home(void)
 	case 1:
 		if ((step_position <= (step_position_open + limit_step_position)) || (motor_stall_flag == MOTOR_STALL)) //
 		{
-			Drv8889_Off2();
+			Motor_Off();
 			motor_start = OFF;
 			G_Timer1msFlag.StallTimeFlag = 0U;
 			G_Timer1ms.StallTime = 0U; // stall reset

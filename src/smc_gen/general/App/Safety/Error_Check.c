@@ -165,7 +165,7 @@ static void Error_CheckMotorFault(void)
     // 초기화가 비정상적으로 종료되었거나 모터 하드웨어 Fault가 감지된 경우
     if ((AAFx_InitStatus == ABNORMAL_FINISHED_INITIALIZATION) && (motor_fault_chk == 1))
     {
-        Drv8889_Sleep();        // 모터 드라이버 보호를 위해 슬립 모드 진입
+        Motor_Sleep();        // 모터 드라이버 보호를 위해 슬립 모드 진입
         AAFx_Motor_Fault = 1U;   // 모터 고장 상태 플래그 세팅
         DTC_Status |= 0x10u;     // 모터 관련 고장 코드(DTC) 기록
     }
@@ -186,7 +186,7 @@ static void Error_CheckShort(void)
         Short_Detected = 1U;
         Short_fault_check = 0U;
         motor_Short_chk_count++;
-        Drv8889_Off2();
+        Motor_Off();
         motor_start = OFF;
         G_Timer1msFlag.StallTimeFlag = 0U;
         G_Timer1ms.StallTime = 0U;
@@ -199,7 +199,9 @@ static void Error_CheckShort(void)
     {
         if ((G_Timer1ms.MotorShortCheck >= 200U) && (Short_fault_check == 0U))
         {
-            Drv8889_FaultClear();
+            Drv8434a_FaultClear();
+            motor_stall_flag = MOTOR_NORMAL;
+            G_Timer1ms.StallTime = 0U;
             Short_fault_check = 1U;
         }
         AAF_OverCurrent = (unsigned int)(rx_16bit_spi[9] & 0x800U);
@@ -223,10 +225,10 @@ static void Error_CheckShort(void)
         }
         if (motor_Short_chk_count >= 10U)
         {
-            Drv8889_Off2();
+            Motor_Off();
             motor_start = OFF;
             AAFx_Circuit_Short = AAF_CIRCUIT_SHORT;
-            Drv8889_Sleep();
+            Motor_Sleep();
             DTC_Status |= 0x04U;
             G_Timer1msFlag.MotorShortCheckFlag = 0U;
             Short_Detected = 0U;
@@ -254,7 +256,7 @@ static void Error_CheckOpen(void)
         Open_Detected = 1U;
         Open_fault_check = 0U;
         motor_Open_chk_count++;
-        Drv8889_Off2();
+        Motor_Off();
         motor_start = OFF;
         G_Timer1msFlag.StallTimeFlag = 0U;
         G_Timer1ms.StallTime = 0U;
@@ -267,7 +269,9 @@ static void Error_CheckOpen(void)
     {
         if ((G_Timer1ms.MotorOpenCheck >= 200U) && (Open_fault_check == 0U))
         {
-            Drv8889_FaultClear();
+            Drv8434a_FaultClear();
+            motor_stall_flag = MOTOR_NORMAL;
+            G_Timer1ms.StallTime = 0U;
             Open_fault_check = 1U;
         }
  
@@ -298,10 +302,10 @@ static void Error_CheckOpen(void)
  
         if (motor_Open_chk_count >= 10U)
         {
-            Drv8889_Off2();
+            Motor_Off();
             motor_start = OFF;
             AAFx_Motor_Fault = 1U;
-            Drv8889_Sleep();
+            Motor_Sleep();
             DTC_Status |= 0x10u;
             G_Timer1msFlag.MotorOpenCheckFlag = 0U;
             FDL_Write();
@@ -395,7 +399,7 @@ void Error_Check(void)
 
 void Error_UnknownStatus(void)
 {
-	Drv8889_Off();
+	Motor_Off();
 	motor_start = OFF;
 	G_Timer1msFlag.StallTimeFlag = 0U;
 	G_Timer1ms.StallTime = 0U;

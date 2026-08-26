@@ -10,6 +10,8 @@ void Motor_Close(void);
 void Motor_Close2(void);
 void Motor_On(void);
 void Motor_Off(void);
+void Motor_Wakeup(void);
+void Motor_Sleep(void);
 
 #endif
 
