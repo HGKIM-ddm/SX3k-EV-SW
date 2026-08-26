@@ -132,6 +132,8 @@ static void AAF_Init(void)
 	LinTrcv_On();
 
 	Drv8434a_GpioInit();
+	
+	Motor_Wakeup();
 
 	AAF_SetType();
 

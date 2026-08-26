@@ -456,6 +456,7 @@ static void Operate_HandleStall(void)
 	// if(((motor_stall_flag == MOTOR_STALL) && (G_Timer1ms.StallCheck >= 100)) || (G_Timer1ms.InitCheck >= 4800))
 	if ((motor_stall_flag == MOTOR_STALL) && (G_Timer1ms.StallCheck >= 100U))
 	{
+		Drv8434a_StepStop();
 		Motor_Off();
 		motor_start = OFF;
 		softstart_complete = OFF;
