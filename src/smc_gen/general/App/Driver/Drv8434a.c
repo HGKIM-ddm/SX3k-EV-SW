@@ -94,6 +94,27 @@ void Drv8434a_Wakeup(void)
     /* 호출자는 DRV8434A_T_WAKE_US 경과 후 출력을 켤 것 */
 }
 
+void Drv8434a_WakeRestore(void)
+{
+    /* Wake 과정 중 H-Bridge가 켜지지 않도록 출력 차단 유지 */
+    Drv8434a_OFF();
+
+    /* Sleep 진입 시 Low로 내렸던 동작 모드 복원 */
+    Drv8434a_StallReportDisable();
+    Drv8434a_SetStepMode(DRV8434A_STEP_1_8);
+    Drv8434a_SetStallMode(DRV8434A_STALL_TORQUE_COUNT);
+
+    /* 전류 기준을 먼저 복원한 후 Driver Wakeup */
+    Drv8434a_VrefOn();
+    Drv8434a_Wakeup();
+
+    /*
+     * 여기서는 blocking delay를 사용하지 않는다.
+     * 호출자는 DRV8434A_T_WAKE_US(1.2ms) 경과 후
+     * ENABLE을 On 해야 한다.
+     */
+}
+
 void Drv8434a_Sleep(void)
 {
     Drv8434a_OFF();                       /* 출력 먼저 차단 */

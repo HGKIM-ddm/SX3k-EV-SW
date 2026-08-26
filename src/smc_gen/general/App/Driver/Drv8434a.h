@@ -94,6 +94,7 @@ void Drv8434a_GpioInit(void);
 
 /* --- 전원 상태 --------------------------------------------------------------- */
 void Drv8434a_Wakeup(void);                 /* nSLEEP High. 이후 T_WAKE_US 대기 필요 */
+void Drv8434a_WakeRestore(void);            /* Sleep 해제용 핀 복원. T_WAKE 대기는 호출자 처리 */
 void Drv8434a_Sleep(void);                  /* nSLEEP Low + 부수 핀 정리(암전류)     */
 
 /* --- 출력 제어 (ENABLE 핀 3상태) ------------------------------------------------
