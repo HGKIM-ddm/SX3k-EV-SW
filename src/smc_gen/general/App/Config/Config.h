@@ -19,10 +19,10 @@ extern unsigned int trq_cnt;
 extern unsigned int trq_buf[TRQ_BUF_SIZE];
 extern unsigned int trq_buf_index;
 extern unsigned int trq_buf_count;
-extern unsigned int trq_sum;
+extern uint32_t trq_sum;
 extern unsigned int trq_cnt_avg;
 extern unsigned int trq_cnt_valid;                              
-extern unsigned int trq_scan[2];
+extern uint16_t trq_scan[2];
 /*******************************************************************************
  * Drv8889 Register
  ******************************************************************************/

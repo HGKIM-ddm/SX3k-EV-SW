@@ -15,6 +15,7 @@ static void Init_StartMotor(uint8_t next_step, uint8_t dir, uint8_t is_case0)
     if (dir == OPEN) Motor_Open2();
     else             Motor_Close2();
 
+    Motor_Wakeup();
     Motor_On();
     motor_start = ON;
     

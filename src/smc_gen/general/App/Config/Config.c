@@ -16,10 +16,10 @@ unsigned int trq_cnt = 0U;
 unsigned int trq_buf[TRQ_BUF_SIZE] = {0U};
 unsigned int trq_buf_index = 0U;
 unsigned int trq_buf_count = 0U;
-unsigned int trq_sum = 0U;
+uint32_t trq_sum = 0U;
 unsigned int trq_cnt_avg = 0U;
 unsigned int trq_cnt_valid = 0U;                              
-unsigned int trq_scan[2] = {0U};
+uint16_t trq_scan[2] = {0U};
 
  /*******************************************************************************
   * Drv8889 Register

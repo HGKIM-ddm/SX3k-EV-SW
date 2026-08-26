@@ -279,9 +279,9 @@
 // #define ADC_UNDER_VOLTAGE_7V 1262U 
 // #define ADC_UNDER_VOLTAGE_8_5V 1566U
 // #define ADC_UNDER_VOLTAGE_9V 1667U
+// #define ADC_VOLTAGE_9_5V 1769U
 
 // //ADC_OVER_VOLTAGE
-// #define ADC_VOLTAGE_15V 2887U
 // #define ADC_OVER_VOLTAGE_16V 3070U
 // #define ADC_OVER_VOLTAGE_16_5V 3170U
 // #define ADC_OVER_VOLTAGE_18V 3480U
@@ -290,7 +290,20 @@
 // #define ADC_VOLTAGE_10V 1850U	// slew change
 // #define ADC_VOLTAGE_10_5V 1950U // slew change
 // #define ADC_VOLTAGE_15V 2887U   // slew change
+
+// #define ADC_VOLTAGE_11V 2069U
+// #define ADC_VOLTAGE_11_5V 2171U
+// #define ADC_VOLTAGE_12V 2273U
+// #define ADC_VOLTAGE_13_5V 2587U
+// #define ADC_VOLTAGE_13_7V 2627U
+// #define ADC_VOLTAGE_13_8V 2641U
 // #define ADC_VOLTAGE_14V 2681U
+// #define ADC_VOLTAGE_14_4V 2761U
+// #define ADC_VOLTAGE_14_5V 2781U
+// #define ADC_VOLTAGE_14_6V 2801U
+// #define ADC_VOLTAGE_14_7V 2821U
+// #define ADC_VOLTAGE_14_8V 2847U
+
 
 // HW 1.2 ADC 최신
 #define ADC_UNDER_VOLTAGE_7V 618U	 
@@ -305,24 +318,22 @@
 #define ADC_OVER_VOLTAGE_18V 1710U	 
 
 
+// EV D
+// #define ADC_UNDER_VOLTAGE_7V     245U
+// #define ADC_UNDER_VOLTAGE_8_5V   303U
+// #define ADC_UNDER_VOLTAGE_9V     323U
+// #define ADC_VOLTAGE_10V          363U
+// #define ADC_VOLTAGE_10_5V        383U
+// #define ADC_VOLTAGE_14V          521U
+// #define ADC_VOLTAGE_15V          561U
+// #define ADC_OVER_VOLTAGE_16V     600U
+// #define ADC_OVER_VOLTAGE_16_5V   620U
+// #define ADC_OVER_VOLTAGE_18V     679U
 
 
 
 
-// #define ADC_VOLTAGE_9_5V 1769U
-// #define ADC_VOLTAGE_11V 2069U
-// #define ADC_VOLTAGE_11_5V 2171U
-// #define ADC_VOLTAGE_12V 2273U
-// #define ADC_VOLTAGE_13_5V 2587U
-// #define ADC_VOLTAGE_13_7V 2627U
-// #define ADC_VOLTAGE_13_8V 2641U
-// #define ADC_VOLTAGE_14V 2681U
-// #define ADC_VOLTAGE_14_4V 2761U
-// #define ADC_VOLTAGE_14_5V 2781U
-// #define ADC_VOLTAGE_14_6V 2801U
-// #define ADC_VOLTAGE_14_7V 2821U
-// #define ADC_VOLTAGE_14_8V 2847U
-// #define ADC_VOLTAGE_15V 2887U
+
 
 #define LOW_VOLTAGE 1U
 #define NORMAL_VOLTAGE 2U
