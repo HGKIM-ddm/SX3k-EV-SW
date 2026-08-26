@@ -217,7 +217,7 @@ void Motor_Close2(void)
 
 void Motor_On(void)
 {
-    Drv8434a_ON();
+    Drv8434a_ON_TRQ8X();  /* ENABLE High : 출력 동작, 토크카운트 x8 */
 }
 
 void Motor_Off(void)

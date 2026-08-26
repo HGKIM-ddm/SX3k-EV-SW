@@ -7,6 +7,8 @@
 
 void ADC_GetStatus(void);
 void ADC_UpdateVoltStat(void);
+void ADC_TrqCountSample(void);
+void ADC_TrqCountReset(void);
 
 
 #endif

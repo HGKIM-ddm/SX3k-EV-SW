@@ -60,7 +60,7 @@ void ADC_TrqCountSample(void)
 
     // if (AAF_Tx_Position == DIAG_MODE_AUTO) {
     //     if (TRQ_COUNT_Index < 4000U){
-    //         TRQ_COUNT_Buffer[TRQ_COUNT_Index] = TRQ_COUNT;
+    //         TRQ_COUNT_Buffer[TRQ_COUNT_Index] = trq_cnt;
     //         TRQ_COUNT_Index++;
     //     }
     // }
@@ -70,7 +70,7 @@ void ADC_TrqCountSample(void)
         // 모터 구동 중 2ms마다 여기가 호출됨
         if (TRQ_COUNT_Index < 4000U)
         {
-            TRQ_COUNT_Buffer[TRQ_COUNT_Index] = TRQ_COUNT;
+            TRQ_COUNT_Buffer[TRQ_COUNT_Index] = trq_cnt;
             TRQ_COUNT_Index++;
         }
         else
