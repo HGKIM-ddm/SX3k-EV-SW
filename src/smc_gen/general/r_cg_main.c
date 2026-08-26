@@ -135,6 +135,11 @@ static void AAF_Init(void)
 
 	AAF_SetType();
 
+	Drv8434a_VrefOn();
+	Drv8434a_Wakeup();
+	Drv8434a_SetStepMode(DRV8434A_STEP_1_8);
+	Drv8434a_SetStallMode(DRV8434A_STALL_TORQUE_COUNT);
+
 	G_Timer1msFlag.VoltCheckDelayFlag = 1; // POWER ON AFTER 500ms
 
 	diag_mode_auto_dir = OPEN;
