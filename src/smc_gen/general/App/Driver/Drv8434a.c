@@ -331,10 +331,12 @@ void Drv8434a_FaultClear(void)
 
     for (i = 0U; i < DRV8434A_PULSE_LOOP; i++)
     {
-        __nop();
+       NOP();
     }
 
     PORT.P10 |= _PORT_Pn2_OUTPUT_HIGH;              /* nSLEEP = High */
 
     EI();
 }
+
+

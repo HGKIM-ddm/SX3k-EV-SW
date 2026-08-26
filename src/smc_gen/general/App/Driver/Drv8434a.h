@@ -132,3 +132,5 @@ uint8_t Drv8434a_IsFault(void);             /* 1 = 폴트 (nFAULT Low)          
 void Drv8434a_FaultClear(void);             /* nSLEEP 20~40us 펄스. 블로킹.          */
 
 #endif /* DRV8434A_H */
+
+
