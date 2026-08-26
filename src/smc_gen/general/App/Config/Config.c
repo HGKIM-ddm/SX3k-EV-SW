@@ -10,7 +10,7 @@ unsigned int AAF_DriveMode = NORMAL_DRIVE_MODE; //현재 주행 모드 저장, 1
 unsigned int lin_aaf_request_command = CLOSE; // MCU가 LIN으로 보낸 원본 위치 명령 저장
 uint8_t  highspeed_command_hold_flag = 0U; // 고속 주행모드에서 명령 홀드 여부 저장 (0: 홀드 안함, 1: 홀드)
 
-unsigned int cumulative_stall_count = 7; // 누적 스톨 카운트, 7 이상이면 스톨로 판단
+unsigned int cumulative_stall_count = 3U; // 누적 스톨 카운트, 7 이상이면 스톨로 판단
 
 unsigned int trq_cnt = 0U;
 unsigned int trq_buf[TRQ_BUF_SIZE] = {0U};

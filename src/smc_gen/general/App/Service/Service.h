@@ -3,8 +3,7 @@
 
 #include "Config.h"
 #include "Dio.h"
-#include "Drv8889.h"
-
+#include "Drv8434a.h"
 #include "Adc_Check.h"
 #include "Stall_Check.h"
 

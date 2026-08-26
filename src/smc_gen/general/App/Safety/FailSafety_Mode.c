@@ -23,7 +23,6 @@ static void FS_MotorOpenStart(unsigned int next_step)
     motor_stall_flag = MOTOR_NORMAL;                          /* stall reset */
     G_Timer1msFlag.StallTimeFlag = 0U;                                        /* stall reset */
     G_Timer1ms.StallTime = 0U;                                   /* stall reset */
-    trq_cnt = MOTOR_STALL_CHK_NORMAL_VALUE;         /* stall reset */
     G_Timer1ms.InitCheck = 0U;                                    /* step start */
     G_Timer1msFlag.InitCheckFlag = 1U;
     fail_safety_step = next_step;
