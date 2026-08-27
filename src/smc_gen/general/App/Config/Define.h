@@ -19,7 +19,7 @@
 #define UDS
 
 //For Torque Lin Communication
-#define ENABLE_TORQUE_LIN_COMMUNICATION
+// #define ENABLE_TORQUE_LIN_COMMUNICATION
 
 //Current CodeName
 #define VEHICLE_CODENAME SX3K_EV_AAF1
