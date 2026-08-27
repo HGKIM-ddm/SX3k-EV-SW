@@ -277,42 +277,43 @@ static void Lin_TxTrqCount(void)
 {
     static unsigned int trq_read_idx = 0U;
 
-    if (AAFx_InitStatus == NORMAL_FINISHED_INITIALIZATION) 
+    /* [B] 로깅 시작/종료는 Adc_Check.c 가 단독 소유한다.
+     *     여기서는 로깅이 끝난(TxReady) 뒤에 읽어내기만 한다.
+     *     AAFx_InitStatus 는 Re_Init() 에서 초기화되지 않으므로 판단 기준으로 쓸 수 없다. */
+    if (TRQ_COUNT_TxReady == 1U)
     {
-        TRQ_COUNT_LogEnable = 0U; 
-
-        if (SW_Chk == 0U) 
+        if (SW_Chk == 0U)
         {
-            // 1. 현재 인덱스(trq_read_idx)를 기준으로 4개의 데이터를 무조건 상자에 담아둡니다. 
-            for (uint8_t i = 3U; i <= 6U; i++) 
+            for (uint8_t i = 3U; i <= 6U; i++)
             {
                 unsigned int temp_idx = trq_read_idx + (i - 3U);
-                if (temp_idx < TRQ_COUNT_Index)
+
+                /* 링버퍼이므로 TRQ_COUNT_Index 가 아니라 버퍼 크기로 판정한다 */
+                if (temp_idx < TRQ_COUNT_BUF_SIZE)
                 {
                     Slave_TxData[i] = (uint8_t)(TRQ_COUNT_Buffer[temp_idx] & 0xFFU);
                 }
                 else
                 {
-                    Slave_TxData[i] = 0x00U; 
+                    Slave_TxData[i] = 0x00U;
                 }
             }
 
-            // 2.  CANoe가 방금 데이터를 가져갔다는
             if (lin_tx_resp_flag == 1U)
             {
-                trq_read_idx += 4U;      
-                lin_tx_resp_flag = 0U;   
+                trq_read_idx += 4U;
+                lin_tx_resp_flag = 0U;
 
-                if (trq_read_idx >= TRQ_COUNT_Index) 
+                if (trq_read_idx >= TRQ_COUNT_BUF_SIZE)
                 {
-                    trq_read_idx = 0U;   
+                    trq_read_idx = 0U;
                 }
             }
         }
     }
-    else 
+    else
     {
-        trq_read_idx = 0U; 
+        trq_read_idx = 0U;
     }
 }
 #endif

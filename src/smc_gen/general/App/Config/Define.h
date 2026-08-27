@@ -19,7 +19,7 @@
 #define UDS
 
 //For Torque Lin Communication
-//#define ENABLE_TORQUE_LIN_COMMUNICATION
+#define ENABLE_TORQUE_LIN_COMMUNICATION
 
 //Current CodeName
 #define VEHICLE_CODENAME SX3K_EV_AAF1
@@ -143,8 +143,7 @@
 #define TRQ_BUF_SIZE 4U
 #define TRQ_SAMPLE_PERIOD 2U
 
-#define INIT_STALL_TH 737U
-#define STALL_TH 655U 
+#define STALL_TH 737U 
 
 #define STALL_CNT_DEFAULT 30000U
 #define STALL_CHK_WAIT_TIME 250U // 250
@@ -152,6 +151,11 @@
 #define MOTOR_NORMAL 0U
 #define MOTOR_STALL 1U
 #define MOTOR_FAULT 0x100U
+
+
+//For Torque Count Test
+#define TRQ_COUNT_BUF_SIZE   (4000U)
+#define TRQ_LOG_POST_CNT      (200U)   /* 스톨 후 200 x 2ms = 400 ms */
 
 
 /***********************************************************************************************************************

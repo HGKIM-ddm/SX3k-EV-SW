@@ -23,14 +23,14 @@ extern uint32_t trq_sum;
 extern unsigned int trq_cnt_avg;
 extern unsigned int trq_cnt_valid;                              
 extern uint16_t trq_scan[2];
-/*******************************************************************************
- * Drv8889 Register
- ******************************************************************************/
 
-extern uint16_t TRQ_COUNT_Buffer[4000U];
+//for Torque Test
+extern uint16_t TRQ_COUNT_Buffer[TRQ_COUNT_BUF_SIZE];   /* 값  : trq_cnt 생값 그대로 */
+extern uint8_t  TRQ_STATE_Buffer[TRQ_COUNT_BUF_SIZE];   /* 상태: 비트 플래그        */
 extern unsigned int TRQ_COUNT_Index;
 extern uint8_t TRQ_COUNT_LogEnable;
 extern uint8_t TRQ_COUNT_TxReady;
+extern unsigned int trq_log_post;
 
 /*******************************************************************************
  * Global Variable Extern Declarations
