@@ -39,6 +39,17 @@ void ADC_TrqCountSample(void)
     {
         ADC_TrqCountReset();
         G_Timer1ms.TrqCheck = 0U;
+
+        #ifdef ENABLE_TORQUE_LIN_COMMUNICATION
+        /* [A-2] 스톨 확정 → motor_start=OFF 가 되면 여기서 return 되므로
+         *       후미 TRQ_LOG_POST_CNT 개를 못 채운다. 로그를 여기서 확정한다. */
+        if ((TRQ_COUNT_LogEnable == 1U) && (trq_log_post > 0U))
+        {
+            TRQ_COUNT_LogEnable = 0U;
+            TRQ_COUNT_TxReady   = 1U;
+        }
+        #endif
+
         return;
     }
  
@@ -56,47 +67,6 @@ void ADC_TrqCountSample(void)
  
     trq_cnt = trq_scan[1];              /* VC01 = ADCA0I0 : 토크카운트 */
  
-    #ifdef ENABLE_TORQUE_LIN_COMMUNICATION
-    if (TRQ_COUNT_LogEnable == 1U)
-    {
-    uint8_t st;
-
-    st  = (uint8_t)((motor_stall_flag == MOTOR_STALL)             ? 0x01U : 0x00U);
-    st |= (uint8_t)((dir_state == OPEN)                           ? 0x02U : 0x00U);
-    st |= (uint8_t)((trq_cnt_valid == 1U)                         ? 0x04U : 0x00U);
-    st |= (uint8_t)((G_Timer1ms.StallTime >= STALL_CHK_WAIT_TIME) ? 0x08U : 0x00U);
-    st |= (uint8_t)(((stall_count > 3U) ? 3U : stall_count) << 4U);
-    st |= (uint8_t)((antipinch_action_on == ON)                   ? 0x40U : 0x00U);
-
-    TRQ_COUNT_Buffer[TRQ_COUNT_Index] = (uint16_t)trq_cnt;   /* 생값, 마스킹 없음 */
-    TRQ_STATE_Buffer[TRQ_COUNT_Index] = st;
-
-    TRQ_COUNT_Index++;
-    if (TRQ_COUNT_Index >= TRQ_COUNT_BUF_SIZE)
-    {
-        TRQ_COUNT_Index = 0U;                 /* 항상 순환 */
-    }
-
-    if (trq_log_post > 0U)                    /* 트리거 이후 : 후미 구간 */
-    {
-        trq_log_post++;
-        if (trq_log_post >= TRQ_LOG_POST_CNT)
-        {
-            TRQ_COUNT_LogEnable = 0U;
-            TRQ_COUNT_TxReady   = 1U;
-        }
-    }
-    else if (motor_stall_flag == MOTOR_STALL) /* 스톨 확정 순간 트리거 */
-    {
-        trq_log_post = 1U;
-    }
-    else
-    {
-        /* 트리거 전 : 계속 덮어쓰기 */
-    }
-    }
-    #endif
-
     /* 이동평균 갱신 */
     trq_sum        -= (uint32_t)trq_buf[trq_buf_index];
     trq_buf[trq_buf_index] = (uint16_t)trq_cnt;
@@ -129,6 +99,49 @@ void ADC_TrqCountSample(void)
     {
         motor_stall_flag = MOTOR_NORMAL;
     }
+
+     #ifdef ENABLE_TORQUE_LIN_COMMUNICATION
+    /* [A-1] 판정 뒤에 기록해야 값과 상태가 같은 시점이 된다.
+     *       (판정 앞에 두면 stall_count / motor_stall_flag / trq_cnt_valid 가 2 ms 전 값) */
+    if (TRQ_COUNT_LogEnable == 1U)
+    {
+        uint8_t st;
+
+        st  = (uint8_t)((motor_stall_flag == MOTOR_STALL)             ? 0x01U : 0x00U);
+        st |= (uint8_t)((dir_state == OPEN)                           ? 0x02U : 0x00U);
+        st |= (uint8_t)((trq_cnt_valid == 1U)                         ? 0x04U : 0x00U);
+        st |= (uint8_t)((G_Timer1ms.StallTime >= STALL_CHK_WAIT_TIME) ? 0x08U : 0x00U);
+        st |= (uint8_t)(((stall_count > 3U) ? 3U : stall_count) << 4U);
+        st |= (uint8_t)((antipinch_action_on == ON)                   ? 0x40U : 0x00U);
+
+        TRQ_COUNT_Buffer[TRQ_COUNT_Index] = (uint16_t)trq_cnt;   /* 생값, 마스킹 없음 */
+        TRQ_STATE_Buffer[TRQ_COUNT_Index] = st;
+
+        TRQ_COUNT_Index++;
+        if (TRQ_COUNT_Index >= TRQ_COUNT_BUF_SIZE)
+        {
+            TRQ_COUNT_Index = 0U;                 /* 항상 순환 */
+        }
+
+        if (trq_log_post > 0U)                    /* 트리거 이후 : 후미 구간 */
+        {
+            trq_log_post++;
+            if (trq_log_post >= TRQ_LOG_POST_CNT)
+            {
+                TRQ_COUNT_LogEnable = 0U;
+                TRQ_COUNT_TxReady   = 1U;
+            }
+        }
+        else if (motor_stall_flag == MOTOR_STALL) /* 스톨 확정 순간 트리거 */
+        {
+            trq_log_post = 1U;
+        }
+        else
+        {
+            /* 트리거 전 : 계속 덮어쓰기 */
+        }
+    }
+    #endif
 }
 
 void ADC_GetStatus(void)
