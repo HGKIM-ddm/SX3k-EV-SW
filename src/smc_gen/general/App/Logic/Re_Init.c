@@ -109,9 +109,10 @@ void Re_Init(void)
 	evrdy_on_flag = OFF;
 
 	#ifdef ENABLE_TORQUE_LIN_COMMUNICATION
-	TRQ_COUNT_Index = 0U;
-    TRQ_COUNT_LogEnable = 1U; 
-    TRQ_COUNT_TxReady = 0U;
+	TRQ_COUNT_Index     = 0U;
+	trq_log_post        = 0U;
+	TRQ_COUNT_TxReady   = 0U;
+	TRQ_COUNT_LogEnable = 1U;
 	#endif
 }
 

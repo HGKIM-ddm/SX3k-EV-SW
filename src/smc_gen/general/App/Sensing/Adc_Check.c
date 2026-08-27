@@ -57,28 +57,43 @@ void ADC_TrqCountSample(void)
     trq_cnt = trq_scan[1];              /* VC01 = ADCA0I0 : 토크카운트 */
  
     #ifdef ENABLE_TORQUE_LIN_COMMUNICATION
-
-    // if (AAF_Tx_Position == DIAG_MODE_AUTO) {
-    //     if (TRQ_COUNT_Index < 4000U){
-    //         TRQ_COUNT_Buffer[TRQ_COUNT_Index] = trq_cnt;
-    //         TRQ_COUNT_Index++;
-    //     }
-    // }
-    
     if (TRQ_COUNT_LogEnable == 1U)
     {
-        // 모터 구동 중 2ms마다 여기가 호출됨
-        if (TRQ_COUNT_Index < 4000U)
+    uint8_t st;
+
+    st  = (uint8_t)((motor_stall_flag == MOTOR_STALL)             ? 0x01U : 0x00U);
+    st |= (uint8_t)((dir_state == OPEN)                           ? 0x02U : 0x00U);
+    st |= (uint8_t)((trq_cnt_valid == 1U)                         ? 0x04U : 0x00U);
+    st |= (uint8_t)((G_Timer1ms.StallTime >= STALL_CHK_WAIT_TIME) ? 0x08U : 0x00U);
+    st |= (uint8_t)(((stall_count > 3U) ? 3U : stall_count) << 4U);
+    st |= (uint8_t)((antipinch_action_on == ON)                   ? 0x40U : 0x00U);
+
+    TRQ_COUNT_Buffer[TRQ_COUNT_Index] = (uint16_t)trq_cnt;   /* 생값, 마스킹 없음 */
+    TRQ_STATE_Buffer[TRQ_COUNT_Index] = st;
+
+    TRQ_COUNT_Index++;
+    if (TRQ_COUNT_Index >= TRQ_COUNT_BUF_SIZE)
+    {
+        TRQ_COUNT_Index = 0U;                 /* 항상 순환 */
+    }
+
+    if (trq_log_post > 0U)                    /* 트리거 이후 : 후미 구간 */
+    {
+        trq_log_post++;
+        if (trq_log_post >= TRQ_LOG_POST_CNT)
         {
-            TRQ_COUNT_Buffer[TRQ_COUNT_Index] = trq_cnt;
-            TRQ_COUNT_Index++;
-        }
-        else
-        {
-            // 4000개가 넘어가면(약 8초) 강제 종료
             TRQ_COUNT_LogEnable = 0U;
-            TRQ_COUNT_TxReady = 1U; 
+            TRQ_COUNT_TxReady   = 1U;
         }
+    }
+    else if (motor_stall_flag == MOTOR_STALL) /* 스톨 확정 순간 트리거 */
+    {
+        trq_log_post = 1U;
+    }
+    else
+    {
+        /* 트리거 전 : 계속 덮어쓰기 */
+    }
     }
     #endif
 
