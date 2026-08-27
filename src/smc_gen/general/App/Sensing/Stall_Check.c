@@ -27,18 +27,7 @@ static uint16_t stall_th_adc = STALL_TH;
  ***********************************************************************************************************************/
 void StallCheck_ChangeStallTh(void)
 {
-    if ((aaf_step == AAF_INITIALIZATION) ||
-        (lin_sleep_step >= 3U) ||
-        (fail_safety_flag == ON) ||
-        (LIMP_HOME_step > 0U) ||
-        (antipinch_action_on == ON))
-    {
-        stall_th_adc = INIT_STALL_TH;      /*토퍼 탐색 구간 : 더 민감하게 */
-    }
-    else
-    {
-        stall_th_adc = STALL_TH;  /* 정상 동작 구간 : 더 안정적으로 */
-    }
+    stall_th_adc = STALL_TH;  /* 정상 동작 구간 : 더 안정적으로 */
 }
 
 /***********************************************************************************************************************
