@@ -14,35 +14,23 @@
 * following link:
 * http://www.renesas.com/disclaimer
 *
-* Copyright (C) 2018, 2024 Renesas Electronics Corporation. All rights reserved.
+* Copyright (C) 2018, 2025 Renesas Electronics Corporation. All rights reserved.
 ***********************************************************************************************************************/
 
 /***********************************************************************************************************************
-* File Name        : r_smc_entry.h
-* Version          : 1.0.151
+* File Name        : Config_TAUD0.h
+* Component Version: 1.8.0
 * Device(s)        : R7F701695
-* Description      : SMC platform header file..
+* Description      : This file implements device driver for Config_TAUD0.
 ***********************************************************************************************************************/
 
 /***********************************************************************************************************************
 Includes
 ***********************************************************************************************************************/
-#include "r_cg_macrodriver.h"
-#include "r_cg_userdefine.h"
-#include "r_smc_interrupt.h"
-#include "Config_PORT.h"
-#include "Config_TAUD0_3.h"
-#include "Config_ADCA0.h"
-#include "Config_STBC.h"
-#include "Config_INTC.h"
-#include "Config_WDT0.h"
-#include "Config_TAUD0_13.h"
-#include "Config_TAUJ1.h"
-#include "r_cg_cgc.h"
-#include "Config_TAUD0.h"
+#include "r_cg_taud.h"
 
-#ifndef SMC_ENTRY_H
-#define SMC_ENTRY_H
+#ifndef CFG_Config_TAUD0_H
+#define CFG_Config_TAUD0_H
 
 /***********************************************************************************************************************
 Macro definitions (Register bit)
@@ -51,6 +39,8 @@ Macro definitions (Register bit)
 /***********************************************************************************************************************
 Macro definitions
 ***********************************************************************************************************************/
+#define _TAUD0_CHANNEL0_COMPARE_VALUE                              (0x063FU) /* Data register for compare values */
+#define _TAUD0_CHANNEL2_COMPARE_VALUE                              (0x0280U) /* Data register for compare values */
 
 /***********************************************************************************************************************
 Typedef definitions
@@ -59,6 +49,10 @@ Typedef definitions
 /***********************************************************************************************************************
 Global functions
 ***********************************************************************************************************************/
+void R_Config_TAUD0_Create(void);
+void R_Config_TAUD0_Start(void);
+void R_Config_TAUD0_Stop(void);
+void R_Config_TAUD0_Create_UserInit(void);
 /* Start user code for function. Do not edit comment generated here */
 /* End user code. Do not edit comment generated here */
 #endif

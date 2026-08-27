@@ -42,6 +42,7 @@ Includes
 #include "Config_WDT0.h"
 #include "Config_TAUD0_13.h"
 #include "Config_TAUJ1.h"
+#include "Config_TAUD0.h"
 #include "r_cg_cgc.h"
 /* Start user code for include. Do not edit comment generated here */
 /* End user code. Do not edit comment generated here */
@@ -69,4 +70,5 @@ void R_Systeminit(void)
     R_Config_WDT0_Create();
     R_Config_TAUD0_13_Create();
     R_Config_TAUJ1_Create();
+    R_Config_TAUD0_Create(); 
 }

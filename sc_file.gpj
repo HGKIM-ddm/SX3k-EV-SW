@@ -8,6 +8,7 @@
         -Isrc/smc_gen/Config_TAUD0_3
         -Isrc/smc_gen/Config_TAUJ1        
         -Isrc/smc_gen/Config_WDT0
+        -Isrc/smc_gen/Config_TAUD0
         -Isrc/smc_gen/general
         -Isrc/smc_gen/r_pincfg
 	-Isrc/smc_gen/general/App/Config
@@ -37,6 +38,9 @@ src/smc_gen/Config_TAUD0_13/Config_TAUD0_13_user.c
 src/smc_gen/Config_TAUD0_3/Config_TAUD0_3.c
 src/smc_gen/Config_TAUD0_3/Config_TAUD0_3.h
 src/smc_gen/Config_TAUD0_3/Config_TAUD0_3_user.c
+src/smc_gen/Config_TAUD0/Config_TAUD0.c
+src/smc_gen/Config_TAUD0/Config_TAUD0.h
+src/smc_gen/Config_TAUD0/Config_TAUD0_user.c
 src/smc_gen/Config_TAUJ1/Config_TAUJ1.c
 src/smc_gen/Config_TAUJ1/Config_TAUJ1.h
 src/smc_gen/Config_TAUJ1/Config_TAUJ1_user.c
