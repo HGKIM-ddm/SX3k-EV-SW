@@ -200,11 +200,14 @@ static void Error_CheckShort(void)
         if ((G_Timer1ms.MotorShortCheck >= 200U) && (Short_fault_check == 0U))
         {
             Drv8434a_FaultClear();
+            FaultCheck_Clear();
             motor_stall_flag = MOTOR_NORMAL;
             G_Timer1ms.StallTime = 0U;
             Short_fault_check = 1U;
         }
-        AAF_OverCurrent = (unsigned int)(rx_16bit_spi[9] & 0x800U);
+
+        AAF_OverCurrent = FaultCheck_GetOverCurrent(); //short 체크 
+
         if (G_Timer1ms.MotorShortCheck >= 1000U)
         {
             if ((AAF_OverCurrent == NO_ERROR) && (Short_fault_check == 1U))
@@ -270,12 +273,13 @@ static void Error_CheckOpen(void)
         if ((G_Timer1ms.MotorOpenCheck >= 200U) && (Open_fault_check == 0U))
         {
             Drv8434a_FaultClear();
+            FaultCheck_Clear();
             motor_stall_flag = MOTOR_NORMAL;
             G_Timer1ms.StallTime = 0U;
             Open_fault_check = 1U;
         }
  
-        AAF_OpenLoad = (unsigned int)(rx_16bit_spi[9] & 0x100U);
+         AAF_OpenLoad = FaultCheck_GetOpenLoad();
  
         if (G_Timer1ms.MotorOpenCheck >= 1000U)
         {

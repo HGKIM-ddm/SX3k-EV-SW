@@ -20,6 +20,7 @@
 #include "Protection_Mode.h"
 #include "Re_Init.h"
 #include "HighSpeed_Mode.h"
+#include "Fault_Check.h"
 
 void AAF_SetType(void);
 void App_HwCheck(void);

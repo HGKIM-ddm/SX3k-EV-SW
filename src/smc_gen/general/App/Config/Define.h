@@ -152,6 +152,8 @@
 #define MOTOR_STALL 1U
 #define MOTOR_FAULT 0x100U
 
+#define FAULT_OCP_OL_BOUNDARY   (30U)   /* ms. tOCP 2us / tOL 65ms 사이       */
+#define FAULT_DEBOUNCE_CNT       (2U)   /* 1ms x 2 연속 Low 이어야 에지 확정   */
 
 //For Torque Count Test
 #define TRQ_COUNT_BUF_SIZE   (4000U)

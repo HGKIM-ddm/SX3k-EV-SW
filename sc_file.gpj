@@ -82,6 +82,8 @@ src/smc_gen/general/App/Service/Motor.c
 src/smc_gen/general/App/Service/Motor.h
 src/smc_gen/general/App/Safety/Error_Check.c
 src/smc_gen/general/App/Safety/Error_Check.h
+src/smc_gen/general/App/Safety/Fault_Check.c
+src/smc_gen/general/App/Safety/Fault_Check.h
 src/smc_gen/general/App/Logic/Re_Init.c
 src/smc_gen/general/App/Logic/Re_Init.h
 src/smc_gen/general/App/Service/Service.c
