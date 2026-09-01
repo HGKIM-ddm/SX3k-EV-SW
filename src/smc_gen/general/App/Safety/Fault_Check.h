@@ -11,8 +11,8 @@ void         FaultCheck_Clear(void);           /* 재시도 진입 시 분류 �
 unsigned int FaultCheck_GetOverCurrent(void);  /* OVER_CURRENT(0x800) / NO_ERROR   */
 unsigned int FaultCheck_GetOpenLoad(void);     /* MOTOR_FAULT (0x100) / NO_ERROR   */
 uint16_t     FaultCheck_GetLatency(void);      /* 실측용 : nFAULT 지연시간 [ms]     */
-
-
+uint16_t     FaultCheck_GetVbat(void);       /* 실측용 : 폴트 순간 배터리 ADC */
+uint8_t      FaultCheck_IsFaultActive(void);   /* 1 = nFAULT Low 확정 상태 */
 
 #endif
 

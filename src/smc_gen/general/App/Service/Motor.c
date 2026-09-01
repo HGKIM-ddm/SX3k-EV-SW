@@ -233,7 +233,14 @@ void Motor_Off(void)
 
 void Motor_Wakeup(void)
 {
-    Drv8434a_Wakeup();                                      /* nSLEEP High */
+    uint8_t was_asleep = ((PORT.P10 & _PORT_Pn2_OUTPUT_HIGH) == 0U) ? 1U : 0U;
+
+    Drv8434a_Wakeup();
+
+    if (was_asleep == 1U)
+    {
+        Drv8434a_WaitWake();      /* tWAKE 1.2ms + 여유 = 2ms 블로킹 */
+    }
 
     Drv8434a_SetStepMode(DRV8434A_STEP_1_8);
     Drv8434a_SetStallMode(DRV8434A_STALL_TORQUE_COUNT);

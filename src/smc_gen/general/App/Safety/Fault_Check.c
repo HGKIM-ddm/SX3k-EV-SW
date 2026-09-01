@@ -8,6 +8,7 @@ static uint8_t      fault_judged = 0U;   /* 1 = 이번 사이클에서 이미 �
 static unsigned int fault_oc     = NO_ERROR;
 static unsigned int fault_ol     = NO_ERROR;
 static uint16_t     fault_latency_ms = 0U;
+static uint16_t     fault_vbat       = 0U;
  
 /***********************************************************************************************************************
  * Function Name: FaultCheck_OnMotorStart
@@ -64,6 +65,16 @@ unsigned int FaultCheck_GetOpenLoad(void)
 uint16_t FaultCheck_GetLatency(void)
 {
     return fault_latency_ms;
+}
+
+uint16_t FaultCheck_GetVbat(void)
+{
+     return fault_vbat;
+}
+
+uint8_t FaultCheck_IsFaultActive(void)
+{
+     return fault_prev;          /* 1 = nFAULT Low 확정 상태 */
 }
  
 /***********************************************************************************************************************
@@ -124,6 +135,7 @@ void FaultCheck_Sample(void)
  
     fault_judged     = 1U;
     fault_latency_ms = (uint16_t)G_Timer1ms.MotorRunTime;
+    fault_vbat       = (uint16_t)bat_adc;    /* 폴트 순간 ADC (평균 아님) */
  
     if (fault_latency_ms < FAULT_OCP_OL_BOUNDARY)
     {
@@ -134,4 +146,5 @@ void FaultCheck_Sample(void)
         fault_ol = MOTOR_FAULT;        /* tOL 65 ms  : 지연 → 단선  */
     }
 }
+
 

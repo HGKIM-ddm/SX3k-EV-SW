@@ -94,6 +94,12 @@ void Drv8434a_Wakeup(void)
     /* 호출자는 DRV8434A_T_WAKE_US 경과 후 출력을 켤 것 */
 }
 
+void Drv8434a_WaitWake(void)
+{
+     volatile uint32_t i;
+     for (i = 0U; i < DRV8434A_WAKE_LOOP; i++) { NOP(); }
+}
+
 void Drv8434a_Sleep(void)
 {
     Drv8434a_OFF();                       /* 출력 먼저 차단 */
@@ -101,10 +107,6 @@ void Drv8434a_Sleep(void)
     PORT.P10 &= (uint16_t)~_PORT_Pn4_OUTPUT_HIGH;   /* DIR    = Low   */
     R_Config_TAUD0_Stop();                          /* VREF   = Low   */
 
-    /* 암전류 대책 (SLOSEC6 6.3.7)
-     * M0/M1/STL_MODE 를 MCU 가 High 로 잡고 있으면 슬립 중에도 드라이버 내부
-     * 분압 경로로 전류가 흐른다. 전부 Low 로 내린다.
-     * 요구사양 암전류 0.05mA 이하를 만족하려면 필요한 처리. */
     P8_OutLow();                                                        /* M0       */
     P0_OutLow(_PORT_Pn2_OUTPUT_HIGH, _PORT_PMn2_MODE_INPUT);            /* M1       */
     P0_OutLow(_PORT_Pn3_OUTPUT_HIGH, _PORT_PMn3_MODE_INPUT);            /* STL_MODE */

@@ -55,6 +55,9 @@
 #define DRV8434A_T_RESET_MIN_US     (  20U)
 #define DRV8434A_T_RESET_MAX_US     (  40U)
 
+
+#define DRV8434A_WAKE_LOOP  (16000U)   /* TODO: 실측 보정 (목표 2 ms) */
+
 /***********************************************************************************************************************
  * 스텝 모드 (SLOSEC6 Table 6-2)
  * 330k-to-GND 를 요구하는 2개 모드(Full step 71%, 1/64)는 현 회로에 해당 저항이
@@ -95,6 +98,7 @@ void Drv8434a_GpioInit(void);
 
 /* --- 전원 상태 --------------------------------------------------------------- */
 void Drv8434a_Wakeup(void);                 /* nSLEEP High. 이후 T_WAKE_US 대기 필요 */
+void Drv8434a_WaitWake(void);             /* T_WAKE_US + 여유 블로킹 대기 (2ms)    */
 void Drv8434a_Sleep(void);                  /* nSLEEP Low + 부수 핀 정리(암전류)     */
 
 /* --- 출력 제어 (ENABLE 핀 3상태) ------------------------------------------------

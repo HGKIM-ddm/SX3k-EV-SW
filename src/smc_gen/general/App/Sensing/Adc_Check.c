@@ -1,5 +1,5 @@
 #include "Adc_Check.h"
-
+#include "Service.h"
 /***********************************************************************************************************************
  * Function Name: ADC_TrqCountReset
  * Description  : 토크카운트 이동평균 상태 초기화. 모터 정지 / 방향전환 시 호출.
@@ -93,7 +93,15 @@ void ADC_TrqCountSample(void)
     if (AAF_Maximum_Torque_Test_Mode == OFF)
     {
         StallCheck_ChangeStallTh();
-        Stall_Check();
+
+        if (FaultCheck_IsFaultActive() == 0U)
+        {
+            Stall_Check();
+        }
+        else
+        {
+            stall_count = 0U;   /* 폴트 중 TRQ_CNT 무효 (SLOSEC6 6.3.7) */
+        }
     }
     else
     {
