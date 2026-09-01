@@ -177,6 +177,8 @@ static void Error_CheckMotorFault(void)
  ***********************************************************************************************************************/
 static void Error_CheckShort(void)
 {
+    AAF_OverCurrent = FaultCheck_GetOverCurrent();
+
     if (AAFx_Circuit_Short == AAF_CIRCUIT_SHORT) return;
  
     if ((AAF_OverCurrent == OVER_CURRENT) && (Short_Detected == 0U))
@@ -250,6 +252,8 @@ static void Error_CheckShort(void)
  ***********************************************************************************************************************/
 static void Error_CheckOpen(void)
 {
+    AAF_OpenLoad = FaultCheck_GetOpenLoad();
+    
     if (AAFx_Motor_Fault == 1) return;
  
     if ((AAF_OpenLoad == MOTOR_FAULT) && (Open_Detected == 0U))
