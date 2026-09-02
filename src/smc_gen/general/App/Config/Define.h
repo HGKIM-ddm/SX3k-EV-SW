@@ -187,9 +187,6 @@
 #define NORMAL_INITIALIZATION 3U
 #define WAIT_INITIALIZATION 4U
 
-#define START_INITIALIZATION_CLOSE 3U
-#define START_INITIALIZATION_OPEN 0U
-
 #define DURING_INITIALIZATION 0U
 #define NORMAL_FINISHED_INITIALIZATION 1U
 #define ABNORMAL_FINISHED_INITIALIZATION 2U
@@ -201,26 +198,10 @@
 /***********************************************************************************************************************
  * 4. Step, RPM & Timing Defines
 ***********************************************************************************************************************/
-// RPM = 60 / (t * 2 * (360 / step angle))
-// t*10000 == 10us 5us
-// PPS = RPM * (360 / step angle) / 60
-// PPS = RPM * (360 / step angle) / 60 >> RPM = PPS * (ANGLE / 360) * 60
-// #define STEP_TIME_1125RPM 28U // 450PPS
-#define STEP_TIME_1250RPM 28U // 500PPS(4000) = 25, 450PPS(3600) = 27~28
-#define STEP_TIME_1000RPM 28U
 
 #define REFERENCE_POSITION 30000U // 30000
-#define LIMIT_POSITION 1800U
-#define TOLERANCE 100U
 #define ERROR_RANGE 5U
 
-// init action
-#define INIT_ACTION_POSITION 1450U
-
-
-
-// #define POSITION_MAXIMUM_RANGE 55000U
-// #define LIMITSTEP_MAXIMUM_RANGE 1700U
 #define POSITION_MAXIMUM_RANGE 70000U
 #define LIMITSTEP_MAXIMUM_RANGE 3000U
 
@@ -322,24 +303,6 @@
 #define ADC_OVER_VOLTAGE_16V 1512U	 
 #define ADC_OVER_VOLTAGE_16_5V 1561U //1611
 #define ADC_OVER_VOLTAGE_18V 1710U	 
-
-
-// EV D
-// #define ADC_UNDER_VOLTAGE_7V     245U
-// #define ADC_UNDER_VOLTAGE_8_5V   303U
-// #define ADC_UNDER_VOLTAGE_9V     323U
-// #define ADC_VOLTAGE_10V          363U
-// #define ADC_VOLTAGE_10_5V        383U
-// #define ADC_VOLTAGE_14V          521U
-// #define ADC_VOLTAGE_15V          561U
-// #define ADC_OVER_VOLTAGE_16V     600U
-// #define ADC_OVER_VOLTAGE_16_5V   620U
-// #define ADC_OVER_VOLTAGE_18V     679U
-
-
-
-
-
 
 #define LOW_VOLTAGE 1U
 #define NORMAL_VOLTAGE 2U

@@ -68,9 +68,6 @@ void R_Config_TAUD0_13_Create_UserInit(void)
 void r_Config_TAUD0_13_interrupt(void)
 {
     /* Start user code for r_Config_TAUD0_13_interrupt. Do not edit comment generated here */
-
-    TIMER_1US(Motor);
-    TIMER_1US(Spi);
     
     /* End user code. Do not edit comment generated here */
 }

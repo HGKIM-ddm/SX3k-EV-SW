@@ -35,7 +35,7 @@ extern unsigned int trq_log_post;
 /*******************************************************************************
  * Global Variable Extern Declarations
  ******************************************************************************/
-/* 2.1 Communication Buffers (LIN / SPI) */
+/* 2.1 Communication Buffers (LIN) */
 extern uint8_t GetIDbuffer;
 extern uint8_t Slave_RxData1[8];
 extern uint8_t Slave_TxData[7];
@@ -45,9 +45,6 @@ extern uint32_t r_buff[8]; //Only SX3k [8]
 extern uint8_t Slave_SwData[8];
 extern uint8_t Slave_RxSwData1[8];
 
-extern uint16_t tx_16bit_spi[11];
-extern uint16_t rx_16bit_spi_id[11];
-extern uint16_t rx_16bit_spi[11];
 extern uint16_t fault_clear[1];
 
 /* 2.2 Motor Control Variables */
@@ -103,8 +100,6 @@ extern unsigned int ReqRespAAFID;
 extern unsigned int ReqAAF1DiagMode;
 extern unsigned int ReqAAF2DiagMode;
 extern unsigned int ReqAAF3DiagMode;
-extern unsigned int EngRunSta;
-extern unsigned int HevRdy;
 extern unsigned int Req_ChkSum_Rx;
 extern unsigned int Req_Alive_Rx;
 extern unsigned int AAFx_Mode;
@@ -128,10 +123,6 @@ extern volatile uint8_t lin_tx_resp_flag;
 extern volatile uint8_t g_lin_comm_ok_flag;
 extern volatile uint8_t g_lin_error_flag;
 extern unsigned int AAF_LIN_ChkSum_CHK_value;
-extern unsigned char spi_send_flag;
-extern unsigned char spi_receive_flag;
-extern unsigned char spi_error_flag;
-extern unsigned int spi_action_step;
 extern char ret;
 extern unsigned int lin_bus_inactive_flag;
 extern unsigned int lin_sleep_step;
@@ -157,7 +148,6 @@ extern unsigned int First_Powerchk;
 
 /* 2.6 Fault & Diagnosis */
 extern unsigned int fail_safety_flag;
-extern unsigned int fail_safety_1_cycle_flag;
 extern unsigned int fail_safety_step;
 extern unsigned int stall_count;
 extern unsigned int stall_test_mode;
@@ -235,24 +225,17 @@ typedef struct {
     unsigned int InitFailCheck;
     unsigned int LinSleepMode;
     unsigned int AntipinchCheck;
-    unsigned int SpiErrorCheck;
-    unsigned int AdcErrorCheck;
     unsigned int FdlErrorCheck;
     unsigned int ProtectionCheck;
-    unsigned int MotorMovingCheck;
     unsigned int MotorStepCheck;
-    unsigned int WatchdogCheck;
-    unsigned int ErrorCheck;
     unsigned int MotorShortCheck;
     unsigned int MotorOpenCheck;
     unsigned int IgnCheck;
-    unsigned int AdcRecoveryCheck;
     unsigned int LinBusInactive;
     unsigned int External10sCheck;
     unsigned int Adc1sCheck;
     unsigned int Timer3minute;
     unsigned int Timer3minuteSec;
-    unsigned int IgnErrorCheck;
     unsigned int HighSpeedExitCheck;
     unsigned int NrstCheck;
     unsigned int MotorRunTime;
@@ -275,22 +258,15 @@ typedef struct {
     unsigned int InitFailCheckFlag;
     unsigned int LinSleepModeFlag;
     unsigned int AntipinchCheckFlag;
-    unsigned int SpiErrorCheckFlag;
-    unsigned int AdcErrorCheckFlag;
     unsigned int FdlErrorCheckFlag;
     unsigned int ProtectionCheckFlag;
-    unsigned int MotorMovingCheckFlag;
     unsigned int MotorStepCheckFlag;
-    unsigned int WatchdogCheckFlag;
-    unsigned int ErrorCheckFlag;
     unsigned int MotorShortCheckFlag;
     unsigned int MotorOpenCheckFlag;
     unsigned int IgnCheckFlag;
-    unsigned int AdcRecoveryCheckFlag;
     unsigned int External10sCheckFlag;
     unsigned int Adc1sCheckFlag;
     unsigned int Timer3minuteFlag;
-    unsigned int IgnErrorCheckFlag;
     unsigned int HighSpeedExitCheckFlag;
     unsigned int NrstCheckFlag;
     unsigned int MotorRunTimeFlag;
@@ -302,12 +278,10 @@ extern Global_Timer1msFlagType G_Timer1msFlag;
 /* Global 1us Timer Group */
 typedef struct {
     unsigned int Motor;
-    unsigned int Spi;
 } Global_Timer1usType;
 
 typedef struct {
     unsigned int MotorFlag;
-    unsigned int SpiFlag;
 } Global_Timer1usFlagType;
 
 extern Global_Timer1usType G_Timer1us;
@@ -318,7 +292,6 @@ extern unsigned int IGN_Chk;
 extern unsigned int IGN_Chk_On;
 extern unsigned int SW_Chk;
 extern unsigned int Operating_flag;
-extern unsigned int LIN_Short_Ok;
 
 extern unsigned int AAF_Init_Flag;
 extern unsigned int AAF_Init_Flag_tog;

@@ -51,8 +51,6 @@ static void Motor_ManageStartStatus(void)
     {
         G_Timer1msFlag.MotorDelayFlag = 0U;
         G_Timer1ms.MotorDelay = 0U;
-        G_Timer1usFlag.MotorFlag = 0U;
-        G_Timer1us.Motor = 0U;
         G_Timer1msFlag.MotorAccelerationFlag = 0U;
         G_Timer1ms.MotorAcceleration = 0U;
     }
@@ -254,3 +252,4 @@ void Motor_Sleep(void)
     Drv8434a_Sleep();
     ADC_TrqCountReset();
 }
+

@@ -25,7 +25,7 @@ uint16_t trq_scan[2] = {0U};
   * Drv8889 Register
   ******************************************************************************/
 
-/* 2.1 Communication Buffers (LIN / SPI) */
+/* 2.1 Communication Buffers (LIN) */
 uint8_t GetIDbuffer;
 uint8_t Slave_RxData1[8]; /*reception data store array*/
 uint8_t Slave_TxData[7] = {
@@ -46,25 +46,6 @@ uint8_t Slave_SwData[8] = {
 }; /* Transmission data store array  */
 
 uint8_t Slave_RxSwData1[8] = {0,};
-
-uint16_t tx_16bit_spi[11] = {0};
-
-uint16_t rx_16bit_spi_id[11] = {
-    0x4000,
-    0x4200,
-    0x4400,
-    0x4600,
-    0x4800,
-    0x4A00,
-    0x4C00,
-    0x4E00,
-    0x5000,
-    0x5200,
-    0x5400};
-
-uint16_t rx_16bit_spi[11] = {
-    0,
-};
 
 uint16_t fault_clear[1] = { 
     0x0CBC 
@@ -161,10 +142,6 @@ volatile uint8_t lin_tx_resp_flag = 0;
 volatile uint8_t g_lin_comm_ok_flag = 0U;
 volatile uint8_t g_lin_error_flag = 0U;
 unsigned int AAF_LIN_ChkSum_CHK_value = 0;
-unsigned char spi_send_flag = 0;
-unsigned char spi_receive_flag = 0;
-unsigned char spi_error_flag = 0;
-unsigned int spi_action_step = 0;
 char ret = 0;
 unsigned int lin_bus_inactive_flag = 0;
 unsigned int lin_sleep_step = 0;
@@ -190,7 +167,6 @@ unsigned int First_Powerchk = 0U;
 
 /* 2.6 Fault & Diagnosis */
 unsigned int fail_safety_flag = 0;
-unsigned int fail_safety_1_cycle_flag = 0;
 unsigned int fail_safety_step = 0;
 unsigned int stall_count = STALL_CNT_DEFAULT;
 unsigned int stall_test_mode = 0;
@@ -244,7 +220,6 @@ unsigned int power_chk_memory_write = 0; // power chk
 unsigned int power_chk_memory_read = 0;
 unsigned int First_Powerchk_memory_write = 0U;
 unsigned int First_Powerchk_memory_read = 0U;
-unsigned int fw_version_memory_read = 0U; // fw version
 unsigned int AAF_Tx_Position_Temporary = UNKOWN_POSITION;
 unsigned int AAFx_Position_Status_Temporary = Unknown_Status;
 unsigned int AAFx_InitStatus_Temporary = DURING_INITIALIZATION;
@@ -264,7 +239,6 @@ unsigned int IGN_Chk = 0U;
 unsigned int IGN_Chk_On = 0U;
 unsigned int SW_Chk = 0U;
 unsigned int Operating_flag = 0U;
-unsigned int LIN_Short_Ok = 0U;
 
 unsigned int AAF_Init_Flag = 0U;
 unsigned int AAF_Init_Flag_tog = 0U;
@@ -286,3 +260,5 @@ unsigned int AAF_UVLO        = 0;  /* B13 저전압 */
 unsigned int AAF_CPUV        = 0;  /* B12 차지펌프 저전압 */
 unsigned int AAF_OverCurrent = 0;  /* B11 OCP */
 unsigned int AAF_HW_Stall    = 0;  /* B10 STL (HW스톨) */
+
+

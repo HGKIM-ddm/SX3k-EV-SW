@@ -532,38 +532,6 @@ static void McuSleep_PortConfig(void)
     PORT.P10 &= ~_PORT_Pn10_OUTPUT_HIGH; // MCU_LIN_Tx_Low Sleep go
 }
 
-/***********************************************************************************************************************
- * Function Name: McuSleep_InternalModuleStop
- * Description  : 전력 소모를 줄이기 위해 MCU 내부 주변장치(ADC, 타이머, 통신 모듈)의 클럭을 정지함
- * Arguments    : void
- * Return Value : void
- ***********************************************************************************************************************/
-static void McuSleep_InternalModuleStop(void)
-{
-    R_Config_INTC_Create();         // 인터럽트 컨트롤러 재설정 (Wake-up 준비)
-    R_Config_INTC_INTP5_Start(); 
-    R_Config_ADCA0_Halt();          // ADC 모듈 정지
-    R_Config_TAUD0_13_Stop();       // 타이머 정지
-    R_Config_TAUD0_3_Stop();        // 타이머 정지
-
-    G_Timer1msFlag.TrqCheckFlag = 0U;          // 관련 플래그 초기화
-    G_Timer1ms.TrqCheck = 0U;
-}
-
-/***********************************************************************************************************************
- * Function Name: McuSleep_DeepStop
- * Description  : 클럭 생성기를 슬립 모드용으로 설정하고, 최종적으로 Deep Stop Mode로 진입함
- * Arguments    : void
- * Return Value : void
- ***********************************************************************************************************************/
-static void McuSleep_DeepStop(void)
-{
-    R_CGC_Create_sleepmode();                   // 클럭 설정 변경
-
-    R_Config_STBC_Prepare_Deep_Stop_Mode();     // 대기 모드 진입 준비 레지스터 설정
-    R_Config_STBC_Start_Deep_Stop_Mode();       // [진입점] 여기서 MCU 동작 멈춤
-}
-
 
 /***********************************************************************************************************************
  * Function Name: LinSleep_Cycle1
