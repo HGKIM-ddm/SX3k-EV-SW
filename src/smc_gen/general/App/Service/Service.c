@@ -83,6 +83,7 @@ void AAF_SetType(void)
 	AAF_Tx_Position = UNKOWN_POSITION;
 	AAFx_Position_Status = Unknown_Status;
 	AAFx_InitStatus = DURING_INITIALIZATION;
+
 }
 
 void App_HwCheck(void)

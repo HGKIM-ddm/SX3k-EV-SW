@@ -9,10 +9,22 @@
  ***********************************************************************************************************************/
 static void Lin_ParseTorqueTestMode(void)
 {
-    AAF_Init_Flag                = (unsigned int)((ID_chk_rxdata[1U] & 0x80U) >> 7U);
+    AAF_Init_Flag = (unsigned int)((ID_chk_rxdata[1U] & 0x80U) >> 7U);
     AAF_Flap_Fixation_Test_Mode  = (unsigned int)((ID_chk_rxdata[2U] & 0x80U) >> 7U);
-    AAF_Maximum_Torque_Test_Mode = (unsigned int)((ID_chk_rxdata[3U] & 0x80U) >> 7U);
-    Re_Init_check                = (unsigned int)((ID_chk_rxdata[4U] & 0x80U) >> 7U);
+    if (((ID_chk_rxdata[4U] == 0x3BU) ||
+        (ID_chk_rxdata[4U] == 0x38U)) &&
+        (ID_chk_rxdata[5U] == 0x0FU))
+    {
+        /* Torque Test OPEN / CLOSE */
+        AAF_Maximum_Torque_Test_Mode = ON;
+    }
+    else if ((ID_chk_rxdata[4U] == 0x3FU) &&
+            (ID_chk_rxdata[5U] == 0x0FU))
+    {
+        /* Torque Test STOP → Torque Test 종료 */
+        AAF_Maximum_Torque_Test_Mode = OFF;
+    }
+    Re_Init_check = (unsigned int)((ID_chk_rxdata[4U] & 0x80U) >> 7U);
 
     if (Re_Init_check == 0x01U)
     {
@@ -75,11 +87,17 @@ static void Lin_ExecuteTorqueTestMode(void)
     {
         AAF_Maximum_Torque_Test_Mode_tog = ON;
     }
-    else if ((AAF_Maximum_Torque_Test_Mode_tog == ON) && (AAF_Maximum_Torque_Test_Mode == OFF))
+    else if ((AAF_Maximum_Torque_Test_Mode_tog == ON) &&
+            (AAF_Maximum_Torque_Test_Mode == OFF))
     {
+        Motor_Off();
+        motor_start = OFF;
+
         wake_up_motor_range_init_chk = 0U;
         evrdy_on_flag = OFF;
+
         Re_Init();
+
         AAF_Maximum_Torque_Test_Mode_tog = OFF;
     }
     else

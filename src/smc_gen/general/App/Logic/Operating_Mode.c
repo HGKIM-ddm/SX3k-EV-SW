@@ -744,43 +744,30 @@ void Operating_Mode(void)
 	}
 }
 
+
 void Torque_TestMode(void)
 {
-	torque_test_position = AAF1_TargetPosition;
-	
-	// if ((AAFx_Index == AAF_1) && (ReqRespAAFID == AAF_1))
-	// {
-	// 	torque_test_position = AAF1_TargetPosition;
-	// }
-	// else if ((AAFx_Index == AAF_2) && (ReqRespAAFID == AAF_2))
-	// {
-	// 	torque_test_position = AAF2_TargetPosition;
-	// }
-	// else if ((AAFx_Index == AAF_3) && (ReqRespAAFID == AAF_3))
-	// {
-	// 	torque_test_position = AAF3_TargetPosition;
-	// }
-	// else
-	// {
-	// 	torque_test_position = WAITING;
-	// }
-	
+    torque_test_position = AAF1_TargetPosition;
+
     switch (torque_test_position)
     {
-    case OPEN:        /* 0x03 - 스토퍼 무시하고 OPEN 방향 계속 밀기 */
+    case OPEN:
         Motor_Open();
         Motor_On();
         motor_start = ON;
         break;
-    case CLOSE:       /* 0x00 - 스토퍼 무시하고 CLOSE 방향 계속 밀기 */
+
+    case CLOSE:
         Motor_Close();
         Motor_On();
         motor_start = ON;
         break;
-    case UNKOWN_POSITION:  /* 0x07 - STOP */
+
+    case UNKOWN_POSITION:
         Motor_Off();
         motor_start = OFF;
         break;
+
     default:
         break;
     }
