@@ -78,7 +78,7 @@ void Drv8434a_GpioInit(void)
     Drv8434a_OFF();                       /* ENABLE = Low  (출력 차단) */
     PORT.P10 &= (uint16_t)~_PORT_Pn2_OUTPUT_HIGH;   /* nSLEEP = Low  (슬립)      */
     PORT.P10 &= (uint16_t)~_PORT_Pn4_OUTPUT_HIGH;   /* DIR    = Low              */
-    R_Config_TAUD0_Stop();                          /* VREF   = Low              */       
+    PORT.P9 &= (uint16_t)~_PORT_Pn1_OUTPUT_HIGH;    /* VREF   = Low */       
 
     Drv8434a_StallReportDisable();
     Drv8434a_SetStepMode(DRV8434A_STEP_1_8);
@@ -105,7 +105,7 @@ void Drv8434a_Sleep(void)
     Drv8434a_OFF();                       /* 출력 먼저 차단 */
     PORT.P10 &= (uint16_t)~_PORT_Pn2_OUTPUT_HIGH;   /* nSLEEP = Low   */
     PORT.P10 &= (uint16_t)~_PORT_Pn4_OUTPUT_HIGH;   /* DIR    = Low   */
-    R_Config_TAUD0_Stop();                          /* VREF   = Low   */
+    PORT.P9 &= (uint16_t)~_PORT_Pn1_OUTPUT_HIGH;    /* VREF   = Low */
 
     P8_OutLow();                                                        /* M0       */
     P0_OutLow(_PORT_Pn2_OUTPUT_HIGH, _PORT_PMn2_MODE_INPUT);            /* M1       */
@@ -149,8 +149,15 @@ void Drv8434a_DirCCW(void)  { PORT.P10 &= (uint16_t)~_PORT_Pn4_OUTPUT_HIGH; }
 void Drv8434a_StepStart(void) { R_Config_TAUJ1_Start(); }
 void Drv8434a_StepStop(void)  { R_Config_TAUJ1_Stop();  }
 
-void Drv8434a_VrefOn(void)  { R_Config_TAUD0_Start(); }
-void Drv8434a_VrefOff(void) { R_Config_TAUD0_Stop();  }
+void Drv8434a_VrefOn(void)
+{
+    PORT.P9 |= _PORT_Pn1_OUTPUT_HIGH;
+}
+
+void Drv8434a_VrefOff(void)
+{
+    PORT.P9 &= (uint16_t)~_PORT_Pn1_OUTPUT_HIGH;
+}
 
 /***********************************************************************************************************************
  * 스텝 모드 (M0 / M1)

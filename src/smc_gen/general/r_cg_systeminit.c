@@ -70,5 +70,5 @@ void R_Systeminit(void)
     R_Config_WDT0_Create();
     R_Config_TAUD0_13_Create();
     R_Config_TAUJ1_Create();
-    R_Config_TAUD0_Create(); 
+    //R_Config_TAUD0_Create(); 
 }
