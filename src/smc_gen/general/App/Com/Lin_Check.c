@@ -3,31 +3,142 @@
 #include "HighSpeed_Mode.h"
 
 #ifdef ENABLE_TORQUE_TEST
+
+/***********************************************************************************************************************
+ * Function Name: Lin_ParsePositionInitCommand
+ * Description  : Torque Test 빌드 전용 위치 초기화 명령
+ *                Byte2 bit0 = 1인 프레임을 수신할 때마다 위치 초기화 수행
+ ***********************************************************************************************************************/
+static uint8_t Lin_ParsePositionInitCommand(void)
+{
+    /* Byte2 bit0 = Position Initialization Command */
+    if ((ID_chk_rxdata[2U] & 0x01U) == 0U)
+    {
+        return OFF;
+    }
+
+    /* 현재 구동 중이면 먼저 정지 */
+    Motor_Off();
+    motor_start = OFF;
+
+    /* Torque Test 중이었다면 종료 */
+    AAF_Maximum_Torque_Test_Mode = OFF;
+    AAF_Maximum_Torque_Test_Mode_tog = OFF;
+
+    wake_up_motor_range_init_chk = 0U;
+    evrdy_on_flag = OFF;
+
+    AAF1_TargetPosition = UNKOWN_POSITION;
+    AAF2_TargetPosition = UNKOWN_POSITION;
+    AAF3_TargetPosition = UNKOWN_POSITION;
+
+    /* 기존 위치 초기화 로직 진입 */
+    Re_Init();
+
+    return ON;
+}
+
 /***********************************************************************************************************************
  * Function Name: Lin_ParseTorqueTestMode
- * Description  : 토크 테스트 및 초기화 관련 플래그 파싱 및 즉각 Re_Init 검사 수행
+ * Description  : UI Torque Test 명령 파싱
+ *
+ *                OPEN       : Byte4=3B, Byte5=0F
+ *                CLOSE      : Byte4=38, Byte5=0F
+ *                STOP       : Byte4=3F, Byte5=0F
+ *                TEST EXIT  : 00 00 00 00 00 00 00 14
  ***********************************************************************************************************************/
-static void Lin_ParseTorqueTestMode(void)
+static uint8_t Lin_ParseTorqueTestMode(void)
 {
-    AAF_Init_Flag                = (unsigned int)((ID_chk_rxdata[1U] & 0x80U) >> 7U);
-    AAF_Flap_Fixation_Test_Mode  = (unsigned int)((ID_chk_rxdata[2U] & 0x80U) >> 7U);
-    AAF_Maximum_Torque_Test_Mode = (unsigned int)((ID_chk_rxdata[3U] & 0x80U) >> 7U);
-    Re_Init_check                = (unsigned int)((ID_chk_rxdata[4U] & 0x80U) >> 7U);
+    uint8_t torque_command = OFF;
 
-    if (Re_Init_check == 0x01U)
+    /* 기존 Test Flag 유지 */
+    AAF_Init_Flag =
+        (unsigned int)((ID_chk_rxdata[1U] & 0x80U) >> 7U);
+
+    AAF_Flap_Fixation_Test_Mode =
+        (unsigned int)((ID_chk_rxdata[2U] & 0x80U) >> 7U);
+
+
+    /* Torque Test OPEN */
+    if ((ID_chk_rxdata[4U] == 0x3BU) &&
+        (ID_chk_rxdata[5U] == 0x0FU))
     {
-        Re_Init_check_flag = 1U;
+        AAF_Maximum_Torque_Test_Mode = ON;
+
+        AAF1_TargetPosition = OPEN;
+        AAF2_TargetPosition = UNKOWN_POSITION;
+        AAF3_TargetPosition = UNKOWN_POSITION;
+
+        torque_command = ON;
+    }
+
+    /* Torque Test CLOSE */
+    else if ((ID_chk_rxdata[4U] == 0x38U) &&
+             (ID_chk_rxdata[5U] == 0x0FU))
+    {
+        AAF_Maximum_Torque_Test_Mode = ON;
+
+        AAF1_TargetPosition = CLOSE;
+        AAF2_TargetPosition = UNKOWN_POSITION;
+        AAF3_TargetPosition = UNKOWN_POSITION;
+
+        torque_command = ON;
+    }
+
+    /* Torque Test STOP */
+    else if ((ID_chk_rxdata[4U] == 0x3FU) &&
+             (ID_chk_rxdata[5U] == 0x0FU))
+    {
+        /*
+         * Torque Mode 자체는 유지.
+         * Torque_TestMode()의 UNKNOWN case에서 Motor_Off().
+         */
+        AAF_Maximum_Torque_Test_Mode = ON;
+
+        AAF1_TargetPosition = UNKOWN_POSITION;
+        AAF2_TargetPosition = UNKOWN_POSITION;
+        AAF3_TargetPosition = UNKOWN_POSITION;
+
+        torque_command = ON;
+    }
+
+    /*
+     * UI Torque Test 종료 / UI Disconnect
+     *
+     * Torque Test 상태에서만 이 프레임을 EXIT로 취급한다.
+     * 일반 모드에서는 기존 00...14 의미를 변경하지 않는다.
+     */
+    else if ((AAF_Maximum_Torque_Test_Mode == ON) &&
+             (ID_chk_rxdata[0U] == 0x00U) &&
+             (ID_chk_rxdata[1U] == 0x00U) &&
+             (ID_chk_rxdata[2U] == 0x00U) &&
+             (ID_chk_rxdata[3U] == 0x00U) &&
+             (ID_chk_rxdata[4U] == 0x00U) &&
+             (ID_chk_rxdata[5U] == 0x00U) &&
+             (ID_chk_rxdata[6U] == 0x00U) &&
+             (ID_chk_rxdata[7U] == 0x14U))
+    {
+        /*
+         * Byte4=00이 CLOSE로 해석되기 전에
+         * Torque Test 종료 + Motor 정지.
+         */
+        Motor_Off();
+        motor_start = OFF;
+
+        AAF1_TargetPosition = UNKOWN_POSITION;
+        AAF2_TargetPosition = UNKOWN_POSITION;
+        AAF3_TargetPosition = UNKOWN_POSITION;
+
+        AAF_Maximum_Torque_Test_Mode = OFF;
+
+        torque_command = ON;
     }
     else
     {
-        Re_Init_check_flag = 0U;
+        /* 일반 Frame */
     }
 
-    if ((Re_Init_check_flag == 1U) && (aaf_step == AAF_WAITING) && (Re_Init_check_prev == 0U))
-    {
-        Re_Init();
-    }
-    Re_Init_check_prev = Re_Init_check;
+    return torque_command;
 }
 
 /***********************************************************************************************************************
@@ -390,7 +501,6 @@ void Lin_CheckAAF3RxData(void){
     Lin_ProcessTargetCommand(AAF3_TargetPosition_select);
 }   
 
-
 /***********************************************************************************************************************
  * Function Name: Lin_RxCheck
  * Description  : LIN 수신 데이터를 검증하고 보호 기능 상태(ON/OFF)에 따라 처리 루틴을 호출하는 메인 함수
@@ -399,56 +509,180 @@ void Lin_CheckAAF3RxData(void){
  ***********************************************************************************************************************/
 void Lin_RxCheck(void)
 {
+#ifdef ENABLE_TORQUE_TEST
+    uint8_t torque_command = OFF;
+#endif
+
     Lin_SwCheck();
 
     Lin_TranslateRxData();
 
     if (lin_rx_pass_flag == PASS)
     {
+#ifdef ENABLE_TORQUE_TEST
+        /***************************************************************************************************************
+         * 1순위 : Position Initialization Command
+         *
+         * Byte2 bit0 = 1
+         *
+         * 위치 초기화 명령이 들어온 경우에는
+         * 같은 LIN Frame의 Byte4를 일반 OPEN/CLOSE 명령으로 해석하지 않는다.
+         ***************************************************************************************************************/
+        if (Lin_ParsePositionInitCommand() == ON)
+        {
+            /*
+             * 기존 DURING_INITIALIZATION 처리와 동일하게
+             * 초기화 과정에서 필요한 신호만 갱신한다.
+             */
+            LDCRdy =
+                (unsigned int)((ID_chk_rxdata[7U] & 0x30U) >> 4U);
+
+            AAF_LINOut =
+                (unsigned int)((ID_chk_rxdata[7U] & 0x0CU) >> 2U);
+
+            AAF_ProtectionMode_Rx =
+                (unsigned int)((ID_chk_rxdata[7U] & 0x40U) >> 6U);
+        }
+        else
+#endif 
         if (AAFx_InitStatus != DURING_INITIALIZATION)
         {
-            /* EV Control Frame Mapping (Byte 4 ~ 7) */
-            AAF1_TargetPosition    = (unsigned int)(ID_chk_rxdata[4U] & 0x07U);
-            AAF2_TargetPosition    = (unsigned int)((ID_chk_rxdata[4U] & 0x38U) >> 3U);
-            AAF3_TargetPosition    = (unsigned int)(ID_chk_rxdata[5U] & 0x07U);
-            CR_Mcu_VehSpdInt_Kph   = (unsigned int)(ID_chk_rxdata[6U]); 
-            AAF_ProtectionMode_Rx  = (unsigned int)((ID_chk_rxdata[7U] & 0x40U) >> 6U);
-            LDCRdy                 = (unsigned int)((ID_chk_rxdata[7U] & 0x30U) >> 4U);
-            AAF_LINOut             = (unsigned int)((ID_chk_rxdata[7U] & 0x0CU) >> 2U);
+#ifdef ENABLE_TORQUE_TEST
+            /***********************************************************************************************************
+             * 2순위 : Torque Test Command
+             *
+             * OPEN       : Byte4 = 0x3B, Byte5 = 0x0F
+             * CLOSE      : Byte4 = 0x38, Byte5 = 0x0F
+             * STOP       : Byte4 = 0x3F, Byte5 = 0x0F
+             * UI EXIT    : 00 00 00 00 00 00 00 14
+             *
+             * 반드시 일반 AAF1/AAF2/AAF3 Position Mapping보다 먼저 검사한다.
+             ***********************************************************************************************************/
+            torque_command = Lin_ParseTorqueTestMode();
 
-            HighSpeed_CheckDriveMode(CR_Mcu_VehSpdInt_Kph);
+            /*
+             * Torque Test 명령을 받았거나,
+             * 이미 Torque Test Mode가 동작 중이면
+             * 일반 Position Mapping을 수행하지 않는다.
+             *
+             * 이것이 중요한 이유:
+             *
+             * UI Disconnect 시
+             *   00 00 00 00 00 00 00 14
+             *
+             * Frame의 Byte4 = 0x00을 일반 위치 명령으로 처리하면
+             * AAF1_TargetPosition = CLOSE가 되어
+             * Torque Test 상태에서 계속 CLOSE 방향으로 동작할 수 있다.
+             */
+            if ((torque_command == ON) ||
+                (AAF_Maximum_Torque_Test_Mode == ON))
+            {
+                /*
+                 * Position을 제외한 기존 Control Frame 신호는 계속 갱신
+                 */
+                CR_Mcu_VehSpdInt_Kph =
+                    (unsigned int)(ID_chk_rxdata[6U]);
 
-            #ifdef ENABLE_TORQUE_TEST
-            Lin_ParseTorqueTestMode(); 
-            #endif
+                AAF_ProtectionMode_Rx =
+                    (unsigned int)((ID_chk_rxdata[7U] & 0x40U) >> 6U);
 
-            if (AAFx_Index == AAF_1)
-            {
-                Lin_CheckAAF1RxData();
+                LDCRdy =
+                    (unsigned int)((ID_chk_rxdata[7U] & 0x30U) >> 4U);
+
+                AAF_LINOut =
+                    (unsigned int)((ID_chk_rxdata[7U] & 0x0CU) >> 2U);
+
+                HighSpeed_CheckDriveMode(CR_Mcu_VehSpdInt_Kph);
+
+                /*
+                 * 기존 Torque Test Toggle 처리
+                 *
+                 * UI EXIT에서
+                 * AAF_Maximum_Torque_Test_Mode : ON -> OFF
+                 * 가 되었다면 기존 Re_Init() 경로도 여기서 실행된다.
+                 */
+                Lin_ExecuteTorqueTestMode();
             }
-            else if (AAFx_Index == AAF_2)
+            else
+#endif
             {
-                Lin_CheckAAF2RxData();
+                /********************************************************************************************************
+                 * Normal Mode
+                 *
+                 * 아래는 0903 기존 Position 처리 방식 그대로 유지
+                 ********************************************************************************************************/
+
+                /* EV Control Frame Mapping (Byte 4 ~ 7) */
+                AAF1_TargetPosition =
+                    (unsigned int)(ID_chk_rxdata[4U] & 0x07U);
+
+                AAF2_TargetPosition =
+                    (unsigned int)((ID_chk_rxdata[4U] & 0x38U) >> 3U);
+
+                AAF3_TargetPosition =
+                    (unsigned int)(ID_chk_rxdata[5U] & 0x07U);
+
+                CR_Mcu_VehSpdInt_Kph =
+                    (unsigned int)(ID_chk_rxdata[6U]);
+
+                AAF_ProtectionMode_Rx =
+                    (unsigned int)((ID_chk_rxdata[7U] & 0x40U) >> 6U);
+
+                LDCRdy =
+                    (unsigned int)((ID_chk_rxdata[7U] & 0x30U) >> 4U);
+
+                AAF_LINOut =
+                    (unsigned int)((ID_chk_rxdata[7U] & 0x0CU) >> 2U);
+
+                HighSpeed_CheckDriveMode(CR_Mcu_VehSpdInt_Kph);
+
+                /*
+                 * 기존 AAF별 Target Position 처리
+                 */
+                if (AAFx_Index == AAF_1)
+                {
+                    Lin_CheckAAF1RxData();
+                }
+                else if (AAFx_Index == AAF_2)
+                {
+                    Lin_CheckAAF2RxData();
+                }
+                else if (AAFx_Index == AAF_3)
+                {
+                    Lin_CheckAAF3RxData();
+                }
+                else
+                {
+                    /* Invalid */
+                }
+
+#ifdef ENABLE_TORQUE_TEST
+                /*
+                 * 기존 AAF_Init_Flag / Flap Fixation Test 등의
+                 * Toggle 처리 유지
+                 */
+                Lin_ExecuteTorqueTestMode();
+#endif
             }
-            else if (AAFx_Index == AAF_3)
-            {
-                Lin_CheckAAF3RxData();
-            }
-            
-            #ifdef ENABLE_TORQUE_TEST
-            Lin_ExecuteTorqueTestMode(); 
-            #endif
         }
-        else 
+        else
         {
-            LDCRdy     = (unsigned int)((ID_chk_rxdata[7U] & 0x30U) >> 4U);
-            AAF_LINOut = (unsigned int)((ID_chk_rxdata[7U] & 0x0CU) >> 2U);
-            AAF_ProtectionMode_Rx  = (ID_chk_rxdata[7U] & 0x40U) >> 6U;
+            /***********************************************************************************************************
+             * Position Initialization 진행 중
+             *
+             * 0903 기존 처리 그대로 유지
+             ***********************************************************************************************************/
+            LDCRdy =
+                (unsigned int)((ID_chk_rxdata[7U] & 0x30U) >> 4U);
+
+            AAF_LINOut =
+                (unsigned int)((ID_chk_rxdata[7U] & 0x0CU) >> 2U);
+
+            AAF_ProtectionMode_Rx =
+                (unsigned int)((ID_chk_rxdata[7U] & 0x40U) >> 6U);
         }
     }
-    
 }
-
 /***********************************************************************************************************************
  * Function Name: Lin_TxCheck
  * Description  : EV 전용 Response 프레임 규격에 맞춰 송신 데이터를 세팅
