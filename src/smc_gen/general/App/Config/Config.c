@@ -57,12 +57,15 @@ uint16_t fault_clear[1] = {
 
 
 //for UI test
-uint16_t TRQ_COUNT_Buffer[TRQ_COUNT_BUF_SIZE];   /* 값  : trq_cnt 생값 그대로 */
-uint8_t  TRQ_STATE_Buffer[TRQ_COUNT_BUF_SIZE];   /* 상태: 비트 플래그        */
-unsigned int TRQ_COUNT_Index = 0U;
-uint8_t TRQ_COUNT_LogEnable = 0U;
-uint8_t TRQ_COUNT_TxReady = 0U;
-unsigned int trq_log_post    = 0U;
+uint16_t TRQ_OpenValue [TRQ_COUNT_BUF_SIZE];   /* Close → Open  : trq_cnt 생값 */
+uint8_t  TRQ_OpenState [TRQ_COUNT_BUF_SIZE];
+uint16_t TRQ_CloseValue[TRQ_COUNT_BUF_SIZE];   /* Open  → Close : trq_cnt 생값 */
+uint8_t  TRQ_CloseState[TRQ_COUNT_BUF_SIZE];
+
+unsigned int TRQ_OpenIndex  = 0U;            /* 덤프시 이 값 = 그 스트로크 샘플수 */
+unsigned int TRQ_CloseIndex = 0U;
+uint8_t      TRQ_LogEnable  = 0U;
+uint8_t      TRQ_LogNewRun  = 1U;            /* 1 = 다음 기동은 새 스트로크 */
 
 
 /* 2.2 Motor Control Variables */

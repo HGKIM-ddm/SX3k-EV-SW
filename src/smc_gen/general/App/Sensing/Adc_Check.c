@@ -41,13 +41,7 @@ void ADC_TrqCountSample(void)
         G_Timer1ms.TrqCheck = 0U;
 
         #ifdef ENABLE_TORQUE_LIN_COMMUNICATION
-        /* [A-2] 스톨 확정 → motor_start=OFF 가 되면 여기서 return 되므로
-         *       후미 TRQ_LOG_POST_CNT 개를 못 채운다. 로그를 여기서 확정한다. */
-        if ((TRQ_COUNT_LogEnable == 1U) && (trq_log_post > 0U))
-        {
-            TRQ_COUNT_LogEnable = 0U;
-            TRQ_COUNT_TxReady   = 1U;
-        }
+        TRQ_LogNewRun = 1U;      /* 다음 기동은 새 스트로크 : 해당 방향 인덱스를 0부터 */
         #endif
 
         return;
@@ -109,44 +103,46 @@ void ADC_TrqCountSample(void)
     }
 
      #ifdef ENABLE_TORQUE_LIN_COMMUNICATION
-    /* [A-1] 판정 뒤에 기록해야 값과 상태가 같은 시점이 된다.
-     *       (판정 앞에 두면 stall_count / motor_stall_flag / trq_cnt_valid 가 2 ms 전 값) */
-    if (TRQ_COUNT_LogEnable == 1U)
+    if (TRQ_LogEnable == 1U)
     {
         uint8_t st;
+        uint8_t is_close;
 
         st  = (uint8_t)((motor_stall_flag == MOTOR_STALL)             ? 0x01U : 0x00U);
-        st |= (uint8_t)((dir_state == OPEN)                           ? 0x02U : 0x00U);
+        st |= (uint8_t)((antipinch_action_on == ON)                   ? 0x02U : 0x00U);
         st |= (uint8_t)((trq_cnt_valid == 1U)                         ? 0x04U : 0x00U);
         st |= (uint8_t)((G_Timer1ms.StallTime >= STALL_CHK_WAIT_TIME) ? 0x08U : 0x00U);
         st |= (uint8_t)(((stall_count > 3U) ? 3U : stall_count) << 4U);
-        st |= (uint8_t)((antipinch_action_on == ON)                   ? 0x40U : 0x00U);
+        st |= (uint8_t)((dir_state & 0x03U) << 6U);   /* bit6-7 : 0 CLOSE / 1 OPEN_1ST / 2 OPEN_2ND / 3 OPEN */
 
-        TRQ_COUNT_Buffer[TRQ_COUNT_Index] = (uint16_t)trq_cnt;   /* 생값, 마스킹 없음 */
-        TRQ_STATE_Buffer[TRQ_COUNT_Index] = st;
+        is_close = (dir_state == CLOSE) ? 1U : 0U;
 
-        TRQ_COUNT_Index++;
-        if (TRQ_COUNT_Index >= TRQ_COUNT_BUF_SIZE)
+        /* 스트로크 시작 : 해당 방향 인덱스만 0으로 (반대 방향 기록은 보존) */
+        if (TRQ_LogNewRun == 1U)
         {
-            TRQ_COUNT_Index = 0U;                 /* 항상 순환 */
+            TRQ_LogNewRun = 0U;
+            if (is_close == 1U) { TRQ_CloseIndex = 0U; }
+            else                { TRQ_OpenIndex  = 0U; }
         }
 
-        if (trq_log_post > 0U)                    /* 트리거 이후 : 후미 구간 */
+        /* 순환하지 않는다. 스트로크 하나를 처음부터 끝까지 담고 넘치면 정지 */
+        if (is_close == 1U)
         {
-            trq_log_post++;
-            if (trq_log_post >= TRQ_LOG_POST_CNT)
+            if (TRQ_CloseIndex < TRQ_COUNT_BUF_SIZE)
             {
-                TRQ_COUNT_LogEnable = 0U;
-                TRQ_COUNT_TxReady   = 1U;
+                TRQ_CloseValue[TRQ_CloseIndex] = (uint16_t)trq_cnt;
+                TRQ_CloseState[TRQ_CloseIndex] = st;
+                TRQ_CloseIndex++;
             }
-        }
-        else if (motor_stall_flag == MOTOR_STALL) /* 스톨 확정 순간 트리거 */
-        {
-            trq_log_post = 1U;
         }
         else
         {
-            /* 트리거 전 : 계속 덮어쓰기 */
+            if (TRQ_OpenIndex < TRQ_COUNT_BUF_SIZE)
+            {
+                TRQ_OpenValue[TRQ_OpenIndex] = (uint16_t)trq_cnt;
+                TRQ_OpenState[TRQ_OpenIndex] = st;
+                TRQ_OpenIndex++;
+            }
         }
     }
     #endif

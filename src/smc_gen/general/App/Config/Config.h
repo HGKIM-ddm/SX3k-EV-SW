@@ -25,12 +25,15 @@ extern unsigned int trq_cnt_valid;
 extern uint16_t trq_scan[2];
 
 //for Torque Test
-extern uint16_t TRQ_COUNT_Buffer[TRQ_COUNT_BUF_SIZE];   /* 값  : trq_cnt 생값 그대로 */
-extern uint8_t  TRQ_STATE_Buffer[TRQ_COUNT_BUF_SIZE];   /* 상태: 비트 플래그        */
-extern unsigned int TRQ_COUNT_Index;
-extern uint8_t TRQ_COUNT_LogEnable;
-extern uint8_t TRQ_COUNT_TxReady;
-extern unsigned int trq_log_post;
+extern uint16_t TRQ_OpenValue [TRQ_COUNT_BUF_SIZE];   /* Close → Open  : trq_cnt 생값 */
+extern uint8_t  TRQ_OpenState [TRQ_COUNT_BUF_SIZE];
+extern uint16_t TRQ_CloseValue[TRQ_COUNT_BUF_SIZE];   /* Open  → Close : trq_cnt 생값 */
+extern uint8_t  TRQ_CloseState[TRQ_COUNT_BUF_SIZE];
+
+extern unsigned int TRQ_OpenIndex;            /* 덤프시 이 값 = 그 스트로크 샘플수 */
+extern unsigned int TRQ_CloseIndex;
+extern uint8_t      TRQ_LogEnable;
+extern uint8_t      TRQ_LogNewRun;            /* 1 = 다음 기동은 새 스트로크 */
 
 /*******************************************************************************
  * Global Variable Extern Declarations

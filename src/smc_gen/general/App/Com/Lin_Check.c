@@ -273,49 +273,49 @@ static void Lin_TranslateRxData(void)
 }
 
 #ifdef ENABLE_TORQUE_LIN_COMMUNICATION
-static void Lin_TxTrqCount(void)
-{
-    static unsigned int trq_read_idx = 0U;
+// static void Lin_TxTrqCount(void)
+// {
+//     static unsigned int trq_read_idx = 0U;
 
-    /* [B] 로깅 시작/종료는 Adc_Check.c 가 단독 소유한다.
-     *     여기서는 로깅이 끝난(TxReady) 뒤에 읽어내기만 한다.
-     *     AAFx_InitStatus 는 Re_Init() 에서 초기화되지 않으므로 판단 기준으로 쓸 수 없다. */
-    if (TRQ_COUNT_TxReady == 1U)
-    {
-        if (SW_Chk == 0U)
-        {
-            for (uint8_t i = 3U; i <= 6U; i++)
-            {
-                unsigned int temp_idx = trq_read_idx + (i - 3U);
+//     /* [B] 로깅 시작/종료는 Adc_Check.c 가 단독 소유한다.
+//      *     여기서는 로깅이 끝난(TxReady) 뒤에 읽어내기만 한다.
+//      *     AAFx_InitStatus 는 Re_Init() 에서 초기화되지 않으므로 판단 기준으로 쓸 수 없다. */
+//     if (TRQ_COUNT_TxReady == 1U)
+//     {
+//         if (SW_Chk == 0U)
+//         {
+//             for (uint8_t i = 3U; i <= 6U; i++)
+//             {
+//                 unsigned int temp_idx = trq_read_idx + (i - 3U);
 
-                /* 링버퍼이므로 TRQ_COUNT_Index 가 아니라 버퍼 크기로 판정한다 */
-                if (temp_idx < TRQ_COUNT_BUF_SIZE)
-                {
-                    Slave_TxData[i] = (uint8_t)(TRQ_COUNT_Buffer[temp_idx] & 0xFFU);
-                }
-                else
-                {
-                    Slave_TxData[i] = 0x00U;
-                }
-            }
+//                 /* 링버퍼이므로 TRQ_COUNT_Index 가 아니라 버퍼 크기로 판정한다 */
+//                 if (temp_idx < TRQ_COUNT_BUF_SIZE)
+//                 {
+//                     Slave_TxData[i] = (uint8_t)(TRQ_COUNT_Buffer[temp_idx] & 0xFFU);
+//                 }
+//                 else
+//                 {
+//                     Slave_TxData[i] = 0x00U;
+//                 }
+//             }
 
-            if (lin_tx_resp_flag == 1U)
-            {
-                trq_read_idx += 4U;
-                lin_tx_resp_flag = 0U;
+//             if (lin_tx_resp_flag == 1U)
+//             {
+//                 trq_read_idx += 4U;
+//                 lin_tx_resp_flag = 0U;
 
-                if (trq_read_idx >= TRQ_COUNT_BUF_SIZE)
-                {
-                    trq_read_idx = 0U;
-                }
-            }
-        }
-    }
-    else
-    {
-        trq_read_idx = 0U;
-    }
-}
+//                 if (trq_read_idx >= TRQ_COUNT_BUF_SIZE)
+//                 {
+//                     trq_read_idx = 0U;
+//                 }
+//             }
+//         }
+//     }
+//     else
+//     {
+//         trq_read_idx = 0U;
+//     }
+// }
 #endif
 
 /***********************************************************************************************************************
@@ -504,7 +504,7 @@ void Lin_TxCheck(void)
     Slave_TxData[6U] = 0x00U;
 
     #ifdef ENABLE_TORQUE_LIN_COMMUNICATION
-    Lin_TxTrqCount();
+    // Lin_TxTrqCount();
     #endif
 
     Lin_SwCheckResponse();

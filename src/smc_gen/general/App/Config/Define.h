@@ -19,7 +19,7 @@
 #define UDS
 
 //For Torque Lin Communication
-// #define ENABLE_TORQUE_LIN_COMMUNICATION
+#define ENABLE_TORQUE_LIN_COMMUNICATION
 
 //Current CodeName
 #define VEHICLE_CODENAME SX3K_EV_AAF1
@@ -156,7 +156,7 @@
 #define FAULT_DEBOUNCE_CNT       (2U)   /* 1ms x 2 연속 Low 이어야 에지 확정   */
 
 //For Torque Count Test
-#define TRQ_COUNT_BUF_SIZE   (4000U)
+#define TRQ_COUNT_BUF_SIZE   (3000U)
 #define TRQ_LOG_POST_CNT      (200U)   /* 스톨 후 200 x 2ms = 400 ms */
 
 
