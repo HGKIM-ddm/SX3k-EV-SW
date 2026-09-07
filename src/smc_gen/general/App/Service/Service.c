@@ -11,10 +11,14 @@ static void Mode_Check(void)
     {
         Operating_Mode();
     }
+    
+    #ifdef ENABLE_AAF_UI
     else if (AAF_Maximum_Torque_Test_Mode == ON) 
     {
         Torque_TestMode();
     }
+    #endif
+
     else if (lin_bus_inactive_flag == ON)
     {
         Lin_Sleep();

@@ -13,7 +13,7 @@
 #define MINUTE_3 180U 
 
 //For Torque Test
-// #define ENABLE_TORQUE_TEST
+#define ENABLE_AAF_UI
 
 //For Bootloader
 #define UDS
