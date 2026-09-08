@@ -41,7 +41,7 @@ Macro definitions
 ***********************************************************************************************************************/
 #define _TAUD0_CHANNEL0_COMPARE_VALUE                              (0x063FU) /* Data register for compare values */
 // #define _TAUD0_CHANNEL2_COMPARE_VALUE                              (0x0280U) /* Data register for compare values */ //1.32V,1A
-
+// #define _TAUD0_CHANNEL2_COMPARE_VALUE                              (0x0240U) /* Data register for compare values */ //1.188V, 0.90A
 #define _TAUD0_CHANNEL2_COMPARE_VALUE                              (0x0200U) /* Data register for compare values */ //1.05V,0.8A
 /***********************************************************************************************************************
 Typedef definitions
