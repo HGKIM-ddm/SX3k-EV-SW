@@ -19,7 +19,7 @@
 #define UDS
 
 //For Torque Lin Communication
-#define ENABLE_TORQUE_LIN_COMMUNICATION
+// #define ENABLE_TORQUE_LIN_COMMUNICATION
 
 //Current CodeName
 #define VEHICLE_CODENAME SX3K_EV_AAF1
@@ -143,7 +143,7 @@
 #define TRQ_BUF_SIZE 4U
 #define TRQ_SAMPLE_PERIOD 2U
 
-#define STALL_TH 737U 
+#define STALL_TH 100U 
 
 #define STALL_CNT_DEFAULT 30000U
 #define STALL_CHK_WAIT_TIME 250U // 250
