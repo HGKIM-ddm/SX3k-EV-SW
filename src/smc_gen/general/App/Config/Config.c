@@ -21,10 +21,6 @@ unsigned int trq_cnt_avg = 0U;
 unsigned int trq_cnt_valid = 0U;                              
 uint16_t trq_scan[2] = {0U};
 
- /*******************************************************************************
-  * Drv8889 Register
-  ******************************************************************************/
-
 /* 2.1 Communication Buffers (LIN) */
 uint8_t GetIDbuffer;
 uint8_t Slave_RxData1[8]; /*reception data store array*/
@@ -46,15 +42,6 @@ uint8_t Slave_SwData[8] = {
 }; /* Transmission data store array  */
 
 uint8_t Slave_RxSwData1[8] = {0,};
-
-uint16_t fault_clear[1] = { 
-    0x0CBC 
-};
-
-/*******************************************************************************
- * Drv8889 Register
- ******************************************************************************/
-
 
 //for UI test
 uint16_t TRQ_OpenValue [TRQ_COUNT_BUF_SIZE];   /* Close → Open  : trq_cnt 생값 */
@@ -122,8 +109,6 @@ unsigned int ReqRespAAFID = 0;
 unsigned int ReqAAF1DiagMode = 0;
 unsigned int ReqAAF2DiagMode = 0;
 unsigned int ReqAAF3DiagMode = 0;
-unsigned int Req_ChkSum_Rx = 0;
-unsigned int Req_Alive_Rx = 0;
 unsigned int AAFx_Mode = 0;
 
 unsigned int AAFx_Position_Status = 0;
@@ -133,8 +118,6 @@ unsigned int AAFx_SNSR1_Position = 0;
 unsigned int AAFx_SNSR2_Position = 0;
 unsigned int AAFx_SNSR3_Position = 0;
 unsigned int AAFx_SNSR4_Position = 0;
-unsigned int Req_ChkSum_Tx = 0;
-unsigned int Req_Alive_Tx = 0;
 
 /* 2.4 Communication Flags & Status */
 volatile uint8_t error_status = 0;
@@ -144,7 +127,7 @@ unsigned int lin_rx_chk_flag = 0;
 volatile uint8_t lin_tx_resp_flag = 0;
 volatile uint8_t g_lin_comm_ok_flag = 0U;
 volatile uint8_t g_lin_error_flag = 0U;
-unsigned int AAF_LIN_ChkSum_CHK_value = 0;
+
 char ret = 0;
 unsigned int lin_bus_inactive_flag = 0;
 unsigned int lin_sleep_step = 0;
@@ -243,14 +226,10 @@ unsigned int IGN_Chk_On = 0U;
 unsigned int SW_Chk = 0U;
 unsigned int Operating_flag = 0U;
 
-unsigned int AAF_Init_Flag = 0U;
-unsigned int AAF_Init_Flag_tog = 0U;
 unsigned int Re_Init_check = 0U;
 unsigned int Re_Init_check_flag = 0U;
 unsigned int Re_Init_check_prev = 0U;
-volatile unsigned int AAF_Flap_Fixation_Test_Mode = 0U;
-volatile unsigned int AAF_Flap_Fixation_Test_Mode_tog = 0U;
-volatile unsigned int AAF_Maximum_Torque_Test_Mode_tog = 0U;
+
 
 
 

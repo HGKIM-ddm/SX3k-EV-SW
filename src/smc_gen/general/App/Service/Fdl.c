@@ -137,7 +137,7 @@ void FDL_Read(void)
         DTC_memory_read             = 0U;
         power_chk_memory_read       = Shutdown_Check;
         First_Powerchk_memory_read  = 0U;
-        // fw_version_memory_read      = 0xFFFFU;    
+
 
 		while (1)
 		{
@@ -174,8 +174,6 @@ void FDL_Read(void)
 	power_chk_memory_read = (unsigned int)(r_buff[3U] >> 16U) & 0xFu;
 	First_Powerchk_memory_read = (unsigned int)(r_buff[4U]) & 0xFu;
 	
-	// fw_version_memory_read = (unsigned int)(r_buff[4U] >> 16U) & 0xFFFFu; // 버전 읽기 (r_buff[4] 상위 16bit)
-
 	if (position_status_memory_read >= Memory_Range_Break)
 	{
 		position_status_memory_read = Memory_Range_Init;

@@ -39,7 +39,6 @@ Includes
 #include "Config_TAUD0_13.h"
 #include "Config_TAUJ1.h"
 #include "r_cg_cgc.h"
-#include "Config_TAUD0.h"
 
 #ifndef SMC_ENTRY_H
 #define SMC_ENTRY_H

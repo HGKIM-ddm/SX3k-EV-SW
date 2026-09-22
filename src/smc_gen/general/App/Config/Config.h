@@ -48,8 +48,6 @@ extern uint32_t r_buff[8]; //Only SX3k [8]
 extern uint8_t Slave_SwData[8];
 extern uint8_t Slave_RxSwData1[8];
 
-extern uint16_t fault_clear[1];
-
 /* 2.2 Motor Control Variables */
 extern unsigned int motor_start;
 extern unsigned int motor_wait_chk;
@@ -103,8 +101,6 @@ extern unsigned int ReqRespAAFID;
 extern unsigned int ReqAAF1DiagMode;
 extern unsigned int ReqAAF2DiagMode;
 extern unsigned int ReqAAF3DiagMode;
-extern unsigned int Req_ChkSum_Rx;
-extern unsigned int Req_Alive_Rx;
 extern unsigned int AAFx_Mode;
 
 extern unsigned int AAFx_Position_Status;
@@ -114,8 +110,6 @@ extern unsigned int AAFx_SNSR1_Position;
 extern unsigned int AAFx_SNSR2_Position;
 extern unsigned int AAFx_SNSR3_Position;
 extern unsigned int AAFx_SNSR4_Position;
-extern unsigned int Req_ChkSum_Tx;
-extern unsigned int Req_Alive_Tx;
 
 /* 2.4 Communication Flags & Status */
 extern volatile uint8_t error_status;
@@ -125,7 +119,7 @@ extern unsigned int lin_rx_chk_flag;
 extern volatile uint8_t lin_tx_resp_flag;
 extern volatile uint8_t g_lin_comm_ok_flag;
 extern volatile uint8_t g_lin_error_flag;
-extern unsigned int AAF_LIN_ChkSum_CHK_value;
+
 extern char ret;
 extern unsigned int lin_bus_inactive_flag;
 extern unsigned int lin_sleep_step;
@@ -204,7 +198,7 @@ extern unsigned int power_chk_memory_write;
 extern unsigned int power_chk_memory_read;
 extern unsigned int First_Powerchk_memory_write;
 extern unsigned int First_Powerchk_memory_read;
-extern unsigned int fw_version_memory_read;
+
 extern unsigned int AAF_Tx_Position_Temporary;
 extern unsigned int AAFx_Position_Status_Temporary;
 extern unsigned int AAFx_InitStatus_Temporary;
@@ -296,14 +290,9 @@ extern unsigned int IGN_Chk_On;
 extern unsigned int SW_Chk;
 extern unsigned int Operating_flag;
 
-extern unsigned int AAF_Init_Flag;
-extern unsigned int AAF_Init_Flag_tog;
 extern unsigned int Re_Init_check;
 extern unsigned int Re_Init_check_flag;
 extern unsigned int Re_Init_check_prev;
-extern volatile unsigned int AAF_Flap_Fixation_Test_Mode;
-extern volatile unsigned int AAF_Flap_Fixation_Test_Mode_tog;
-extern volatile unsigned int AAF_Maximum_Torque_Test_Mode_tog;
 
 
 /*******************************************************************************

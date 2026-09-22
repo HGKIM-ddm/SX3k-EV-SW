@@ -85,13 +85,6 @@
 /* ====================================================================
  * LIN Communication (EV)
  * ==================================================================== */
-#define LIN_ID_AAFCTRL_RX     0x27U
-#define LIN_ID_AAF1_RESP_TX   0x28U
-#define LIN_ID_AAF2_RESP_TX   0x29U
-#define LIN_ID_AAF3_RESP_TX   0x2AU
-#define LIN_CONTROL_LEN       8U
-#define LIN_RESPONSE_LEN      8U
-
 #define AAF_1ST_OPEN_ANGLE 60U //@@ 기존 83 에서 변경 예정 25% -> 75% 전체 110
 #define AAF_2ST_OPEN_ANGLE 30U // @@ 기존 55에서 변경 예정 50% -> 50% 전체 110
 
@@ -128,9 +121,6 @@
     #define FALSE 0
 #endif
 #define WAITING 2U
-#define UNKNOWN 0U
-#define STOP 0U
-#define INIT 3U
 #define WAIT 0U
 #define COMPLETE 1U
 #define NO_ERROR 0U
@@ -157,7 +147,6 @@
 
 //For Torque Count Test
 #define TRQ_COUNT_BUF_SIZE   (3000U)
-#define TRQ_LOG_POST_CNT      (200U)   /* 스톨 후 200 x 2ms = 400 ms */
 
 
 /***********************************************************************************************************************
@@ -190,7 +179,6 @@
 #define DURING_INITIALIZATION 0U
 #define NORMAL_FINISHED_INITIALIZATION 1U
 #define ABNORMAL_FINISHED_INITIALIZATION 2U
-#define INVALID_STATUS_OF_INITIALIZATION 3U
 
 #define INITIALIZATION 1U
 #define ANTIWAIT 2U
@@ -347,8 +335,6 @@
 #define OVER_CURRENT 0x800U
 #define HIGH_TEMPERATURE 0x200U
 
-#define NOT_OPEN_BY_EXTERNAL_FACTORS 1U
-#define NOT_CLOSE_BY_EXTERNAL_FACTORS 2U
 #define OPEN_CIRCUIT 1U
 #define SHORT_CIRCUIT_BATTERY 1U
 #define SHORT_CIRCUIT_GROUND 1U
@@ -365,8 +351,6 @@
 
 #define RH_TYPE 0U
 #define LH_TYPE 1U
-
-#define NORMAL_MODE 0U
 
 #define Shutdown_Check 0U
 #define Normal_Shutdown 1U
