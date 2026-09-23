@@ -131,9 +131,9 @@ void uds_frame_SID_ReadDataByIdentifier(void)
 	if(uds.did==VMECUSVNDID) {
 		p=(void *)APP_VERSION_ADDRESS; 
 		uds.tx_data[2]=6u;
-		uds.tx_data[6]=p[6];
-		uds.tx_data[7]=p[8];
-		uds.tx_data[8]=p[10];
+		uds.tx_data[6]=p[VER_OFS_MAJOR];
+		uds.tx_data[7]=p[VER_OFS_MINOR];
+		uds.tx_data[8]=p[VER_OFS_PATCH];
 		
 	} else {
 		uds.tx_data[2]=4u;
