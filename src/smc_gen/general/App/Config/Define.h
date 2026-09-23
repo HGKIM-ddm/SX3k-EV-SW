@@ -24,7 +24,27 @@
 //Current CodeName
 #define VEHICLE_CODENAME SX3K_EV_AAF1
 
-#define FW_VERSION 0x02U  
+/* ====================================================================
+ * Serial Information
+ * ==================================================================== */
+
+/* LIN ID */
+#define LIN_ID     0x28U
+
+/* 차종 */
+#define SX3K_KR    0x02U   /* SX3k 내수 */
+
+/* 엔진 */
+#define ENG_EV     0x40U
+
+/* 사양 */
+#define STD        0x01U
+
+/* 펌웨어 버전 */
+#define FW_VERSION 0x10U  // 0.0~ : drv8889, 1.0~ : drv8434a
+
+/* 릴리즈 날짜 */
+#define RELEASE_DATE 0x66U
 
  /* ==================================================================== */
 

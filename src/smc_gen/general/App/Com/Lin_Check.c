@@ -125,18 +125,18 @@ static void Lin_SwCheckResponse(void)
 {
     if (SW_Chk == 1U)
     {
-        Slave_SwData[0] = (uint8_t)(0x26u);
+        Slave_SwData[0] = (uint8_t)(LIN_ID);
         Slave_SwData[1] = (uint8_t)(0x05u);
         Slave_SwData[2] = (uint8_t)(0xF2u);
-        Slave_SwData[3] = (uint8_t)(0x02u); // SX3K
-        Slave_SwData[4] = (uint8_t)(0x31u); // EV, STD
+        Slave_SwData[3] = (uint8_t)(SX3K_KR); // SX3K
+        Slave_SwData[4] = (uint8_t)(ENG_EV | STD); // EV, STD
         Slave_SwData[5] = (uint8_t)(FW_VERSION);
-        Slave_SwData[6] = (uint8_t)(0x66u);
+        Slave_SwData[6] = (uint8_t)(RELEASE_DATE);
         Slave_SwData[7] = (uint8_t)(0xFFu);
     }
     else if (SW_Chk == 3U)
     {
-        Slave_SwData[0] = (uint8_t)(0x26u);
+        Slave_SwData[0] = (uint8_t)(LIN_ID);
         Slave_SwData[1] = (uint8_t)(0x03u);
         Slave_SwData[2] = (uint8_t)(0x7Fu);
         Slave_SwData[3] = (uint8_t)(0xB2u);
