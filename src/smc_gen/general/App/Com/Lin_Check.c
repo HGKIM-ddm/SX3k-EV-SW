@@ -104,7 +104,7 @@ static uint8_t Lin_ParseUiCommand(void)
 
 static void Lin_SwCheck(void)
 {
-    if (Slave_RxSwData1[0U] == 0x26u)
+    if (Slave_RxSwData1[0U] == LIN_ID)
     {
         if ((Slave_RxSwData1[1U] == 0x06U) && (Slave_RxSwData1[2U] == 0xB2U) && (Slave_RxSwData1[3U] == 0x01U) && (Slave_RxSwData1[4U] == 0x0Au) && (Slave_RxSwData1[5U] == 0x00U) && (Slave_RxSwData1[6U] == 0x0Bu) && (Slave_RxSwData1[7U] == 0x00U))
         {

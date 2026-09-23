@@ -173,7 +173,9 @@ const uint32_t ECU_SIGN[4] = {
 	0,0,0,0
 };
 const uint8_t ECU_VER[] = {
-	"SX3K_EV V0.0.1 RH850 2026.6.11\n\r"		// 012 로 VERSION READ 자리변동 금지.
+	VER_PREFIX
+	STR(FW_VER_MAJOR) "." STR(FW_VER_MINOR) "." STR(FW_VER_PATCH)
+	" 202" STR(REL_YEAR) "." STR(REL_MONTH) "\n\r"
 };
 #pragma ghs enddata
 #endif

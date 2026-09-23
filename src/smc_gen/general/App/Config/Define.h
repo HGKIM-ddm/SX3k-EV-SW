@@ -40,11 +40,20 @@
 /* 사양 */
 #define STD        0x01U
 
-/* 펌웨어 버전 */
-#define FW_VERSION 0x10U  // 0.0~ : drv8889, 1.0~ : drv8434a
+/* 펌웨어 버전 : 상위 니블 Major / 하위 니블 Minor */
+#define FW_VER_MAJOR  1        // 0.x : drv8889, 1.x : drv8434a
+#define FW_VER_MINOR  0
+#define FW_VER_PATCH  0        // ECU_VER 표기 전용 (미사용 0 고정)
+#define FW_VERSION    ((uint8_t)(((FW_VER_MAJOR) << 4U) | (FW_VER_MINOR)))
 
-/* 릴리즈 날짜 */
-#define RELEASE_DATE 0x66U
+/* 릴리즈 날짜 : 상위 니블 연도 끝자리 / 하위 니블 월 */
+#define REL_YEAR      6        // 2026
+#define REL_MONTH     9        // 9월
+#define RELEASE_DATE  ((uint8_t)(((REL_YEAR) << 4U) | (REL_MONTH)))
+
+/* 매크로 -> 문자열 */
+#define STR_(x)  #x
+#define STR(x)   STR_(x)
 
  /* ==================================================================== */
 
