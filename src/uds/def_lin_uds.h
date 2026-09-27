@@ -1,7 +1,11 @@
 #ifndef DEF_LIN_UDS
 #define DEF_LIN_UDS  
 
-
+//FOR SX3K_EV ONLY
+#define VER_PREFIX      "DDS \"SX3K_STD_EV_AAF1\" V"
+#define VER_OFS_MAJOR   (sizeof(VER_PREFIX) - 1U)
+#define VER_OFS_MINOR   (VER_OFS_MAJOR + 2U)
+#define VER_OFS_PATCH   (VER_OFS_MAJOR + 4U)
 //#define USE_TEST_DISABLE_SLEEP
 //#define 
 

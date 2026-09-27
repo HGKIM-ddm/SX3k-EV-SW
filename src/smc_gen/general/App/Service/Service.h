@@ -3,8 +3,7 @@
 
 #include "Config.h"
 #include "Dio.h"
-#include "Drv8889.h"
-
+#include "Drv8434a.h"
 #include "Adc_Check.h"
 #include "Stall_Check.h"
 
@@ -20,8 +19,8 @@
 #include "Operating_Mode.h"
 #include "Protection_Mode.h"
 #include "Re_Init.h"
-#include "Spi_Check.h"
 #include "HighSpeed_Mode.h"
+#include "Fault_Check.h"
 
 void AAF_SetType(void);
 void App_HwCheck(void);

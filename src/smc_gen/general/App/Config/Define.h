@@ -13,18 +13,47 @@
 #define MINUTE_3 180U 
 
 //For Torque Test
-// #define ENABLE_TORQUE_TEST
+#define ENABLE_AAF_UI
 
 //For Bootloader
 #define UDS
 
 //For Torque Lin Communication
-//#define ENABLE_TORQUE_LIN_COMMUNICATION
+// #define ENABLE_TORQUE_LIN_COMMUNICATION
 
 //Current CodeName
 #define VEHICLE_CODENAME SX3K_EV_AAF1
 
-#define FW_VERSION 0x02U  
+/* ====================================================================
+ * Serial Information
+ * ==================================================================== */
+
+/* LIN ID */
+#define LIN_ID     0x28U
+
+/* 차종 */
+#define SX3K_KR    0x02U   /* SX3k 내수 */
+
+/* 엔진 */
+#define ENG_EV     0x40U
+
+/* 사양 */
+#define STD        0x01U
+
+/* 펌웨어 버전 : 상위 니블 Major / 하위 니블 Minor */
+#define FW_VER_MAJOR  1        // 0.x : drv8889, 1.x : drv8434a
+#define FW_VER_MINOR  0
+#define FW_VER_PATCH  0        // ECU_VER 표기 전용 (미사용 0 고정)
+#define FW_VERSION    ((uint8_t)(((FW_VER_MAJOR) << 4U) | (FW_VER_MINOR)))
+
+/* 릴리즈 날짜 : 상위 니블 연도 끝자리 / 하위 니블 월 */
+#define REL_YEAR      6        // 2026
+#define REL_MONTH     9        // 9월
+#define RELEASE_DATE  ((uint8_t)(((REL_YEAR) << 4U) | (REL_MONTH)))
+
+/* 매크로 -> 문자열 */
+#define STR_(x)  #x
+#define STR(x)   STR_(x)
 
  /* ==================================================================== */
 
@@ -85,13 +114,6 @@
 /* ====================================================================
  * LIN Communication (EV)
  * ==================================================================== */
-#define LIN_ID_AAFCTRL_RX     0x27U
-#define LIN_ID_AAF1_RESP_TX   0x28U
-#define LIN_ID_AAF2_RESP_TX   0x29U
-#define LIN_ID_AAF3_RESP_TX   0x2AU
-#define LIN_CONTROL_LEN       8U
-#define LIN_RESPONSE_LEN      8U
-
 #define AAF_1ST_OPEN_ANGLE 60U //@@ 기존 83 에서 변경 예정 25% -> 75% 전체 110
 #define AAF_2ST_OPEN_ANGLE 30U // @@ 기존 55에서 변경 예정 50% -> 50% 전체 110
 
@@ -128,14 +150,33 @@
     #define FALSE 0
 #endif
 #define WAITING 2U
-#define UNKNOWN 0U
-#define STOP 0U
-#define INIT 3U
 #define WAIT 0U
 #define COMPLETE 1U
 #define NO_ERROR 0U
 #define ERROR 1U
 #define Initial_Value 0U
+
+/***********************************************************************************************************************
+ * 3. Motor Defines 
+***********************************************************************************************************************/
+#define TRQ_BUF_SIZE 4U
+#define TRQ_SAMPLE_PERIOD 2U
+
+#define STALL_TH 737U 
+
+#define STALL_CNT_DEFAULT 30000U
+#define STALL_CHK_WAIT_TIME 250U // 250
+
+#define MOTOR_NORMAL 0U
+#define MOTOR_STALL 1U
+#define MOTOR_FAULT 0x100U
+
+#define FAULT_OCP_OL_BOUNDARY   (20U)   /* ms. tOCP 2us / tOL 65ms 사이       */
+#define FAULT_DEBOUNCE_CNT       (2U)   /* 1ms x 2 연속 Low 이어야 에지 확정   */
+
+//For Torque Count Test
+#define TRQ_COUNT_BUF_SIZE   (3000U)
+
 
 /***********************************************************************************************************************
  * 3. Position & Movement Defines
@@ -164,13 +205,9 @@
 #define NORMAL_INITIALIZATION 3U
 #define WAIT_INITIALIZATION 4U
 
-#define START_INITIALIZATION_CLOSE 3U
-#define START_INITIALIZATION_OPEN 0U
-
 #define DURING_INITIALIZATION 0U
 #define NORMAL_FINISHED_INITIALIZATION 1U
 #define ABNORMAL_FINISHED_INITIALIZATION 2U
-#define INVALID_STATUS_OF_INITIALIZATION 3U
 
 #define INITIALIZATION 1U
 #define ANTIWAIT 2U
@@ -178,26 +215,10 @@
 /***********************************************************************************************************************
  * 4. Step, RPM & Timing Defines
 ***********************************************************************************************************************/
-// RPM = 60 / (t * 2 * (360 / step angle))
-// t*10000 == 10us 5us
-// PPS = RPM * (360 / step angle) / 60
-// PPS = RPM * (360 / step angle) / 60 >> RPM = PPS * (ANGLE / 360) * 60
-// #define STEP_TIME_1125RPM 28U // 450PPS
-#define STEP_TIME_1250RPM 28U // 500PPS(4000) = 25, 450PPS(3600) = 27~28
-#define STEP_TIME_1000RPM 28U
 
 #define REFERENCE_POSITION 30000U // 30000
-#define LIMIT_POSITION 1800U
-#define TOLERANCE 100U
 #define ERROR_RANGE 5U
 
-// init action
-#define INIT_ACTION_POSITION 1450U
-
-
-
-// #define POSITION_MAXIMUM_RANGE 55000U
-// #define LIMITSTEP_MAXIMUM_RANGE 1700U
 #define POSITION_MAXIMUM_RANGE 70000U
 #define LIMITSTEP_MAXIMUM_RANGE 3000U
 
@@ -262,9 +283,9 @@
 // #define ADC_UNDER_VOLTAGE_7V 1262U 
 // #define ADC_UNDER_VOLTAGE_8_5V 1566U
 // #define ADC_UNDER_VOLTAGE_9V 1667U
+// #define ADC_VOLTAGE_9_5V 1769U
 
 // //ADC_OVER_VOLTAGE
-// #define ADC_VOLTAGE_15V 2887U
 // #define ADC_OVER_VOLTAGE_16V 3070U
 // #define ADC_OVER_VOLTAGE_16_5V 3170U
 // #define ADC_OVER_VOLTAGE_18V 3480U
@@ -273,7 +294,20 @@
 // #define ADC_VOLTAGE_10V 1850U	// slew change
 // #define ADC_VOLTAGE_10_5V 1950U // slew change
 // #define ADC_VOLTAGE_15V 2887U   // slew change
+
+// #define ADC_VOLTAGE_11V 2069U
+// #define ADC_VOLTAGE_11_5V 2171U
+// #define ADC_VOLTAGE_12V 2273U
+// #define ADC_VOLTAGE_13_5V 2587U
+// #define ADC_VOLTAGE_13_7V 2627U
+// #define ADC_VOLTAGE_13_8V 2641U
 // #define ADC_VOLTAGE_14V 2681U
+// #define ADC_VOLTAGE_14_4V 2761U
+// #define ADC_VOLTAGE_14_5V 2781U
+// #define ADC_VOLTAGE_14_6V 2801U
+// #define ADC_VOLTAGE_14_7V 2821U
+// #define ADC_VOLTAGE_14_8V 2847U
+
 
 // HW 1.2 ADC 최신
 #define ADC_UNDER_VOLTAGE_7V 618U	 
@@ -287,26 +321,6 @@
 #define ADC_OVER_VOLTAGE_16_5V 1561U //1611
 #define ADC_OVER_VOLTAGE_18V 1710U	 
 
-
-
-
-
-
-// #define ADC_VOLTAGE_9_5V 1769U
-// #define ADC_VOLTAGE_11V 2069U
-// #define ADC_VOLTAGE_11_5V 2171U
-// #define ADC_VOLTAGE_12V 2273U
-// #define ADC_VOLTAGE_13_5V 2587U
-// #define ADC_VOLTAGE_13_7V 2627U
-// #define ADC_VOLTAGE_13_8V 2641U
-// #define ADC_VOLTAGE_14V 2681U
-// #define ADC_VOLTAGE_14_4V 2761U
-// #define ADC_VOLTAGE_14_5V 2781U
-// #define ADC_VOLTAGE_14_6V 2801U
-// #define ADC_VOLTAGE_14_7V 2821U
-// #define ADC_VOLTAGE_14_8V 2847U
-// #define ADC_VOLTAGE_15V 2887U
-
 #define LOW_VOLTAGE 1U
 #define NORMAL_VOLTAGE 2U
 #define HIGH_VOLTAGE 3U
@@ -315,21 +329,7 @@
  * 6. Stall Check & Motor Faults
 ***********************************************************************************************************************/
 
-#define MOTOR_STALL_CHK_NORMAL_VALUE 160U
-#define MOTOR_CW_STALL_CHK_HIGH_VALUE 255U  // 180
-#define MOTOR_CCW_STALL_CHK_HIGH_VALUE 255U // 180
 
-#define INIT_STALL_TH 30U
-#define STALL_TH_LOW_VOLTAGE 15U  
-#define STALL_TH_NORMAL_VOLTAGE 15U  
-#define STALL_TH_HIGH_VOLTAGE 15U  
-
-#define STALL_CNT_DEFAULT 30000U
-#define STALL_CHK_WAIT_TIME 250U // 250
-
-#define MOTOR_NORMAL 0U
-#define MOTOR_STALL 1U
-#define MOTOR_FAULT 0x100U
 
 /***********************************************************************************************************************
  * 7. AAF Specifics
@@ -364,8 +364,6 @@
 #define OVER_CURRENT 0x800U
 #define HIGH_TEMPERATURE 0x200U
 
-#define NOT_OPEN_BY_EXTERNAL_FACTORS 1U
-#define NOT_CLOSE_BY_EXTERNAL_FACTORS 2U
 #define OPEN_CIRCUIT 1U
 #define SHORT_CIRCUIT_BATTERY 1U
 #define SHORT_CIRCUIT_GROUND 1U
@@ -382,8 +380,6 @@
 
 #define RH_TYPE 0U
 #define LH_TYPE 1U
-
-#define NORMAL_MODE 0U
 
 #define Shutdown_Check 0U
 #define Normal_Shutdown 1U

@@ -10,14 +10,18 @@ unsigned int AAF_DriveMode = NORMAL_DRIVE_MODE; //현재 주행 모드 저장, 1
 unsigned int lin_aaf_request_command = CLOSE; // MCU가 LIN으로 보낸 원본 위치 명령 저장
 uint8_t  highspeed_command_hold_flag = 0U; // 고속 주행모드에서 명령 홀드 여부 저장 (0: 홀드 안함, 1: 홀드)
 
-unsigned int cumulative_stall_count = 7; // 누적 스톨 카운트, 7 이상이면 스톨로 판단
+unsigned int cumulative_stall_count = 3U; // 누적 스톨 카운트, 7 이상이면 스톨로 판단
 
+unsigned int trq_cnt = 0U;
+unsigned int trq_buf[TRQ_BUF_SIZE] = {0U};
+unsigned int trq_buf_index = 0U;
+unsigned int trq_buf_count = 0U;
+uint32_t trq_sum = 0U;
+unsigned int trq_cnt_avg = 0U;
+unsigned int trq_cnt_valid = 0U;                              
+uint16_t trq_scan[2] = {0U};
 
- /*******************************************************************************
-  * Drv8889 Register
-  ******************************************************************************/
-
-/* 2.1 Communication Buffers (LIN / SPI) */
+/* 2.1 Communication Buffers (LIN) */
 uint8_t GetIDbuffer;
 uint8_t Slave_RxData1[8]; /*reception data store array*/
 uint8_t Slave_TxData[7] = {
@@ -39,40 +43,16 @@ uint8_t Slave_SwData[8] = {
 
 uint8_t Slave_RxSwData1[8] = {0,};
 
-uint16_t tx_16bit_spi[11] = {0};
-
-uint16_t rx_16bit_spi_id[11] = {
-    0x4000,
-    0x4200,
-    0x4400,
-    0x4600,
-    0x4800,
-    0x4A00,
-    0x4C00,
-    0x4E00,
-    0x5000,
-    0x5200,
-    0x5400};
-
-uint16_t rx_16bit_spi[11] = {
-    0,
-};
-
-uint16_t fault_clear[1] = { 
-    0x0CBC 
-};
-
-/*******************************************************************************
- * Drv8889 Register
- ******************************************************************************/
-unsigned int TRQ_COUNT = 0U;
-
 //for UI test
-uint16_t TRQ_COUNT_Buffer[4000U] = {0U,};
-unsigned int TRQ_COUNT_Index = 0U;
-uint8_t TRQ_COUNT_LogEnable = 0U;
-uint8_t TRQ_COUNT_TxReady = 0U;
+uint16_t TRQ_OpenValue [TRQ_COUNT_BUF_SIZE];   /* Close → Open  : trq_cnt 생값 */
+uint8_t  TRQ_OpenState [TRQ_COUNT_BUF_SIZE];
+uint16_t TRQ_CloseValue[TRQ_COUNT_BUF_SIZE];   /* Open  → Close : trq_cnt 생값 */
+uint8_t  TRQ_CloseState[TRQ_COUNT_BUF_SIZE];
 
+unsigned int TRQ_OpenIndex  = 0U;            /* 덤프시 이 값 = 그 스트로크 샘플수 */
+unsigned int TRQ_CloseIndex = 0U;
+uint8_t      TRQ_LogEnable  = 0U;
+uint8_t      TRQ_LogNewRun  = 1U;            /* 1 = 다음 기동은 새 스트로크 */
 
 
 /* 2.2 Motor Control Variables */
@@ -129,8 +109,6 @@ unsigned int ReqRespAAFID = 0;
 unsigned int ReqAAF1DiagMode = 0;
 unsigned int ReqAAF2DiagMode = 0;
 unsigned int ReqAAF3DiagMode = 0;
-unsigned int Req_ChkSum_Rx = 0;
-unsigned int Req_Alive_Rx = 0;
 unsigned int AAFx_Mode = 0;
 
 unsigned int AAFx_Position_Status = 0;
@@ -140,8 +118,6 @@ unsigned int AAFx_SNSR1_Position = 0;
 unsigned int AAFx_SNSR2_Position = 0;
 unsigned int AAFx_SNSR3_Position = 0;
 unsigned int AAFx_SNSR4_Position = 0;
-unsigned int Req_ChkSum_Tx = 0;
-unsigned int Req_Alive_Tx = 0;
 
 /* 2.4 Communication Flags & Status */
 volatile uint8_t error_status = 0;
@@ -151,11 +127,7 @@ unsigned int lin_rx_chk_flag = 0;
 volatile uint8_t lin_tx_resp_flag = 0;
 volatile uint8_t g_lin_comm_ok_flag = 0U;
 volatile uint8_t g_lin_error_flag = 0U;
-unsigned int AAF_LIN_ChkSum_CHK_value = 0;
-unsigned char spi_send_flag = 0;
-unsigned char spi_receive_flag = 0;
-unsigned char spi_error_flag = 0;
-unsigned int spi_action_step = 0;
+
 char ret = 0;
 unsigned int lin_bus_inactive_flag = 0;
 unsigned int lin_sleep_step = 0;
@@ -171,7 +143,7 @@ unsigned int adc_chk_ok_flag = 0;
 unsigned int adc_chk_ready = 0;
 uint16_t scan_results[6] = {0,};
 
-unsigned int voltage_status_spi = 0;
+unsigned int volt_stat = 0;
 unsigned int voltage_status_change = 0;
 unsigned int voltage_status_change_complete = 0;
 unsigned int voltage_chk_delay_complete = 0;
@@ -181,7 +153,6 @@ unsigned int First_Powerchk = 0U;
 
 /* 2.6 Fault & Diagnosis */
 unsigned int fail_safety_flag = 0;
-unsigned int fail_safety_1_cycle_flag = 0;
 unsigned int fail_safety_step = 0;
 unsigned int stall_count = STALL_CNT_DEFAULT;
 unsigned int stall_test_mode = 0;
@@ -235,7 +206,6 @@ unsigned int power_chk_memory_write = 0; // power chk
 unsigned int power_chk_memory_read = 0;
 unsigned int First_Powerchk_memory_write = 0U;
 unsigned int First_Powerchk_memory_read = 0U;
-unsigned int fw_version_memory_read = 0U; // fw version
 unsigned int AAF_Tx_Position_Temporary = UNKOWN_POSITION;
 unsigned int AAFx_Position_Status_Temporary = Unknown_Status;
 unsigned int AAFx_InitStatus_Temporary = DURING_INITIALIZATION;
@@ -255,16 +225,11 @@ unsigned int IGN_Chk = 0U;
 unsigned int IGN_Chk_On = 0U;
 unsigned int SW_Chk = 0U;
 unsigned int Operating_flag = 0U;
-unsigned int LIN_Short_Ok = 0U;
 
-unsigned int AAF_Init_Flag = 0U;
-unsigned int AAF_Init_Flag_tog = 0U;
 unsigned int Re_Init_check = 0U;
 unsigned int Re_Init_check_flag = 0U;
 unsigned int Re_Init_check_prev = 0U;
-volatile unsigned int AAF_Flap_Fixation_Test_Mode = 0U;
-volatile unsigned int AAF_Flap_Fixation_Test_Mode_tog = 0U;
-volatile unsigned int AAF_Maximum_Torque_Test_Mode_tog = 0U;
+
 
 
 
@@ -277,3 +242,5 @@ unsigned int AAF_UVLO        = 0;  /* B13 저전압 */
 unsigned int AAF_CPUV        = 0;  /* B12 차지펌프 저전압 */
 unsigned int AAF_OverCurrent = 0;  /* B11 OCP */
 unsigned int AAF_HW_Stall    = 0;  /* B10 STL (HW스톨) */
+
+

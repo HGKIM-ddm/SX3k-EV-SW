@@ -51,8 +51,6 @@ static void Motor_ManageStartStatus(void)
     {
         G_Timer1msFlag.MotorDelayFlag = 0U;
         G_Timer1ms.MotorDelay = 0U;
-        G_Timer1usFlag.MotorFlag = 0U;
-        G_Timer1us.Motor = 0U;
         G_Timer1msFlag.MotorAccelerationFlag = 0U;
         G_Timer1ms.MotorAcceleration = 0U;
     }
@@ -146,12 +144,12 @@ void Motor_Open(void)
 {
 	if (AAF_location_type == RH_TYPE)
 	{
-		Drv8889_DirCCW(); // CCW
+		Drv8434a_DirCCW(); // CCW
 		dir_state = OPEN;
 	}
 	else if (AAF_location_type == LH_TYPE)
 	{
-		Drv8889_DirCW(); // CW
+		Drv8434a_DirCW(); // CW
 		dir_state = OPEN;
 	}
 	else
@@ -164,12 +162,12 @@ void Motor_Open2(void)
 {
 	if (AAF_location_type == RH_TYPE)
 	{
-		Drv8889_DirCCW(); // CCW
+		Drv8434a_DirCCW(); // CCW
 		dir_state = OPEN;
 	}
 	else if (AAF_location_type == LH_TYPE)
 	{
-		Drv8889_DirCW(); // CW
+		Drv8434a_DirCW(); // CW
 		dir_state = OPEN;
 	}
 	else
@@ -183,12 +181,12 @@ void Motor_Close(void)
 {
 	if (AAF_location_type == RH_TYPE)
 	{
-		Drv8889_DirCW(); // MCU_DIR
+		Drv8434a_DirCW(); // MCU_DIR
 		dir_state = CLOSE;
 	}
 	else if (AAF_location_type == LH_TYPE)
 	{
-		Drv8889_DirCCW(); // MCU_DIR
+		Drv8434a_DirCCW(); // MCU_DIR
 		dir_state = CLOSE;
 	}
 	else
@@ -201,12 +199,12 @@ void Motor_Close2(void)
 {
 	if (AAF_location_type == RH_TYPE)
 	{
-		Drv8889_DirCW(); // MCU_DIR
+		Drv8434a_DirCW(); // MCU_DIR
 		dir_state = CLOSE;
 	}
 	else if (AAF_location_type == LH_TYPE)
 	{
-		Drv8889_DirCCW(); // MCU_DIR
+		Drv8434a_DirCCW(); // MCU_DIR
 		dir_state = CLOSE;
 	}
 	else
@@ -214,3 +212,44 @@ void Motor_Close2(void)
 		//invaild
 	}
 }
+
+void Motor_On(void)
+{
+    Drv8434a_ON_TRQ8X();  /* ENABLE High : 출력 동작, 토크카운트 x8 */
+    FaultCheck_OnMotorStart();
+}
+
+void Motor_Off(void)
+{
+    Drv8434a_OFF();
+
+    G_Timer1msFlag.StallTimeFlag = 0U;
+    G_Timer1ms.StallTime         = 0U;
+    ADC_TrqCountReset();
+    FaultCheck_OnMotorStop();
+}
+
+void Motor_Wakeup(void)
+{
+    uint8_t was_asleep = ((PORT.P10 & _PORT_Pn2_OUTPUT_HIGH) == 0U) ? 1U : 0U;
+
+    Drv8434a_Wakeup();
+
+    if (was_asleep == 1U)
+    {
+        Drv8434a_WaitWake();      /* tWAKE 1.2ms + 여유 = 2ms 블로킹 */
+    }
+
+    Drv8434a_SetStepMode(DRV8434A_STEP_1_8);
+    Drv8434a_SetStallMode(DRV8434A_STALL_TORQUE_COUNT);
+    Drv8434a_StallReportDisable();
+
+    Drv8434a_VrefOn();
+}
+
+void Motor_Sleep(void)
+{
+    Drv8434a_Sleep();
+    ADC_TrqCountReset();
+}
+

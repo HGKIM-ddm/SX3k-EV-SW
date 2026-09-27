@@ -65,7 +65,7 @@ static void Operate_SetupAction(void) {
 	}
 	else if (lin_aaf_command == DIAG_MODE_AUTO) // lin init command chk
 	{
-		Drv8889_Wakeup();
+		Motor_Wakeup();
 
 		if (diag_mode_auto_action == ON)
 		{
@@ -111,7 +111,7 @@ static void Operate_SetupAction(void) {
  ***********************************************************************************************************************/
 static void Operate_Action(unsigned int action)
 {
-    Drv8889_Wakeup();
+    Motor_Wakeup();
     G_Timer1ms.DiagAutoMode = 0U;
     G_Timer1msFlag.DiagAutoModeFlag = OFF;
     diag_mode_auto_action = OFF;
@@ -240,12 +240,11 @@ static void Operate_NormalAction(unsigned int direction)
 	if (direction == OPEN) Motor_Open2();
     else Motor_Close2();
 
-    Drv8889_On();
+    Motor_On();
     motor_start = ON;
     G_Timer1msFlag.External10sCheckFlag = ON; 
     G_Timer1msFlag.StallCheckFlag = ON;
     G_Timer1ms.StallTime = 0U;
-    TRQ_COUNT = MOTOR_STALL_CHK_NORMAL_VALUE;
 
     if (direction == OPEN) flap_move = OPEN;
     else flap_move = CLOSE;
@@ -297,11 +296,10 @@ static void Operate_DiagAction(unsigned int direction, unsigned int is_auto)
     if (direction == OPEN) Motor_Open2();
     else Motor_Close2();
 
-    Drv8889_On();
+    Motor_On();
     motor_start = ON;
     G_Timer1msFlag.StallCheckFlag = ON;
     G_Timer1ms.StallTime = 0;
-    TRQ_COUNT = MOTOR_STALL_CHK_NORMAL_VALUE;
     Diag_Mode = 1;
 
     if (direction == OPEN) flap_move = OPEN;
@@ -458,7 +456,8 @@ static void Operate_HandleStall(void)
 	// if(((motor_stall_flag == MOTOR_STALL) && (G_Timer1ms.StallCheck >= 100)) || (G_Timer1ms.InitCheck >= 4800))
 	if ((motor_stall_flag == MOTOR_STALL) && (G_Timer1ms.StallCheck >= 100U))
 	{
-		Drv8889_Off2();
+		Drv8434a_StepStop();
+		Motor_Off();
 		motor_start = OFF;
 		softstart_complete = OFF;
 		antipinch_original_action = aaf_action;
@@ -590,7 +589,7 @@ switch (aaf_init_step)
  ***********************************************************************************************************************/
 static void Operate_Finish(void)
 {
-	Drv8889_Off2();							  // drv of
+	Motor_Off();							  // drv of
 	motor_start = OFF;					  // step stop
 	G_Timer1msFlag.External10sCheckFlag = OFF; // 10s chk timer off
 	G_Timer1ms.External10sCheck = 0U;
@@ -619,7 +618,6 @@ static void Operate_Finish(void)
 	G_Timer1ms.InitCheck = 0U;							  // test
 	G_Timer1msFlag.StallTimeFlag = 0U;								  // stall reset
 	G_Timer1ms.StallTime = 0U;							  // stall reset
-	TRQ_COUNT = MOTOR_STALL_CHK_NORMAL_VALUE; // stall reset
     Operating_flag = 0U;
 
 	if (aaf_action == DIAG_MODE_AUTO)
@@ -748,39 +746,20 @@ void Operating_Mode(void)
 
 void Torque_TestMode(void)
 {
-	torque_test_position = AAF1_TargetPosition;
-	
-	// if ((AAFx_Index == AAF_1) && (ReqRespAAFID == AAF_1))
-	// {
-	// 	torque_test_position = AAF1_TargetPosition;
-	// }
-	// else if ((AAFx_Index == AAF_2) && (ReqRespAAFID == AAF_2))
-	// {
-	// 	torque_test_position = AAF2_TargetPosition;
-	// }
-	// else if ((AAFx_Index == AAF_3) && (ReqRespAAFID == AAF_3))
-	// {
-	// 	torque_test_position = AAF3_TargetPosition;
-	// }
-	// else
-	// {
-	// 	torque_test_position = WAITING;
-	// }
-	
     switch (torque_test_position)
     {
     case OPEN:        /* 0x03 - 스토퍼 무시하고 OPEN 방향 계속 밀기 */
         Motor_Open();
-        Drv8889_On();
+        Motor_On();
         motor_start = ON;
         break;
     case CLOSE:       /* 0x00 - 스토퍼 무시하고 CLOSE 방향 계속 밀기 */
         Motor_Close();
-        Drv8889_On();
+        Motor_On();
         motor_start = ON;
         break;
     case UNKOWN_POSITION:  /* 0x07 - STOP */
-        Drv8889_Off2();
+        Motor_Off();
         motor_start = OFF;
         break;
     default:

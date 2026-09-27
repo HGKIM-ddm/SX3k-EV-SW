@@ -10,7 +10,7 @@ static uint8_t Sleep_Stall = OFF;
  ***********************************************************************************************************************/
 static void LinSleep_StopMotorAndReset(void)
 {
-    Drv8889_Off2();
+    Motor_Off();
     motor_start = OFF;
     G_Timer1msFlag.StallTimeFlag = 0U;
     G_Timer1ms.StallTime = 0U;
@@ -102,7 +102,7 @@ static void LinSleep_ParsingCommand(void)
                  (lin_aaf_command == OPEN_2ND) ||
                  (lin_aaf_command == CLOSE))
         {
-            Drv8889_Wakeup();
+            Motor_Wakeup();
 
             if (fail_safety_flag == ON)
             {
@@ -122,7 +122,7 @@ static void LinSleep_ParsingCommand(void)
     }
     else if (AAF_LINOut == 0x01U)
     {
-        Drv8889_Wakeup();
+        Motor_Wakeup();
 
         aaf_action = OPEN;
         lin_sleep_step = 3U;
@@ -148,24 +148,22 @@ static void LinSleep_StartMotor(void)
     if ((aaf_action == OPEN) || (aaf_action == OPEN_1ST) || (aaf_action == OPEN_2ND))
     {
         Motor_Open2();
-        Drv8889_On2(); 
+        Motor_On(); 
         motor_start = ON;
         motor_stall_flag = MOTOR_NORMAL;
         G_Timer1ms.StallTime = 0U;
-        TRQ_COUNT = MOTOR_STALL_CHK_NORMAL_VALUE;
-        G_Timer1ms.Spi = 0U;
+        G_Timer1ms.TrqCheck = 0U;
         
         lin_sleep_step = 4U;
     }
     else if (aaf_action == CLOSE)
     {
         Motor_Close2();
-        Drv8889_On2(); 
+        Motor_On(); 
         motor_start = ON;
         motor_stall_flag = MOTOR_NORMAL;
         G_Timer1ms.StallTime = 0U;
-        TRQ_COUNT = MOTOR_STALL_CHK_NORMAL_VALUE;
-        G_Timer1ms.Spi = 0U;
+        G_Timer1ms.TrqCheck = 0U;
         
         lin_sleep_step = 4U;
     }
@@ -223,7 +221,6 @@ static void LinSleep_CheckCompletion(void)
         step_position = step_position_close;
 
         // stall 상태 초기화
-        TRQ_COUNT = MOTOR_STALL_CHK_NORMAL_VALUE;
         motor_stall_flag = MOTOR_NORMAL;
 
         Sleep_Stall    = OFF;
@@ -321,7 +318,7 @@ static void LinSleep_Stall_Open(void)
     Motor_Open2();
 
     /* 모터 드라이버 ON */
-    Drv8889_On2();
+    Motor_On();
 
     /* 모터 구동 시작 */
     motor_start = ON;
@@ -329,8 +326,7 @@ static void LinSleep_Stall_Open(void)
     /* 스톨 상태 및 타이머 초기화 */
     motor_stall_flag = MOTOR_NORMAL;
     G_Timer1ms.StallTime = 0U;
-    TRQ_COUNT = MOTOR_STALL_CHK_NORMAL_VALUE;
-    G_Timer1ms.Spi = 0U;
+    G_Timer1ms.TrqCheck = 0U;
 
     /* OPEN 방향 복귀 완료 여부 확인 단계로 이동 */
     lin_sleep_step = 7U;
@@ -507,7 +503,7 @@ static void LinSleep_UnderVoltageRecovery(void)
  ***********************************************************************************************************************/
 static void McuSleep_ExternalOff(void)
 {
-    Drv8889_Sleep();        // 모터 드라이버 슬립 전환
+    Motor_Sleep();        // 모터 드라이버 슬립 전환
 
    if (lin_nrst_low_flag == ON)
     {
@@ -518,7 +514,6 @@ static void McuSleep_ExternalOff(void)
         LinTrcv_Off();
     }
 
-    Drv8889_ScsActive();   // SPI 통신 핀 활성화
 }
 
 /***********************************************************************************************************************
@@ -535,40 +530,6 @@ static void McuSleep_PortConfig(void)
 
     // LIN TX 핀을 Low로 설정하여 슬립 상태 유지 (Leakage 방지)
     PORT.P10 &= ~_PORT_Pn10_OUTPUT_HIGH; // MCU_LIN_Tx_Low Sleep go
-}
-
-/***********************************************************************************************************************
- * Function Name: McuSleep_InternalModuleStop
- * Description  : 전력 소모를 줄이기 위해 MCU 내부 주변장치(ADC, 타이머, 통신 모듈)의 클럭을 정지함
- * Arguments    : void
- * Return Value : void
- ***********************************************************************************************************************/
-static void McuSleep_InternalModuleStop(void)
-{
-    R_Config_INTC_Create();         // 인터럽트 컨트롤러 재설정 (Wake-up 준비)
-    R_Config_INTC_INTP5_Start(); 
-
-    R_Config_CSIH0_Stop();          // SPI 모듈 정지
-    R_Config_ADCA0_Halt();          // ADC 모듈 정지
-    R_Config_TAUD0_13_Stop();       // 타이머 정지
-    R_Config_TAUD0_3_Stop();        // 타이머 정지
-
-    G_Timer1msFlag.SpiFlag = 0U;          // 관련 플래그 초기화
-    G_Timer1ms.Spi = 0U;
-}
-
-/***********************************************************************************************************************
- * Function Name: McuSleep_DeepStop
- * Description  : 클럭 생성기를 슬립 모드용으로 설정하고, 최종적으로 Deep Stop Mode로 진입함
- * Arguments    : void
- * Return Value : void
- ***********************************************************************************************************************/
-static void McuSleep_DeepStop(void)
-{
-    R_CGC_Create_sleepmode();                   // 클럭 설정 변경
-
-    R_Config_STBC_Prepare_Deep_Stop_Mode();     // 대기 모드 진입 준비 레지스터 설정
-    R_Config_STBC_Start_Deep_Stop_Mode();       // [진입점] 여기서 MCU 동작 멈춤
 }
 
 
@@ -698,12 +659,6 @@ void MCU_Sleep(void)
     // 4. 슬립 대비 포트 설정 (누설 전류 방지)
     McuSleep_PortConfig();
 
-    // // 5. 내부 주변장치 클럭 정지
-    // McuSleep_InternalModuleStop();
-
-    // // 6. Deep Stop 모드 진입 (Wake-up 이벤트 발생 전까지 정지)
-    // McuSleep_DeepStop();
-    
 }
 
 
@@ -736,7 +691,7 @@ void Lin_WakeupFromSleep(void)
         G_Timer1ms.LinSleepMode = 0U;
 
         /* Sleep 중 모터 구동 중일 수 있으므로 안전하게 정지 */
-        Drv8889_Off2();
+        Motor_Off();
         motor_start = OFF;
 
         /* Stall 관련 타이머 초기화 */

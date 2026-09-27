@@ -70,9 +70,8 @@ int main(void)
 	/* Start user code for main. Do not edit comment generated here */
 
 	R_Config_TAUD0_3_Start();
-	R_Config_TAUD0_13_Start();
+	//R_Config_TAUD0_13_Start(); //1us 타이머 미사용
 	R_Config_ADCA0_ScanGroup1_OperationOn();
-	R_Config_CSIH0_Start();
 	Lin_SlaveInit();
 	R_Config_WDT0_Create();
 	R_Config_WDT0_Restart();
@@ -131,13 +130,11 @@ static void AAF_Init(void)
 	/* lin transceiver on */
 	LinTrcv_On();
 
-	Drv8889_GpioInit();
+	Drv8434a_GpioInit();
+	
+	Motor_Wakeup();
 
 	AAF_SetType();
-
-	Drv8889_SpiInit();
-
-	TRQ_COUNT = (unsigned int)(rx_16bit_spi[9] & 0xFFU);
 
 	G_Timer1msFlag.VoltCheckDelayFlag = 1; // POWER ON AFTER 500ms
 
@@ -176,7 +173,9 @@ const uint32_t ECU_SIGN[4] = {
 	0,0,0,0
 };
 const uint8_t ECU_VER[] = {
-	"SX3K_EV V0.0.1 RH850 2026.6.11\n\r"		// 012 로 VERSION READ 자리변동 금지.
+	VER_PREFIX
+	STR(FW_VER_MAJOR) "." STR(FW_VER_MINOR) "." STR(FW_VER_PATCH)
+	" 202" STR(REL_YEAR) "." STR(REL_MONTH) "\n\r"
 };
 #pragma ghs enddata
 #endif

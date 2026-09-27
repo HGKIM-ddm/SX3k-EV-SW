@@ -49,8 +49,7 @@ static void Step_Check(void)
         (AAFx_Position_Status == FlapMoving_Status)                         ||
         (AAFx_Position_Status == Unknown_Status)                            ||
         (power_chk            == Shutdown_Check)							
-		// 5. 펌웨어 버전 불일치 체크
-		// ((fw_version_memory_read & 0xFFU) != FW_VERSION) 
+
     ) ? 1U : 0U;
 
     if (reinit_required == 1U)
@@ -94,7 +93,6 @@ void Re_Init(void)
 	G_Timer1msFlag.DiagAutoModeFlag = OFF;
 	diag_mode_auto_action = OFF;
 	aaf_action = 0U;
-	TRQ_COUNT = MOTOR_STALL_CHK_NORMAL_VALUE; // stall reset
 	aaf_step = AAF_INITIALIZATION;					  // MCU is reset, AAF is initialized.
 	aaf_init_step = START_INITIALIZATION;			  // MCU is reset, AAF is initialized.
 	AAFx_Position_Status = Unknown_Status;
@@ -110,9 +108,10 @@ void Re_Init(void)
 	evrdy_on_flag = OFF;
 
 	#ifdef ENABLE_TORQUE_LIN_COMMUNICATION
-	TRQ_COUNT_Index = 0U;
-    TRQ_COUNT_LogEnable = 1U; 
-    TRQ_COUNT_TxReady = 0U;
+	TRQ_OpenIndex  = 0U;
+	TRQ_CloseIndex = 0U;
+	TRQ_LogNewRun  = 1U;
+	TRQ_LogEnable  = 1U;
 	#endif
 }
 

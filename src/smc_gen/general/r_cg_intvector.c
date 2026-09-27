@@ -105,11 +105,11 @@ extern void eiint27(void);
 /* CSIG0 receive status interrupt; */
 extern void eiint28(void);
 /* CSIH0 communication status interrupt; */
-extern void r_Config_CSIH0_interrupt_send(void);
+extern void eiint29(void);
 /* CSIH0 receive status interrupt; */
 extern void eiint30(void);
 /* CSIH0 communication error interrupt; */
-extern void r_Config_CSIH0_interrupt_error(void);
+extern void eiint31(void);
 /* CSIH0 job completion interrupt; */
 extern void eiint32(void);
 /* RLIN30 interrupt; */
@@ -829,11 +829,11 @@ void * const INT_Vectors[] = {
     /* CSIG0 receive status interrupt; */
     (void *)eiint28,
     /* CSIH0 communication status interrupt; */
-    (void *)r_Config_CSIH0_interrupt_send,
+    (void *)eiint29,
     /* CSIH0 receive status interrupt; */
     (void *)eiint30,
     /* CSIH0 communication error interrupt; */
-    (void *)r_Config_CSIH0_interrupt_error,
+    (void *)eiint31,
     /* CSIH0 job completion interrupt; */
        (void*)eiint32,
 /* RLIN30 interrupt; */

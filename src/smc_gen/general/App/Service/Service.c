@@ -11,10 +11,14 @@ static void Mode_Check(void)
     {
         Operating_Mode();
     }
+    
+    #ifdef ENABLE_AAF_UI
     else if (AAF_Maximum_Torque_Test_Mode == ON) 
     {
         Torque_TestMode();
     }
+    #endif
+
     else if (lin_bus_inactive_flag == ON)
     {
         Lin_Sleep();
@@ -28,14 +32,13 @@ static void Mode_Check(void)
 
 /***********************************************************************************************************************
  * Function Name: Communication_Check
- * Description  : Handles all communication related checks (LIN Rx/Tx, SPI).
+ * Description  : Handles all communication related checks (LIN Rx/Tx).
  * Called By    : App_SwLogic
  ***********************************************************************************************************************/
 static void Communication_Check(void)
 {
     Lin_RxCheck();
     Lin_TxCheck();
-    Spi_Check();
     Lin_NrstCheck();
 }   
 
@@ -91,6 +94,10 @@ void App_HwCheck(void)
     Error_CheckAfterIGN();
 
     ADC_GetStatus();
+
+    ADC_TrqCountSample();
+
+    FaultCheck_Sample();
 }
 
 /***********************************************************************************************************************

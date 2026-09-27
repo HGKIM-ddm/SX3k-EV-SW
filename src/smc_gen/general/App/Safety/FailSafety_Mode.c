@@ -15,15 +15,14 @@
 static void FS_MotorOpenStart(unsigned int next_step)
 {
     Motor_Open();                                             /* dir OPEN */
-    Drv8889_On2();                                                 /* drv on */
+    Motor_On();                                                 /* drv on */
     motor_start = ON;
-    G_Timer1ms.Spi = 0U;
+    G_Timer1ms.TrqCheck = 0U;
     aaf_action = OPEN;
     aaf_step = AAF_WAITING;
     motor_stall_flag = MOTOR_NORMAL;                          /* stall reset */
     G_Timer1msFlag.StallTimeFlag = 0U;                                        /* stall reset */
     G_Timer1ms.StallTime = 0U;                                   /* stall reset */
-    TRQ_COUNT = MOTOR_STALL_CHK_NORMAL_VALUE;         /* stall reset */
     G_Timer1ms.InitCheck = 0U;                                    /* step start */
     G_Timer1msFlag.InitCheckFlag = 1U;
     fail_safety_step = next_step;
@@ -41,7 +40,7 @@ static void FS_CheckStallStop(unsigned int next_step)
 {
     if ((motor_stall_flag == MOTOR_STALL) || (G_Timer1ms.InitCheck >= 8000U))
     {
-        Drv8889_Off2();
+        Motor_Off();
         motor_start = OFF;
         G_Timer1msFlag.StallTimeFlag = 0U;
         G_Timer1ms.StallTime = 0U;                               /* stall reset */

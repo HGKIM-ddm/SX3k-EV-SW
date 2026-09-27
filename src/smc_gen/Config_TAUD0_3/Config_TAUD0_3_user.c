@@ -76,7 +76,7 @@ void r_Config_TAUD0_3_interrupt(void)
     TIMER_1MS(InitMove);
     TIMER_1MS(AdcCheck);
     TIMER_1MS(External10sCheck);
-    TIMER_1MS(Spi);
+    TIMER_1MS(TrqCheck);
     TIMER_1MS(InitCheck);
     TIMER_1MS(StallCheck);
     TIMER_1MS(ProtectionMode);
@@ -89,21 +89,16 @@ void r_Config_TAUD0_3_interrupt(void)
     TIMER_1MS(InitFailCheck);
     TIMER_1MS(LinSleepMode);
     TIMER_1MS(AntipinchCheck);
-    TIMER_1MS(SpiErrorCheck);
-    TIMER_1MS(AdcErrorCheck);
     TIMER_1MS(FdlErrorCheck);
     TIMER_1MS(ProtectionCheck);
-    TIMER_1MS(MotorMovingCheck);
     TIMER_1MS(MotorStepCheck);
-    TIMER_1MS(WatchdogCheck);
-    TIMER_1MS(ErrorCheck);
     TIMER_1MS(MotorShortCheck);
     TIMER_1MS(MotorOpenCheck);
     TIMER_1MS(Adc1sCheck);
     TIMER_1MS(IgnCheck);
-    TIMER_1MS(AdcRecoveryCheck);
     TIMER_1MS(HighSpeedExitCheck);
     TIMER_1MS(NrstCheck);
+    TIMER_1MS(MotorRunTime);
     //Extra Timer
     #ifdef UDS
     uds_1ms++;     
