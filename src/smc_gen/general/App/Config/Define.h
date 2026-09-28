@@ -43,7 +43,7 @@
 /* 펌웨어 버전 : 상위 니블 Major / 하위 니블 Minor */
 #define FW_VER_MAJOR  1        // 0.x : drv8889, 1.x : drv8434a
 #define FW_VER_MINOR  0
-#define FW_VER_PATCH  1        // ECU_VER 표기 전용 (미사용 0 고정)
+#define FW_VER_PATCH  2        // ECU_VER 표기 전용 (미사용 0 고정)
 #define FW_VERSION    ((uint8_t)(((FW_VER_MAJOR) << 4U) | (FW_VER_MINOR)))
 
 /* 릴리즈 날짜 : 상위 니블 연도 끝자리 / 하위 니블 월 */
@@ -163,7 +163,7 @@
 #define TRQ_BUF_SIZE 4U
 #define TRQ_SAMPLE_PERIOD 2U
 
-#define STALL_TH 737U 
+#define STALL_TH 200U 
 
 #define STALL_CNT_DEFAULT 30000U
 #define STALL_CHK_WAIT_TIME 250U // 250
