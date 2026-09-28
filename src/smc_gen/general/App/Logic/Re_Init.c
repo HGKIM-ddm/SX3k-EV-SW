@@ -125,7 +125,38 @@ void Step_InitAndCheck(void)
     if ((IGN_Chk == 2U) && (LDCRdy == 0x01U))
     {
         Position_Temporary_read();
+        G_Timer1msFlag.IGNOffCheckFlag = 0U;
+        G_Timer1ms.IGNOffCheck = 0U;
         IGN_Chk = 1U;
+    }
+
+    /* LDCRdy 1 -> 0 : 300ms 동안 마스터 명령 수행 후 명령 무시 + Initial value 송신 */
+    if ((IGN_Chk == 1U) && (LDCRdy == 0x00U))
+    {
+        G_Timer1msFlag.IGNOffCheckFlag = 1U;
+
+        if (G_Timer1ms.IGNOffCheck >= LDC_OFF_IGNORE_TIME)
+        {
+            G_Timer1msFlag.IGNOffCheckFlag = 0U;
+            G_Timer1ms.IGNOffCheck = LDC_OFF_IGNORE_TIME;   /* 포화 : 재진입 방지 */
+
+            if ((motor_start == OFF) &&
+                (AAFx_Position_Status != FlapMoving_Status) &&
+                (AAFx_InitStatus != DURING_INITIALIZATION))
+            {
+                Position_Temporary_write();
+                IGN_Chk = 2U;
+            }
+        }
+    }
+    else if ((IGN_Chk == 1U) && (LDCRdy == 0x01U))
+    {
+        G_Timer1msFlag.IGNOffCheckFlag = 0U;
+        G_Timer1ms.IGNOffCheck = 0U;                       /* Ready 유지 중 리셋 */
+    }
+    else
+    {
+        /* invalid */
     }
 
     if ((step_check_flag == 0U) && (LDCRdy == 0x01U))

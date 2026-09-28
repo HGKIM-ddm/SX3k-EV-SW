@@ -87,7 +87,8 @@
 #define CONFIG_AAF_INDEX AAF_1
 #define CONFIG_AAF_TOTAL AAFx1
 #define CONFIG_SENSOR_TOTAL SENSOR_NO
- 
+#define LDC_OFF_IGNORE_TIME 300U
+
 #else
 // error
 #endif
