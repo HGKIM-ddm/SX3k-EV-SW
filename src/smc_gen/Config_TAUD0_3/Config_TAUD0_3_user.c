@@ -99,6 +99,7 @@ void r_Config_TAUD0_3_interrupt(void)
     TIMER_1MS(HighSpeedExitCheck);
     TIMER_1MS(NrstCheck);
     TIMER_1MS(MotorRunTime);
+    TIMER_1MS(IGNOffCheck);
     //Extra Timer
     #ifdef UDS
     uds_1ms++;     

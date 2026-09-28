@@ -437,7 +437,7 @@ static void LinSleep_Final(void)
     if (G_Timer1ms.LinBusInactive >= LIN_BUS_CHK_TIME_4_SEC)
     {
         if ((AAF_LINOut == 0x00U) &&
-            (IGN_Chk == 1U) &&
+            ((IGN_Chk == 1U) || (IGN_Chk == 2U)) &&
             (motor_start == OFF) &&
             (AAF_Tx_Position != UNKOWN_POSITION) &&
             (AAFx_Position_Status != Unknown_Status) &&
