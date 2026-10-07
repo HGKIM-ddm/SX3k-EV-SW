@@ -16,7 +16,7 @@ static void FS_MotorOpenStart(unsigned int next_step)
 {
     Motor_Open();                                             /* dir OPEN */
     Motor_On();                                                 /* drv on */
-    motor_start = ON;
+
     G_Timer1ms.TrqCheck = 0U;
     aaf_action = OPEN;
     aaf_step = AAF_WAITING;

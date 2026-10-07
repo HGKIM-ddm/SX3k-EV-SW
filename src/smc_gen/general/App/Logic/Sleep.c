@@ -134,7 +134,7 @@ static void LinSleep_StartMotor(void)
     {
         Motor_Open2();
         Motor_On(); 
-        motor_start = ON;
+
         motor_stall_flag = MOTOR_NORMAL;
         G_Timer1ms.StallTime = 0U;
         G_Timer1ms.TrqCheck = 0U;
@@ -145,7 +145,7 @@ static void LinSleep_StartMotor(void)
     {
         Motor_Close2();
         Motor_On(); 
-        motor_start = ON;
+
         motor_stall_flag = MOTOR_NORMAL;
         G_Timer1ms.StallTime = 0U;
         G_Timer1ms.TrqCheck = 0U;
@@ -308,9 +308,6 @@ static void LinSleep_Stall_Open(void)
 
     /* 모터 드라이버 ON */
     Motor_On();
-
-    /* 모터 구동 시작 */
-    motor_start = ON;
 
     /* 스톨 상태 및 타이머 초기화 */
     motor_stall_flag = MOTOR_NORMAL;

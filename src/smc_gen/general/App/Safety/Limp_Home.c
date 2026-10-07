@@ -73,7 +73,7 @@ void Limp_Home(void)
 			{
 				Motor_Open();					 // dir OPEN
 				Motor_On();						 // drv on
-				motor_start = ON;				 // step start
+
 				G_Timer1msFlag.StallCheckFlag = ON;	 // test
 				motor_stall_flag = MOTOR_NORMAL; // stall reset
 				G_Timer1ms.StallTime = 0U;			 // stall reset

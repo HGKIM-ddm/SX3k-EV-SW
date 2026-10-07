@@ -241,7 +241,6 @@ static void Operate_NormalAction(unsigned int direction)
     else Motor_Close2();
 
     Motor_On();
-    motor_start = ON;
     G_Timer1msFlag.External10sCheckFlag = ON; 
     G_Timer1msFlag.StallCheckFlag = ON;
     G_Timer1ms.StallTime = 0U;
@@ -297,7 +296,6 @@ static void Operate_DiagAction(unsigned int direction, unsigned int is_auto)
     else Motor_Close2();
 
     Motor_On();
-    motor_start = ON;
     G_Timer1msFlag.StallCheckFlag = ON;
     G_Timer1ms.StallTime = 0;
     Diag_Mode = 1;
@@ -766,12 +764,12 @@ void Torque_TestMode(void)
     case OPEN:        /* 0x03 - 스토퍼 무시하고 OPEN 방향 계속 밀기 */
         Motor_Open();
         Motor_On();
-        motor_start = ON;
+
         break;
     case CLOSE:       /* 0x00 - 스토퍼 무시하고 CLOSE 방향 계속 밀기 */
         Motor_Close();
         Motor_On();
-        motor_start = ON;
+
         break;
     case UNKOWN_POSITION:  /* 0x07 - STOP */
         Motor_Off();

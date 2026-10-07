@@ -17,7 +17,6 @@ static void Init_StartMotor(uint8_t next_step, uint8_t dir, uint8_t is_case0)
 
     Motor_Wakeup();
     Motor_On();
-    motor_start = ON;
     
     // (Case 0, 6, 9)
     motor_stall_flag = MOTOR_NORMAL;
@@ -111,8 +110,6 @@ static void Init_MoveLimitPosition(void)
 	{
 		Motor_Close2();						 // dir CLOSE
 		Motor_On();							 // drv on
-		motor_start = ON;					 // step start
-		//G_Timer1msFlag.External10sCheckFlag = ON; // 10s chk timer on
 
 		motor_stall_flag = MOTOR_NORMAL; // stall reset
 		// G_Timer1msFlag.StallTimeFlag = 0;			 stall reset

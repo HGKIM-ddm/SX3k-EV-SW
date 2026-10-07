@@ -68,7 +68,7 @@ static void Protection_StartMotor(void)
 	{
         Motor_Open2();                    // dir OPEN
        	Motor_On();                        // drv on
-        motor_start = ON;                // step start
+
         G_Timer1msFlag.StallCheckFlag = ON;    // test
         motor_stall_flag = MOTOR_NORMAL; // stall reset
         G_Timer1ms.StallTime = 0U;          // stall reset

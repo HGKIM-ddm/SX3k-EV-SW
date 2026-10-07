@@ -13,7 +13,7 @@ static void Antipinch_PrevOpen(void)
     case 0:
         Motor_Close();                
         Motor_On();                       
-        motor_start = ON;               
+          
         G_Timer1msFlag.InitCheckFlag = 1U;     
 
         aaf_action = CLOSE;
@@ -59,7 +59,6 @@ static void Antipinch_PrevOpen(void)
     case 3:
         Motor_Open();    
         Motor_On();         
-        motor_start = ON; 
 
         G_Timer1ms.StallTime = 0U;                                           
         motor_stall_flag = MOTOR_NORMAL;                  
@@ -170,9 +169,7 @@ static void Antipinch_PrevClose(void)
         Motor_Open();   
         Motor_On();       
 
-        G_Timer1ms.StallTime = 0U; 
-
-        motor_start = ON;                
+        G_Timer1ms.StallTime = 0U;              
         G_Timer1msFlag.InitCheckFlag = 1U;      
         motor_stall_flag = MOTOR_NORMAL; 
         G_Timer1ms.TrqCheck = 0U;
@@ -217,7 +214,7 @@ static void Antipinch_PrevClose(void)
     case 3:
         Motor_Close();   
         Motor_On();        
-        motor_start = ON; 
+
         motor_stall_flag = MOTOR_NORMAL; 
 
         G_Timer1ms.StallTime = 0U;                                           
@@ -295,7 +292,7 @@ static void Antipinch_PrevClose(void)
     case 5:
         Motor_Open();    
         Motor_On();         
-        motor_start = ON; 
+
         G_Timer1msFlag.InitCheckFlag = 1U; 
         aaf_action = OPEN;
         motor_stall_flag = MOTOR_NORMAL; 
