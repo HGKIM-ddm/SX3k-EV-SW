@@ -61,6 +61,8 @@ static void Service_ChangeMode(ActMode_t next)
     if (next > act_mode)
     {
         Motor_Off();
+        G_Timer1msFlag.InitCheckFlag = 0U;
+        G_Timer1ms.InitCheck = 0U;
 
         switch (act_mode)
         {
