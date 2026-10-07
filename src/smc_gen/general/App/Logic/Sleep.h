@@ -1,5 +1,5 @@
-#ifndef LIN_SLEEP_H
-#define LIN_SLEEP_H
+#ifndef SLEEP_H
+#define SLEEP_H
 
 #include "Config.h"
 
