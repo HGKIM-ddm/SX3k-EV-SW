@@ -458,8 +458,6 @@ static void Operate_HandleStall(void)
 	{
 		Drv8434a_StepStop();
 		Motor_Off();
-		motor_start = OFF;
-		softstart_complete = OFF;
 		antipinch_original_action = aaf_action;
 		
 		if (aaf_action == DIAG_MODE_OPEN)
@@ -505,7 +503,6 @@ static void Operate_CheckCondition(void)
 		antipinch_previous_action = OPEN;
 		antipinch_action_on = ON;
 
-		motor_start = OFF;
 		G_Timer1msFlag.StallTimeFlag = 0U;
 		G_Timer1ms.StallTime = 0U; // stall reset
 
@@ -516,7 +513,6 @@ static void Operate_CheckCondition(void)
 		antipinch_previous_action = CLOSE;
 		antipinch_action_on = ON;
 
-		motor_start = OFF;
 		G_Timer1msFlag.StallTimeFlag = 0U;
 		G_Timer1ms.StallTime = 0U; // stall reset
 
@@ -589,8 +585,7 @@ switch (aaf_init_step)
  ***********************************************************************************************************************/
 static void Operate_Finish(void)
 {
-	Motor_Off();							  // drv of
-	motor_start = OFF;					  // step stop
+	Motor_Off();							  // drv of// step stop
 	G_Timer1msFlag.External10sCheckFlag = OFF; // 10s chk timer off
 	G_Timer1ms.External10sCheck = 0U;
 
@@ -613,11 +608,9 @@ static void Operate_Finish(void)
 
 	G_Timer1ms.StallCheck = 0U;		 // test
 	G_Timer1msFlag.StallCheckFlag = 0U; // test
-	softstart_complete = OFF;
 	G_Timer1msFlag.InitCheckFlag = 0U;						  // test
 	G_Timer1ms.InitCheck = 0U;							  // test
-	G_Timer1msFlag.StallTimeFlag = 0U;								  // stall reset
-	G_Timer1ms.StallTime = 0U;							  // stall reset
+
     Operating_flag = 0U;
 
 	if (aaf_action == DIAG_MODE_AUTO)
@@ -782,7 +775,6 @@ void Torque_TestMode(void)
         break;
     case UNKOWN_POSITION:  /* 0x07 - STOP */
         Motor_Off();
-        motor_start = OFF;
         break;
     default:
         break;

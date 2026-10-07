@@ -3,21 +3,6 @@
 
 static uint8_t Sleep_Stall = OFF;
 
-/***********************************************************************************************************************
- * Function Name: LinSleep_StopMotorAndReset
- * Description  : 모터 구동 정지 및 제어 변수 리셋 (Case 0, 4 공통)
- * Called By    : LinSleep_Reset, LinSleep_CheckCompletion
- ***********************************************************************************************************************/
-static void LinSleep_StopMotorAndReset(void)
-{
-    Motor_Off();
-    motor_start = OFF;
-    G_Timer1msFlag.StallTimeFlag = 0U;
-    G_Timer1ms.StallTime = 0U;
-    softstart_complete = OFF;
-
-}
-
 static uint8_t LinSleep_AbortOnFault(void)
 {
     if ((AAFx_Motor_Fault   == 0U)       &&
@@ -27,7 +12,7 @@ static uint8_t LinSleep_AbortOnFault(void)
         return 0U;
     }
 
-    LinSleep_StopMotorAndReset();
+    Motor_Off();
 
     aaf_step      = AAF_INITIALIZATION;
     aaf_init_step = WAIT_INITIALIZATION;
@@ -51,7 +36,7 @@ static uint8_t LinSleep_AbortOnFault(void)
  ***********************************************************************************************************************/
 static void LinSleep_Reset(void)
 {
-    LinSleep_StopMotorAndReset();
+    Motor_Off();
 
     G_Timer1msFlag.InitFailCheckFlag = 0U;
     G_Timer1ms.InitFailCheck = 0U;
@@ -194,7 +179,7 @@ static void LinSleep_CheckCompletion(void)
          (aaf_action == OPEN_2ND)) &&
         (step_position <= (target_pos + limit_step_position)))
     {
-        LinSleep_StopMotorAndReset();
+        Motor_Off();
 
         // 마스터에게 현재 위치 상태를 보고하기 위한 값 설정
         AAF_Tx_Position = aaf_action;
@@ -215,7 +200,7 @@ static void LinSleep_CheckCompletion(void)
              (step_position >= (step_position_close - limit_step_position)) &&
              (AAFx_Type == EXTERNAL_TYPE))
     {
-        LinSleep_StopMotorAndReset();
+        Motor_Off();
 
         // close stopper에 도달했다고 판단했으므로 현재 위치를 close 기준 위치로 보정
         step_position = step_position_close;
@@ -234,7 +219,7 @@ static void LinSleep_CheckCompletion(void)
              (step_position >= (step_position_close - limit_step_position)) &&
              (AAFx_Type == INTERNAL_TYPE))
     {
-        LinSleep_StopMotorAndReset();
+        Motor_Off();
 
         AAF_Tx_Position = CLOSE;
         AAFx_Position_Status = Close_Status;
@@ -251,7 +236,7 @@ static void LinSleep_CheckCompletion(void)
     // 조건 4: 목표 위치 도달 전 스톨 발생
     else if (motor_stall_flag == MOTOR_STALL)
     {
-        LinSleep_StopMotorAndReset();
+        Motor_Off();
 
         motor_stall_flag = MOTOR_NORMAL;
 
@@ -357,7 +342,7 @@ static void LinSleep_Stall_Stop(void)
         if ((motor_stall_flag == MOTOR_STALL) ||
             (step_position <= (step_position_open + limit_step_position)))
         {
-            LinSleep_StopMotorAndReset();
+            Motor_Off();
 
             motor_stall_flag = MOTOR_NORMAL;
 
@@ -376,7 +361,7 @@ static void LinSleep_Stall_Stop(void)
 
         if (step_position <= sleep_backoff_step)
         {
-            LinSleep_StopMotorAndReset();
+            Motor_Off();
 
             AAF_Tx_Position      = CLOSE;
             AAFx_Position_Status = Close_Status;
@@ -389,7 +374,7 @@ static void LinSleep_Stall_Stop(void)
         }
         else if (motor_stall_flag == MOTOR_STALL)
         {
-            LinSleep_StopMotorAndReset();
+            Motor_Off();
 
             aaf_step      = AAF_INITIALIZATION;
             aaf_init_step = WAIT_INITIALIZATION;
@@ -696,18 +681,10 @@ void Lin_WakeupFromSleep(void)
 
         /* Sleep 중 모터 구동 중일 수 있으므로 안전하게 정지 */
         Motor_Off();
-        motor_start = OFF;
-
-        /* Stall 관련 타이머 초기화 */
-        G_Timer1msFlag.StallTimeFlag = 0U;
-        G_Timer1ms.StallTime = 0U;
 
         /* Init fail check 타이머 초기화 */
         G_Timer1msFlag.InitFailCheckFlag = 0U;
         G_Timer1ms.InitFailCheck = 0U;
-
-        /* Soft start 및 모터 속도 초기화 */
-        softstart_complete = OFF;
 
         /* 수정된 부분: 초기화가 완전히 끝나지 않았다면 무조건 초기화 루프로 진입 */
         if (AAFx_InitStatus != NORMAL_FINISHED_INITIALIZATION)

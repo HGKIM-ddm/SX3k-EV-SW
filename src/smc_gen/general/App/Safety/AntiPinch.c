@@ -28,10 +28,8 @@ static void Antipinch_PrevOpen(void)
         if ((motor_stall_flag == MOTOR_STALL) || (G_Timer1ms.InitCheck >= 8000U))
         {
             Motor_Off();
-            motor_start = OFF;
             G_Timer1msFlag.StallTimeFlag = 0U;
             G_Timer1ms.StallTime = 0U; 
-            softstart_complete = OFF;
             aaf_action = FLAP_STOP;
             G_Timer1msFlag.InitCheckFlag = 0U;
             G_Timer1ms.InitCheck = 0U;
@@ -82,7 +80,6 @@ static void Antipinch_PrevOpen(void)
             (step_position <= (Operate_GetTargetPosition(aaf_action) + limit_step_position)))
         {
             Motor_Off();
-            motor_start = OFF;
             
             // 진단 모드 여부에 따른 분기
             if (Diag_Mode != 0U)
@@ -121,7 +118,6 @@ static void Antipinch_PrevOpen(void)
 
             G_Timer1msFlag.StallTimeFlag = 0U;
             G_Timer1ms.StallTime = 0U;
-            softstart_complete = OFF;
 
             antipinch_previous_action = ANTIWAIT;
             antipinch_step = 0U;
@@ -131,10 +127,8 @@ static void Antipinch_PrevOpen(void)
         else if ((motor_stall_flag == MOTOR_STALL) || (G_Timer1ms.InitCheck >= 8000U))
         {
             Motor_Off();
-            motor_start = OFF;
             G_Timer1msFlag.StallTimeFlag = 0U;
             G_Timer1ms.StallTime = 0U;
-            softstart_complete = OFF;
 
             G_Timer1msFlag.InitCheckFlag = 0U;
             G_Timer1ms.InitCheck = 0U;
@@ -192,10 +186,6 @@ static void Antipinch_PrevClose(void)
         if ((motor_stall_flag == MOTOR_STALL) || (G_Timer1ms.InitCheck >= 8000U))
         {
             Motor_Off();
-            motor_start = OFF;
-            G_Timer1msFlag.StallTimeFlag = 0U;
-            G_Timer1ms.StallTime = 0U; 
-            softstart_complete = OFF;
 
             G_Timer1msFlag.InitCheckFlag = 0U;
             G_Timer1ms.InitCheck = 0U;
@@ -247,7 +237,6 @@ static void Antipinch_PrevClose(void)
             (step_position >= (Operate_GetTargetPosition(aaf_action) - limit_step_position)))
         {
             Motor_Off();
-            motor_start = OFF;
 
             if (Diag_Mode != 0U)
             {
@@ -285,7 +274,6 @@ static void Antipinch_PrevClose(void)
 
             G_Timer1msFlag.StallTimeFlag = 0U;
             G_Timer1ms.StallTime = 0U;
-            softstart_complete = OFF;
 
             antipinch_previous_action = ANTIWAIT;
             antipinch_step = 0U;
@@ -295,10 +283,6 @@ static void Antipinch_PrevClose(void)
         else if ((motor_stall_flag == MOTOR_STALL) || (G_Timer1ms.InitCheck >= 8000U))
         {
             Motor_Off();
-            motor_start = OFF;
-            G_Timer1msFlag.StallTimeFlag = 0U;
-            G_Timer1ms.StallTime = 0U;
-            softstart_complete = OFF;
 
             G_Timer1msFlag.InitCheckFlag = 0U;
             G_Timer1ms.InitCheck = 0U;
@@ -326,10 +310,6 @@ static void Antipinch_PrevClose(void)
         if ((motor_stall_flag == MOTOR_STALL) || (G_Timer1ms.InitCheck >= 8000U))
         {
             Motor_Off();
-            motor_start = OFF;
-            G_Timer1msFlag.StallTimeFlag = 0U;
-            G_Timer1ms.StallTime = 0U; 
-            softstart_complete = OFF;
 
             aaf_action = FLAP_STOP;
             G_Timer1msFlag.InitCheckFlag = 0U;

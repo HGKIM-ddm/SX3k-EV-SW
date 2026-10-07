@@ -62,7 +62,6 @@ unsigned long long step_position = 0;
 unsigned int dir_state = 0;
 unsigned int init_move_step = 0;
 unsigned int AAF_OpenLoad = 0;
-volatile unsigned int softstart_complete = 0;
 
 unsigned int motor_stall_flag = 0;
 unsigned int step_start_flag = 0;

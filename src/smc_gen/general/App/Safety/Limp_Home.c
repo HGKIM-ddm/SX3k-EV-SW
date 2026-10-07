@@ -90,9 +90,6 @@ void Limp_Home(void)
 		if ((step_position <= (step_position_open + limit_step_position)) || (motor_stall_flag == MOTOR_STALL))
 		{
 			Motor_Off();
-			motor_start = OFF;
-			G_Timer1msFlag.StallTimeFlag = 0U;
-			G_Timer1ms.StallTime = 0U; // stall reset
 			G_Timer1msFlag.InitCheckFlag = 0U;
 			G_Timer1ms.InitCheck = 0U;
 			AAF_Tx_Position = UNKOWN_POSITION;

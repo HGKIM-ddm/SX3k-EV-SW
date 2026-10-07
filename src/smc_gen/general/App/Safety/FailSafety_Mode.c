@@ -40,14 +40,10 @@ static void FS_CheckStallStop(unsigned int next_step)
 {
     if ((motor_stall_flag == MOTOR_STALL) || (G_Timer1ms.InitCheck >= 8000U))
     {
-        Motor_Off();
-        motor_start = OFF;
-        G_Timer1msFlag.StallTimeFlag = 0U;
-        G_Timer1ms.StallTime = 0U;                               /* stall reset */
+        Motor_Off();                             /* stall reset */
         aaf_action = FLAP_STOP;
         G_Timer1msFlag.InitCheckFlag = 0U;
         G_Timer1ms.InitCheck = 0U;
-        softstart_complete = OFF;
         fail_safety_step = next_step;
     }
 }

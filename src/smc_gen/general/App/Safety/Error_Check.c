@@ -189,10 +189,6 @@ static void Error_CheckShort(void)
         Short_fault_check = 0U;
         motor_Short_chk_count++;
         Motor_Off();
-        motor_start = OFF;
-        G_Timer1msFlag.StallTimeFlag = 0U;
-        G_Timer1ms.StallTime = 0U;
-        softstart_complete = OFF;
         AAFx_InitStatus = DURING_INITIALIZATION;          
         AAF_Tx_Position = UNKOWN_POSITION;
         AAFx_Position_Status = Unknown_Status;
@@ -231,7 +227,6 @@ static void Error_CheckShort(void)
         if (motor_Short_chk_count >= 10U)
         {
             Motor_Off();
-            motor_start = OFF;
             AAFx_Circuit_Short = AAF_CIRCUIT_SHORT;
             Motor_Sleep();
             DTC_Status |= 0x04U;
@@ -264,10 +259,6 @@ static void Error_CheckOpen(void)
         Open_fault_check = 0U;
         motor_Open_chk_count++;
         Motor_Off();
-        motor_start = OFF;
-        G_Timer1msFlag.StallTimeFlag = 0U;
-        G_Timer1ms.StallTime = 0U;
-        softstart_complete = OFF;
         AAFx_InitStatus = DURING_INITIALIZATION;         
         AAF_Tx_Position = UNKOWN_POSITION;
         AAFx_Position_Status = Unknown_Status;
@@ -311,7 +302,6 @@ static void Error_CheckOpen(void)
         if (motor_Open_chk_count >= 10U)
         {
             Motor_Off();
-            motor_start = OFF;
             AAFx_Motor_Fault = 1U;
             Motor_Sleep();
             DTC_Status |= 0x10u;
@@ -405,10 +395,7 @@ void Error_Check(void)
 void Error_UnknownStatus(void)
 {
 	Motor_Off();
-	motor_start = OFF;
-	G_Timer1msFlag.StallTimeFlag = 0U;
-	G_Timer1ms.StallTime = 0U;
-	softstart_complete = OFF;
+    
 	AAF_Tx_Position = UNKOWN_POSITION;
 	AAFx_Position_Status = Unknown_Status;
 	AAFx_InitStatus = DURING_INITIALIZATION;

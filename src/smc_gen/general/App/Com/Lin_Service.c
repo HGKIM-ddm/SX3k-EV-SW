@@ -48,18 +48,11 @@ static void Lin_Wakeup(void)
 
         /* Sleep 중 모터가 동작하고 있었을 수 있으므로 모터 정지 */
         Motor_Off();
-        motor_start = OFF;
-
-        /* Stall timer 초기화 */
-        G_Timer1msFlag.StallTimeFlag = 0U;
-        G_Timer1ms.StallTime = 0U;
 
         /* Init fail check timer 초기화 */
         G_Timer1msFlag.InitFailCheckFlag = 0U;
         G_Timer1ms.InitFailCheck = 0U;
 
-        /* Soft start 및 모터 속도 관련 변수 초기화 */
-        softstart_complete = OFF;
      
         /* Sleep 중 진행하던 동작은 중단 처리 */
         aaf_action = FLAP_STOP;

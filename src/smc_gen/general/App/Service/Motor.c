@@ -221,12 +221,17 @@ void Motor_On(void)
 
 void Motor_Off(void)
 {
+
     Drv8434a_OFF();
 
+    motor_start = OFF;
     G_Timer1msFlag.StallTimeFlag = 0U;
     G_Timer1ms.StallTime         = 0U;
+    
     ADC_TrqCountReset();
+    
     FaultCheck_OnMotorStop();
+
 }
 
 void Motor_Wakeup(void)
