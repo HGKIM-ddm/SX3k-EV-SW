@@ -8,6 +8,13 @@
  ***********************************************************************************************************************/
 void Protection_Abort(void)
 {
+    if (protection_Mode_step != 0U)
+    {
+        lin_aaf_command      = UNKOWN_POSITION;
+        AAF_Tx_Position      = UNKOWN_POSITION;
+        AAFx_Position_Status = Unknown_Status;
+        AAFx_InitStatus      = DURING_INITIALIZATION;
+    }
     protection_Mode_step = 0U;
     G_Timer1msFlag.ProtectionModeFlag = 0U;
     G_Timer1ms.ProtectionMode = 0U;

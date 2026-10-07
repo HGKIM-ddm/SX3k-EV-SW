@@ -9,6 +9,13 @@
  ***********************************************************************************************************************/
 void LimpHome_Abort(void)
 {
+    if (LIMP_HOME_step != 0U)
+    {
+        lin_aaf_command      = UNKOWN_POSITION;
+        AAF_Tx_Position      = UNKOWN_POSITION;
+        AAFx_Position_Status = Unknown_Status;
+        AAFx_InitStatus      = DURING_INITIALIZATION;
+    }
     LIMP_HOME_step = 0U;
 }
 
