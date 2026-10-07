@@ -22,6 +22,16 @@
 #include "HighSpeed_Mode.h"
 #include "Fault_Check.h"
 
+/* 숫자가 클수록 우선순위 높음 */
+typedef enum
+{
+    ACT_MODE_NORMAL = 0U,    /* Operating_Mode + FailSafety + AntiPinch */
+    ACT_MODE_LIMPHOME,
+    ACT_MODE_PROTECTION,
+    ACT_MODE_SLEEP,
+    ACT_MODE_TORQUE_TEST
+} ActMode_t;
+
 void AAF_SetType(void);
 void App_HwCheck(void);
 void App_SwLogic(void);

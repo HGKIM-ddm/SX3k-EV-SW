@@ -643,6 +643,28 @@ static void Operate_Finish(void)
 }
 
 /***********************************************************************************************************************
+ * Function Name: Operate_Abort
+ * Description  : 상위 모드 선점 시 Normal/Diag/Init 진행 상태 정리.
+ *                aaf_step은 상위 모드 해제 시 Re_Init()이 재설정
+ * Called By    : Service_NormalAbort
+ ***********************************************************************************************************************/
+void Operate_Abort(void)
+{
+    aaf_action = FLAP_STOP;
+    aaf_action_complete_chk = FLAP_STOP;
+    flap_move = FLAP_STOP;
+    init_move_step = 0U;
+    G_Timer1msFlag.InitMoveFlag = 0U;
+    G_Timer1ms.InitMove = 0U;
+    G_Timer1msFlag.InitFailCheckFlag = 0U;
+    G_Timer1ms.InitFailCheck = 0U;
+    G_Timer1msFlag.External10sCheckFlag = OFF;
+    G_Timer1ms.External10sCheck = 0U;
+    G_Timer1msFlag.StallCheckFlag = 0U;
+    G_Timer1ms.StallCheck = 0U;
+}
+
+/***********************************************************************************************************************
  * Function Name: Operate_GetTargetPosition
  * Description  : 동작 지령에 대한 목표 step 위치를 반환한다.
  *                step_position_open / step_position_close 에서 파생되는 값이므로

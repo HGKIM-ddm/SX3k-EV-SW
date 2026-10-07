@@ -230,87 +230,6 @@
 /***********************************************************************************************************************
  * 5. ADC & Voltage Thresholds Defines
 ***********************************************************************************************************************/
-
-// ADC chk MAX 4096
-/*
- V    adc_data
-
-0.8	652
-0.9	732
-1.0	813
-1.1	895
-1.2	975
-1.3	1058
-1.4	1139
-1.5	1224
-1.6	1304
-1.7	1386
-1.8	1467
-1.9	1548
-2.0	1627
-2.1	1711
-2.2	1793
-2.3	1874
-2.4	1955
-2.5	2036
-2.6	2119
-2.7	2203
-2.8	2283
-2.9	2366
-3.0	2447
-3.1	2527
-3.2	2610
-3.3	2694
-3.4	2777
-3.5	2858
-3.6	2939
-3.7	3020
-3.8	3101
-3.9	3183
-4.0	3267
-4.1	3349
-4.2	3431
-4.3	3513
-4.4	3593
-4.5	3674
-4.6	3758
-4.7	3841
-4.8	3923
-4.9	4003
-
-*/
-// AAF V1.2 260123 ADC CHECK PCB VER
-//ADC_UNDER_VOLTAGE
-// #define ADC_UNDER_VOLTAGE_7V 1262U 
-// #define ADC_UNDER_VOLTAGE_8_5V 1566U
-// #define ADC_UNDER_VOLTAGE_9V 1667U
-// #define ADC_VOLTAGE_9_5V 1769U
-
-// //ADC_OVER_VOLTAGE
-// #define ADC_OVER_VOLTAGE_16V 3070U
-// #define ADC_OVER_VOLTAGE_16_5V 3170U
-// #define ADC_OVER_VOLTAGE_18V 3480U
-
-// //ADC_VOLTAGE
-// #define ADC_VOLTAGE_10V 1850U	// slew change
-// #define ADC_VOLTAGE_10_5V 1950U // slew change
-// #define ADC_VOLTAGE_15V 2887U   // slew change
-
-// #define ADC_VOLTAGE_11V 2069U
-// #define ADC_VOLTAGE_11_5V 2171U
-// #define ADC_VOLTAGE_12V 2273U
-// #define ADC_VOLTAGE_13_5V 2587U
-// #define ADC_VOLTAGE_13_7V 2627U
-// #define ADC_VOLTAGE_13_8V 2641U
-// #define ADC_VOLTAGE_14V 2681U
-// #define ADC_VOLTAGE_14_4V 2761U
-// #define ADC_VOLTAGE_14_5V 2781U
-// #define ADC_VOLTAGE_14_6V 2801U
-// #define ADC_VOLTAGE_14_7V 2821U
-// #define ADC_VOLTAGE_14_8V 2847U
-
-
-// HW 1.2 ADC 최신
 #define ADC_UNDER_VOLTAGE_7V 618U	 
 #define ADC_UNDER_VOLTAGE_8_5V 764U	 //714
 #define ADC_UNDER_VOLTAGE_9V 814U
@@ -337,6 +256,8 @@
 ***********************************************************************************************************************/
 #define AAF_ERROR_ANGLE 5U // V
 #define SLEEP_BACKOFF_DIVIDER 2U
+
+#define LIMP_HOME_ENTRY_COUNT   80U
 
 #define AAF_WAITING 0U
 #define AAF_OPERATE 1U

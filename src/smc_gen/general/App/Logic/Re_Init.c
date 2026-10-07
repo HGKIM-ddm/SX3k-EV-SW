@@ -106,6 +106,10 @@ void Re_Init(void)
 	Diag_Mode = 0U;
 	Diag_Mode_chk = 0U;
 	evrdy_on_flag = OFF;
+	antipinch_action_on = OFF;
+	antipinch_step = 0U;
+	G_Timer1msFlag.AntipinchCheckFlag = 0U;
+	G_Timer1ms.AntipinchCheck = 0U;
 
 	#ifdef ENABLE_TORQUE_LIN_COMMUNICATION
 	TRQ_OpenIndex  = 0U;

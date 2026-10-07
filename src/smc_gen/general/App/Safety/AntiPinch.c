@@ -373,6 +373,20 @@ static void Antipinch_PrevClose(void)
  * Main Anti-Pinch Function
  * ========================================================================================= */
 
+ /***********************************************************************************************************************
+ * Function Name: Antipinch_Abort
+ * Description  : 상위 모드 선점 시 안티핀치 시퀀스 초기화
+ * Called By    : Service_NormalAbort
+ ***********************************************************************************************************************/
+void Antipinch_Abort(void)
+{
+    antipinch_action_on = OFF;
+    antipinch_step = 0U;
+    antipinch_previous_action = ANTIWAIT;
+    G_Timer1msFlag.AntipinchCheckFlag = 0U;
+    G_Timer1ms.AntipinchCheck = 0U;
+}
+
 /***********************************************************************************************************************
  * Function Name: Antipinch_Move
  * Description  : Anti-Pinch(끼임 방지) 동작 시퀀스 제어. 이전 동작 방향에 따라 반대 방향으로 회피 구동함.

@@ -389,7 +389,6 @@ void Error_Check(void)
                         AAFx_Circuit_Open = NO_ERROR;
                     }
                 }
-                Limp_Home(); 
                 error_step = 0U;
                 break;
 
@@ -397,14 +396,12 @@ void Error_Check(void)
                 error_step = 0U;
                 break;
         }
-        //Obd_DiagStatCheck();
     }
     else
     {
 		//invaild
     }
 }
-
 void Error_UnknownStatus(void)
 {
 	Motor_Off();

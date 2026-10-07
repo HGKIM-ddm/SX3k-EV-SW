@@ -217,7 +217,22 @@ static void FS_Cycle3(void)
 /* =========================================================================================
  * Main Fail Safety Mode Dispatcher
  * ========================================================================================= */
- 
+
+ /***********************************************************************************************************************
+ * Function Name: FailSafety_Abort
+ * Description  : 상위 모드(LimpHome/Protection 등) 선점 시 FS 초기화.
+ *                사양서 3.6: 상위 모드 해제 후 위치 초기화 수행 → 실패 시 5.2.8에 따라 FS 1차부터 진행
+ * Called By    : Service_NormalAbort
+ ***********************************************************************************************************************/
+void FailSafety_Abort(void)
+{
+    fail_safety_flag = OFF;
+    fail_safety_step = 0U;
+    G_Timer1msFlag.Timer3minuteFlag = 0U;
+    G_Timer1ms.Timer3minuteSec = 0U;
+    G_Timer1ms.Timer3minute = 0U;
+}
+
 /***********************************************************************************************************************
  * Function Name: FailSafety_Mode
  * Description  : Fail-Safety 모드의 진입점. 현재 단계(step)에 따라 1차/2차/최종 사이클 함수를 호출함.

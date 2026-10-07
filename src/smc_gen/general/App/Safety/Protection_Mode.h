@@ -5,6 +5,7 @@
 
 void Protection_Mode(void);
 void ProtectionMode_Check(void);
+void Protection_Abort(void);
 
 #endif
 

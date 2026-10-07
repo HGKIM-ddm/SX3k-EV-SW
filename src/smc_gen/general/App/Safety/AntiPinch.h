@@ -4,6 +4,7 @@
 #include "Config.h"
 
 void Antipinch_Move(void);
+void Antipinch_Abort(void);
 
 #endif
 

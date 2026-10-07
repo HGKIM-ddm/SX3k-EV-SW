@@ -2,6 +2,18 @@
 #include "Service.h"
 
 /***********************************************************************************************************************
+ * Function Name: Protection_Abort
+ * Description  : 상위 모드(Sleep/Torque Test) 선점 시 시퀀스 초기화
+ * Called By    : Service_ChangeMode
+ ***********************************************************************************************************************/
+void Protection_Abort(void)
+{
+    protection_Mode_step = 0U;
+    G_Timer1msFlag.ProtectionModeFlag = 0U;
+    G_Timer1ms.ProtectionMode = 0U;
+}
+
+/***********************************************************************************************************************
  * Function Name: Protection_Reset
  * Description  : Protection Mode 진입 시 초기화 수행 (Case 0)
  * Called By    : Protection_Cycle1
