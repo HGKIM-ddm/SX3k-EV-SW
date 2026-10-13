@@ -48,7 +48,7 @@
 
 /* 릴리즈 날짜 : 상위 니블 연도 끝자리 / 하위 니블 월 */
 #define REL_YEAR      6        // 2026
-#define REL_MONTH     9        // 9월
+#define REL_MONTH     10        // 10월
 #define RELEASE_DATE  ((uint8_t)(((REL_YEAR) << 4U) | (REL_MONTH)))
 
 /* 매크로 -> 문자열 */
