@@ -389,7 +389,11 @@ void Error_Check(void)
                         AAFx_Circuit_Open = NO_ERROR;
                     }
                 }
-                Limp_Home(); 
+
+                if (fail_safety_flag == OFF)
+                {
+                    Limp_Home();
+                }
                 error_step = 0U;
                 break;
 
@@ -397,7 +401,7 @@ void Error_Check(void)
                 error_step = 0U;
                 break;
         }
-        //Obd_DiagStatCheck();
+
     }
     else
     {
