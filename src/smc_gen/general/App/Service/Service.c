@@ -67,7 +67,7 @@ static void Safety_Check(void)
     // 4. Protection Mode
     ProtectionMode_Check();
 
-   if (((protection_function == ON) || (voltage_protection_function == ON) || (protection_Mode_step != 0U)) && (lin_bus_inactive_flag == OFF) && (AAF_Maximum_Torque_Test_Mode == OFF))
+   if (((protection_function == ON) || (voltage_protection_function == ON) || (protection_Mode_step != 0U)) && (lin_bus_inactive_flag == OFF) && (AAF_Maximum_Torque_Test_Mode == OFF) && (fail_safety_flag == OFF))
     {
         Protection_Mode();
     }
