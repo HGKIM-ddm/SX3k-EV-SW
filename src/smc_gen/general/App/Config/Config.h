@@ -295,6 +295,7 @@ extern unsigned int Re_Init_check;
 extern unsigned int Re_Init_check_flag;
 extern unsigned int Re_Init_check_prev;
 
+extern unsigned int reinit_request_flag;
 
 /*******************************************************************************
  * MOTOR FAULT DATA

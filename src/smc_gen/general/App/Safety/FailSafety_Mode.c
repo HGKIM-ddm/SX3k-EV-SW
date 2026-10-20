@@ -222,6 +222,10 @@ static void FS_Cycle3(void)
  ***********************************************************************************************************************/
 void FailSafety_Abort(void)
 {
+    if (fail_safety_flag == ON)
+    {
+        reinit_request_flag = ON;
+    }
     fail_safety_flag = OFF;
     fail_safety_step = 0U;
     G_Timer1msFlag.Timer3minuteFlag = 0U;

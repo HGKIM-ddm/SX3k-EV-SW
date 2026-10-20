@@ -21,6 +21,12 @@ static void Error_ClearVoltageProtection(void)
         return;
     }
 
+    /* FS 진행 중 : Protection 미진입 상태이므로 Re_Init 하지 않고 FS 유지 */
+    if (fail_safety_flag == ON)
+    {
+        return;
+    }
+
     if (protection_Mode_step == 4U)
     {
         protection_Mode_step = 5U;

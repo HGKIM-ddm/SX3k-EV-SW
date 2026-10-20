@@ -168,30 +168,39 @@ static void LinSleep_StartMotor(void)
 static void LinSleep_CheckCompletion(void)
 {
     unsigned int target_pos;
+    uint8_t range_valid;
 
-    // 기본 OPEN 목표 위치는 FULL OPEN 기준 위치
     target_pos = Operate_GetTargetPosition(aaf_action);
+    range_valid = ((step_position_close > step_position_open) &&
+                   ((step_position_close - step_position_open) > STEP_POSITION_MINIMUM_RANGE)) ? 1U : 0U;
 
     if (LinSleep_AbortOnFault() == 1U) { return; }
 
     if (((aaf_action == OPEN) ||
          (aaf_action == OPEN_1ST) ||
          (aaf_action == OPEN_2ND)) &&
-        (step_position <= (target_pos + limit_step_position)))
+        (((range_valid == 1U) && (step_position <= (target_pos + limit_step_position))) ||
+         ((range_valid == 0U) && (motor_stall_flag == MOTOR_STALL))))
     {
         Motor_Off();
+        motor_stall_flag = MOTOR_NORMAL;
 
-        // 마스터에게 현재 위치 상태를 보고하기 위한 값 설정
-        AAF_Tx_Position = aaf_action;
-        AAFx_Position_Status = Open_Status;
-        AAFx_InitStatus = NORMAL_FINISHED_INITIALIZATION;
-
-        // LIN Response 위치값 선택/갱신
-        Operate_SelectTxPostion();
+        if ((reinit_request_flag == ON) || (range_valid == 0U))
+        {
+            /* 위치 미확정 : Initial value 유지 → Wake 시 위치초기화 (사양서 3.6) */
+            AAF_Tx_Position      = UNKOWN_POSITION;
+            AAFx_Position_Status = Unknown_Status;
+            AAFx_InitStatus      = DURING_INITIALIZATION;
+        }
+        else
+        {
+            AAF_Tx_Position = aaf_action;
+            AAFx_Position_Status = Open_Status;
+            AAFx_InitStatus = NORMAL_FINISHED_INITIALIZATION;
+            Operate_SelectTxPostion();
+        }
 
         aaf_step = FINISHED_OPERATE;
-
-        // 최종 Sleep 단계로 이동
         lin_sleep_step = 8U;
     }
 
@@ -201,54 +210,35 @@ static void LinSleep_CheckCompletion(void)
              (AAFx_Type == EXTERNAL_TYPE))
     {
         Motor_Off();
-
-        // close stopper에 도달했다고 판단했으므로 현재 위치를 close 기준 위치로 보정
         step_position = step_position_close;
-
-        // stall 상태 초기화
         motor_stall_flag = MOTOR_NORMAL;
-
         Sleep_Stall    = OFF;
-
         lin_sleep_step = 5U;
     }
 
-    // 조건 3: INTERNAL TYPE CLOSE 목표 위치 도달
-    // Internal Type은 stopper stall을 기다리지 않고 close 위치 근처 도달로 완료 처리함.
     else if ((aaf_action == CLOSE) &&
              (step_position >= (step_position_close - limit_step_position)) &&
              (AAFx_Type == INTERNAL_TYPE))
     {
         Motor_Off();
-
         AAF_Tx_Position = CLOSE;
         AAFx_Position_Status = Close_Status;
         AAFx_InitStatus = NORMAL_FINISHED_INITIALIZATION;
-
         Operate_SelectTxPostion();
-
         aaf_step = FINISHED_OPERATE;
-
-        // 최종 Sleep 단계로 이동
         lin_sleep_step = 8U;
     }
 
-    // 조건 4: 목표 위치 도달 전 스톨 발생
     else if (motor_stall_flag == MOTOR_STALL)
     {
         Motor_Off();
-
         motor_stall_flag = MOTOR_NORMAL;
-
         aaf_step = AAF_INITIALIZATION;
         aaf_init_step = WAIT_INITIALIZATION;
-
         AAF_Tx_Position = UNKOWN_POSITION;
         AAFx_Position_Status = Unknown_Status;
         AAFx_InitStatus = DURING_INITIALIZATION;
-
         Sleep_Stall    = ON;
-        // 최종 Sleep 단계로 이동
         lin_sleep_step = 5U;
     }
     else

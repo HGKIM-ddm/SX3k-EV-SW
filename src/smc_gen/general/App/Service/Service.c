@@ -5,6 +5,7 @@ static ActMode_t act_mode = ACT_MODE_NORMAL;
 /***********************************************************************************************************************
  * Function Name: Service_SelectMode
  * Description  : 모드 요청 플래그로 이번 루프에 실행할 최상위 모드 1개를 결정
+ *                Fail Safety 진행 중 ~ DTC 확정까지는 Sleep 외 다른 모드로 선점되지 않음 (사양 5.2.8-4)
  * Called By    : App_SwLogic
  ***********************************************************************************************************************/
 static ActMode_t Service_SelectMode(void)
@@ -14,6 +15,10 @@ static ActMode_t Service_SelectMode(void)
     if (lin_bus_inactive_flag == ON)
     {
         mode = ACT_MODE_SLEEP;
+    }
+    else if (fail_safety_flag == ON)
+    {
+        mode = ACT_MODE_FAILSAFE;
     }
     else if ((protection_function == ON) || (voltage_protection_function == ON) || (protection_Mode_step != 0U))
     {
@@ -47,12 +52,12 @@ static void Service_NormalAbort(void)
 {
     Operate_Abort();
     Antipinch_Abort();
-    FailSafety_Abort();
 }
 
 /***********************************************************************************************************************
  * Function Name: Service_ChangeMode
  * Description  : 상위 모드 선점 시 모터 정지 + 하위 모드 Abort.
+ *                NORMAL -> FAILSAFE 는 NORMAL 내부(Init 실패 / AntiPinch 실패)에서 시작되므로 정리하지 않음.
  *                하위로 내려갈 때는 상위 모드가 스스로 Re_Init 후 종료하므로 처리 없음
  * Called By    : App_SwLogic
  ***********************************************************************************************************************/
@@ -60,23 +65,34 @@ static void Service_ChangeMode(ActMode_t next)
 {
     if (next > act_mode)
     {
-        Motor_Off();
-        G_Timer1msFlag.InitCheckFlag = 0U;
-        G_Timer1ms.InitCheck = 0U;
-
-        switch (act_mode)
+        if ((act_mode == ACT_MODE_NORMAL) && (next == ACT_MODE_FAILSAFE))
         {
-        case ACT_MODE_NORMAL:
-            Service_NormalAbort();
-            break;
-        case ACT_MODE_LIMPHOME:
-            LimpHome_Abort();
-            break;
-        case ACT_MODE_PROTECTION:
-            Protection_Abort();
-            break;
-        default:
-            break;
+            /* FS 진행 중 시퀀스 유지 */
+        }
+        else
+        {
+            Motor_Off();
+            G_Timer1msFlag.InitCheckFlag = 0U;
+            G_Timer1ms.InitCheck = 0U;
+
+            switch (act_mode)
+            {
+            case ACT_MODE_NORMAL:
+                Service_NormalAbort();
+                break;
+            case ACT_MODE_LIMPHOME:
+                LimpHome_Abort();
+                break;
+            case ACT_MODE_PROTECTION:
+                Protection_Abort();
+                break;
+            case ACT_MODE_FAILSAFE:
+                Operate_Abort();
+                FailSafety_Abort();
+                break;
+            default:
+                break;
+            }
         }
     }
 
@@ -97,11 +113,18 @@ static void Service_RunMode(void)
         {
             Operating_Mode();
         }
-        FailSafety_Mode();
         if ((antipinch_previous_action == OPEN) || (antipinch_previous_action == CLOSE))
         {
             Antipinch_Move();
         }
+        break;
+    case ACT_MODE_FAILSAFE:
+        /* FS 재초기화 단계(4, 9)에서만 위치초기화 수행. 그 외 마스터 명령 무시 (사양 5.2.8-4) */
+        if (((fail_safety_step == 4U) || (fail_safety_step == 9U)) && (G_Timer1ms.ProtectionCheck == 550))
+        {
+            Operating_Mode();
+        }
+        FailSafety_Mode();
         break;
     case ACT_MODE_LIMPHOME:
         Limp_Home();

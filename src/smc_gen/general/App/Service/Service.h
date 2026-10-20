@@ -25,9 +25,10 @@
 /* 숫자가 클수록 우선순위 높음 */
 typedef enum
 {
-    ACT_MODE_NORMAL = 0U,    /* Operating_Mode + FailSafety + AntiPinch */
+    ACT_MODE_NORMAL = 0U,    /* Operating_Mode + AntiPinch */
     ACT_MODE_LIMPHOME,
     ACT_MODE_PROTECTION,
+    ACT_MODE_FAILSAFE,       /* FS 진행 중 ~ DTC 확정 : Sleep 외 선점 불가 */
     ACT_MODE_SLEEP,
     ACT_MODE_TORQUE_TEST
 } ActMode_t;

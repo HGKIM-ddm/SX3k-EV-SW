@@ -229,7 +229,7 @@ unsigned int Re_Init_check = 0U;
 unsigned int Re_Init_check_flag = 0U;
 unsigned int Re_Init_check_prev = 0U;
 
-
+unsigned int reinit_request_flag = 0U;
 
 
 /*******************************************************************************
