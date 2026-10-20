@@ -641,6 +641,10 @@ static void Operate_Finish(void)
  ***********************************************************************************************************************/
 void Operate_Abort(void)
 {
+    if (aaf_step == AAF_INITIALIZATION)
+    {
+        reinit_request_flag = ON;
+    }
     aaf_action = FLAP_STOP;
     aaf_action_complete_chk = FLAP_STOP;
     flap_move = FLAP_STOP;

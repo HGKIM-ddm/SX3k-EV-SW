@@ -150,6 +150,9 @@ static void Init_CheckLimitArrival(void)
         if (fail_safety_step == 0U) { fail_safety_flag = ON; }
         if (fail_safety_step == 4U) { fail_safety_step = 5U; }
         else if (fail_safety_step == 9U) { fail_safety_step = 10U; }
+
+        /* 실패 확정 후 재호출 방지 (FS Open 구동이 매 루프 Motor_Off 되는 문제) : FS 의 Re_Init 에서 START 로 복귀 */
+        aaf_init_step = TRAVEL_RANGE_ERROR;
     }
     else if (step_position >= step_position_open + limit_step_position)
     {

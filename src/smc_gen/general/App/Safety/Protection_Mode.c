@@ -14,6 +14,7 @@ void Protection_Abort(void)
         AAF_Tx_Position      = UNKOWN_POSITION;
         AAFx_Position_Status = Unknown_Status;
         AAFx_InitStatus      = DURING_INITIALIZATION;
+        reinit_request_flag  = ON;
     }
     protection_Mode_step = 0U;
     G_Timer1msFlag.ProtectionModeFlag = 0U;

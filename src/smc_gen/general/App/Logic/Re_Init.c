@@ -110,6 +110,7 @@ void Re_Init(void)
 	antipinch_step = 0U;
 	G_Timer1msFlag.AntipinchCheckFlag = 0U;
 	G_Timer1ms.AntipinchCheck = 0U;
+	reinit_request_flag = OFF;
 
 	#ifdef ENABLE_TORQUE_LIN_COMMUNICATION
 	TRQ_OpenIndex  = 0U;
