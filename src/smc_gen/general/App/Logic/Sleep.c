@@ -432,6 +432,10 @@ static void LinSleep_Final(void)
         G_Timer1msFlag.LinSleepModeFlag = 0U;
         G_Timer1ms.LinSleepMode = 0U;
 
+        /* Sleep 방어 타이머 초기화 */
+        G_Timer1msFlag.SleepGuardFlag = 0U;
+        G_Timer1ms.SleepGuard = 0U;
+
         aaf_action = FLAP_STOP;
         aaf_action_complete_chk = FLAP_STOP;
 
@@ -519,6 +523,23 @@ static void McuSleep_PortConfig(void)
     PORT.P10 &= ~_PORT_Pn10_OUTPUT_HIGH; // MCU_LIN_Tx_Low Sleep go
 }
 
+/***********************************************************************************************************************
+ * Function Name: MCU_ForceOff
+ * Description  : Sleep 시퀀스가 SLEEP_GUARD_TIME 내에 끝나지 않을 때 가드 조건 무시하고 외부 전원 차단
+ *                (리셋 시 AAF_Init 에서 트랜시버/LDO 재기동 → Sleep 동작 반복 가능성이 있어 차단 방식 사용)
+ * Called By    : Lin_Sleep
+ * Arguments    : void
+ * Return Value : void
+ ***********************************************************************************************************************/
+static void MCU_ForceOff(void)
+{
+    Motor_Off();
+
+    power_chk = Normal_Shutdown;
+
+    McuSleep_ExternalOff();
+    McuSleep_PortConfig();
+}
 
 /***********************************************************************************************************************
  * Function Name: LinSleep_Cycle1
@@ -595,6 +616,15 @@ static void LinSleep_Cycle2(void)
  ***********************************************************************************************************************/
 void Lin_Sleep(void)
 {
+    /* 방어 : Sleep 시퀀스 최대 시간 초과 (저전압 복구 대기 step 9 제외) */
+    G_Timer1msFlag.SleepGuardFlag = 1U;
+
+    if ((G_Timer1ms.SleepGuard >= SLEEP_GUARD_TIME) && (lin_sleep_step != 9U) && (lin_nrst_low_flag == OFF))
+    {
+        MCU_ForceOff();
+        return;
+    }
+
     // Step 0 ~ 2: 준비 및 명령 수신 단계
     if (lin_sleep_step <= 2U)
     {
@@ -635,7 +665,9 @@ void MCU_Sleep(void)
     First_Powerchk = 1U;
 
     // 2. 필요 시 플래시 메모리에 데이터 저장
-    if (step_check_flag == 2U)
+    //    - 2 : 이번 사이클 초기화 정상 완료 → 정상 값 저장
+    //    - 1 : FDL 읽음 + 초기화 미완료(실패/FS) → 미확정 상태 저장 → 다음 IG ON 재초기화
+    if ((step_check_flag == 2U) || (step_check_flag == 1U))
     {
         FDL_Write();
     }
@@ -645,7 +677,6 @@ void MCU_Sleep(void)
 
     // 4. 슬립 대비 포트 설정 (누설 전류 방지)
     McuSleep_PortConfig();
-
 }
 
 
@@ -676,6 +707,10 @@ void Lin_WakeupFromSleep(void)
         /* LIN Sleep 대기 타이머 초기화 */
         G_Timer1msFlag.LinSleepModeFlag = 0U;
         G_Timer1ms.LinSleepMode = 0U;
+
+        /* Sleep 방어 타이머 초기화 */
+        G_Timer1msFlag.SleepGuardFlag = 0U;
+        G_Timer1ms.SleepGuard = 0U;
 
         /* Sleep 중 모터 구동 중일 수 있으므로 안전하게 정지 */
         Motor_Off();

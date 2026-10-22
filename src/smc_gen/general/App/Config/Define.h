@@ -256,7 +256,7 @@
 ***********************************************************************************************************************/
 #define AAF_ERROR_ANGLE 5U // V
 #define SLEEP_BACKOFF_DIVIDER 2U
-
+#define SLEEP_GUARD_TIME 30000U 
 #define LIMP_HOME_ENTRY_COUNT   80U
 
 #define AAF_WAITING 0U

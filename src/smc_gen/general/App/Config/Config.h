@@ -236,6 +236,7 @@ typedef struct {
     unsigned int NrstCheck;
     unsigned int MotorRunTime;
     unsigned int IGNOffCheck;
+    unsigned int SleepGuard;
 } Global_Timer1msType;
 
 typedef struct {
@@ -268,6 +269,7 @@ typedef struct {
     unsigned int NrstCheckFlag;
     unsigned int MotorRunTimeFlag;
     unsigned int IGNOffCheckFlag;
+    unsigned int SleepGuardFlag;
 } Global_Timer1msFlagType;
 
 extern Global_Timer1msType G_Timer1ms;
