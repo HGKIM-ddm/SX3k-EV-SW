@@ -641,7 +641,9 @@ static void Operate_Finish(void)
  ***********************************************************************************************************************/
 void Operate_Abort(void)
 {
-    if (aaf_step == AAF_INITIALIZATION)
+    /* 위치초기화 진행 중(START / CHECK_TRAVELRANGE / TRAVEL_RANGE_ERROR)에 선점된 경우만 위치 미확정 처리.
+       aaf_step 은 Lin_BusCheck 가 IG OFF Initial value 보고 시 INITIALIZATION 으로 바꾸므로 판단에 사용하지 않음 */
+    if (aaf_init_step <= TRAVEL_RANGE_ERROR)
     {
         reinit_request_flag = ON;
     }
