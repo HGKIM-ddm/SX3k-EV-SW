@@ -13,7 +13,7 @@
 #define MINUTE_3 180U 
 
 //For Torque Test
-#define ENABLE_AAF_UI
+// #define ENABLE_AAF_UI
 
 //For Bootloader
 #define UDS
@@ -48,7 +48,7 @@
 
 /* 릴리즈 날짜 : 상위 니블 연도 끝자리 / 하위 니블 월 */
 #define REL_YEAR      6        // 2026
-#define REL_MONTH     9        // 9월
+#define REL_MONTH     10        // 10월
 #define RELEASE_DATE  ((uint8_t)(((REL_YEAR) << 4U) | (REL_MONTH)))
 
 /* 매크로 -> 문자열 */
@@ -314,7 +314,7 @@
 /***********************************************************************************************************************
  * 9. High Speed Mode (EV)
 ***********************************************************************************************************************/
-#define AAF_HIGH_SPEED_MODE_ENABLE        
+// #define AAF_HIGH_SPEED_MODE_ENABLE        
 #define NORMAL_DRIVE_MODE             0U // 정상 주행모드 상태값
 #define HIGH_SPEED_DRIVE_MODE         1U // 고속 주행모드 상태값
 #define ENTER_HIGH_SPEED          145U // 145km/h 이상이면 고속 주행모드 진입

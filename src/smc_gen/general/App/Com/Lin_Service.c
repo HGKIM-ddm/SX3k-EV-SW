@@ -40,7 +40,7 @@ static void Lin_Wakeup(void)
         G_Timer1ms.LinBusInactive = 0U;
 
         /* Sleep 상태머신 초기화 */
-        lin_sleep_step = 0U;
+        sleep_step = 0U;
 
         /* Sleep delay timer 초기화 */
         G_Timer1msFlag.LinSleepModeFlag = 0U;

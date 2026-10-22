@@ -3,9 +3,9 @@
 
 #include "Config.h"
 
-void Lin_Sleep(void);
+void Sleep_Mode(void);
 void MCU_Sleep(void);
-void Lin_WakeupFromSleep(void);
+void Sleep_Wakeup(void);
 
 #endif
 

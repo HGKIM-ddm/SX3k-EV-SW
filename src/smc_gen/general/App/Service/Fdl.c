@@ -33,7 +33,7 @@ void FDL_Write(void)
 	Initial_memory_write = evrdy_on_flag;
 	limit_memory_write = limit_step_position;
 
-	if ((AAF_LINOut == 0x00U) && (IGN_Chk == 2U))
+	if ((AAF_LINOut == 0x00U) && (IGN_Chk == 2U) && (reinit_request_flag == OFF))
 	{
 		position_memory_write = AAF_Tx_Position_Temporary;
 		position_status_memory_write = AAFx_Position_Status_Temporary;

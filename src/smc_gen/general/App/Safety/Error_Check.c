@@ -329,6 +329,13 @@ static void Error_CheckOpen(void)
  ***********************************************************************************************************************/
 void Error_CheckAfterIGN(void)
 {
+
+    if ((LDCRdy == 0x00u))
+    {
+        G_Timer1ms.IgnCheck = 0U;
+        G_Timer1msFlag.IgnCheckFlag = 0U;
+    }
+    
     if (((LDCRdy == 0x01u) && (G_Timer1ms.IgnCheck <= 500U)) || (IGN_Chk_On == 1U)) 
     {
         G_Timer1msFlag.IgnCheckFlag = 1U;

@@ -129,7 +129,7 @@ volatile uint8_t g_lin_error_flag = 0U;
 
 char ret = 0;
 unsigned int lin_bus_inactive_flag = 0;
-unsigned int lin_sleep_step = 0;
+unsigned int sleep_step = 0;
 unsigned int lin_nrst_low_flag = 0;
 unsigned int lin_nrst_debounce_count = 0;
 

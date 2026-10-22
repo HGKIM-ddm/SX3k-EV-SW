@@ -668,7 +668,7 @@ void Operate_Abort(void)
  *                전역 변수로 보관하지 않고 사용 시점마다 계산한다.
  *                (보관하면 위치 학습을 건너뛰는 경로 - FDL 복원 - 에서 갱신이 누락됨)
  * Called By    : Operate_NormalProcess, Operate_CheckRange,
- *                LinSleep_CheckCompletion, Antipinch_PrevOpen/PrevClose
+ *                Sleep_CheckCompletion, Antipinch_PrevOpen/PrevClose
  ***********************************************************************************************************************/
 unsigned int Operate_GetTargetPosition(unsigned int action)
 {

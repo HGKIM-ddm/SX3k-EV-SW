@@ -133,7 +133,7 @@ static void Service_RunMode(void)
         Protection_Mode();
         break;
     case ACT_MODE_SLEEP:
-        Lin_Sleep();
+        Sleep_Mode();
         break;
 #ifdef ENABLE_AAF_UI
     case ACT_MODE_TORQUE_TEST:
