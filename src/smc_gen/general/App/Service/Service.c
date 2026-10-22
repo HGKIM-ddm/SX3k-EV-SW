@@ -100,6 +100,27 @@ void App_HwCheck(void)
     FaultCheck_Sample();
 }
 
+#ifdef EMC_STANDALONE
+static void Emc_Standalone(void)
+{
+    /* LIN 수신값 고정 (마스터 없음) */
+    LDCRdy                = 0x01U;   /* Driverable → 부팅 초기화 진행 */
+    AAF_LINOut            = 0x01U;   /* Normal Operation */
+    AAF_ProtectionMode_Rx = 0U;
+    CR_Mcu_VehSpdInt_Kph  = 0U;
+    G_Timer1ms.LinBusInactive = 0U;  /* Bus Inactive(4s) → Sleep 진입 방지 */
+    LIMP_HOME_Count       = 0U;      /* LIN 노이즈 에러로 Limp Home 진입 방지 */
+
+    /* 초기화 완료 후 DIAG AUTO 1회 기동 → 이후 FW가 OPEN/CLOSE 자동 반복 */
+    if ((AAFx_InitStatus == NORMAL_FINISHED_INITIALIZATION) && (aaf_step == AAF_WAITING) &&
+        (diag_mode_auto_action == OFF) && (motor_start == OFF))
+    {
+        lin_aaf_command = DIAG_MODE_AUTO;
+        step_start_flag = ON;
+    }
+}
+#endif
+
 /***********************************************************************************************************************
  * Function Name: App_SwLogic
  * Description  : Monitors software-level states executing logic in the EXACT order of the original loop.
@@ -109,6 +130,10 @@ void App_HwCheck(void)
  ***********************************************************************************************************************/
 void App_SwLogic(void)
 {
+
+    #ifdef EMC_STANDALONE
+    Emc_Standalone();
+    #endif
     // [Sequence 1] Main Operation Mode Check
     Mode_Check();
 

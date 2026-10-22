@@ -24,6 +24,9 @@
 //Current CodeName
 #define VEHICLE_CODENAME SX3K_EV_AAF1
 
+//emc 
+#define EMC_STANDALONE
+
 /* ====================================================================
  * Serial Information
  * ==================================================================== */
