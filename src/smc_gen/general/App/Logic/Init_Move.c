@@ -41,6 +41,45 @@ static void Init_StartMotor(uint8_t next_step, uint8_t dir, uint8_t is_case0)
 }
 
 
+// /***********************************************************************************************************************
+//  * Function Name: Init_StallCheck
+//  * Called By: Init_move (Case 4, 7, 10)
+//  * next_step: next case
+//  * retry_step: Steps to move in case of failure (timeout)
+//  * dir: OPEN, CLOSE DIRECTION
+//  ***********************************************************************************************************************/
+// static void Init_StallCheck(uint8_t next_step, uint8_t retry_step, uint8_t dir)
+// {
+//     if ((motor_stall_flag == MOTOR_STALL) || (G_Timer1ms.InitCheck >= 8000U))
+//     {
+//         Motor_Off();
+//         motor_start = OFF;
+        
+//         if (dir == CLOSE) 
+//         {
+//             step_position_close = step_position;
+
+//         }
+//         else // dir == OPEN
+//         {
+//             step_position_open = step_position;
+
+//         }
+
+//         G_Timer1msFlag.StallTimeFlag = 0U;
+//         G_Timer1ms.StallTime = 0U;
+//         softstart_complete = OFF;
+//         G_Timer1msFlag.InitFailCheckFlag = 0U;
+//         G_Timer1ms.InitFailCheck = 0U;
+
+//         init_move_step = next_step;
+//     }
+//     else
+//     {
+//         //invaild
+//     }
+// }
+
 /***********************************************************************************************************************
  * Function Name: Init_StallCheck
  * Called By: Init_move (Case 4, 7, 10)
@@ -50,7 +89,15 @@ static void Init_StartMotor(uint8_t next_step, uint8_t dir, uint8_t is_case0)
  ***********************************************************************************************************************/
 static void Init_StallCheck(uint8_t next_step, uint8_t retry_step, uint8_t dir)
 {
-    if ((motor_stall_flag == MOTOR_STALL) || (G_Timer1ms.InitCheck >= 8000U))
+#ifdef BENCH_NO_STOPPER
+    /* 단품(스토퍼 없음) : 가상 STEP 끝점 도달을 스토퍼 도달로 간주 */
+    uint8_t arrived = (dir == OPEN) ? (uint8_t)(step_position <= BENCH_OPEN_POS)
+                                    : (uint8_t)(step_position >= BENCH_CLOSE_POS);
+#else
+    uint8_t arrived = (uint8_t)(motor_stall_flag == MOTOR_STALL);
+#endif
+
+    if ((arrived == 1U) || (G_Timer1ms.InitCheck >= 8000U))
     {
         Motor_Off();
         motor_start = OFF;
@@ -79,6 +126,7 @@ static void Init_StallCheck(uint8_t next_step, uint8_t retry_step, uint8_t dir)
         //invaild
     }
 }
+
 
 /***********************************************************************************************************************
  * Function Name: Init_Delay

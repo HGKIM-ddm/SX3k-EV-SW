@@ -218,6 +218,24 @@
 ***********************************************************************************************************************/
 
 #define REFERENCE_POSITION 30000U // 30000
+
+/* =====================================================================================
+ * 단품(스토퍼 없음)
+ *  - 초기화 시 스톨 감지 대신 가상 STEP 위치에서 정지 (Init_StallCheck)
+ *  - OPEN/CLOSE 는 초기화가 저장한 끝점 기준으로 정지하므로 별도 수정 없음
+ *  - BENCH_STROKE 는 STEP_POSITION_MINIMUM_RANGE < 값 <= STEP_POSITION_MAXIMUM_RANGE
+ *    (CONFIG_AAF_ANGLE 110 : 18000 < 값 <= 23000)
+ * ===================================================================================== */
+#define BENCH_NO_STOPPER
+#define BENCH_OPEN_POS   28000U                            /* 가상 OPEN 끝점 (REFERENCE 30000 에서 OPEN 방향 2000 step) */
+#define BENCH_STROKE     20000U                            /* 가상 행정 */
+#define BENCH_CLOSE_POS  (BENCH_OPEN_POS + BENCH_STROKE)   /* 가상 CLOSE 끝점 48000 */
+#ifdef BENCH_NO_STOPPER
+  #if ((BENCH_STROKE <= STEP_POSITION_MINIMUM_RANGE) || (BENCH_STROKE > STEP_POSITION_MAXIMUM_RANGE))
+    #error "BENCH_STROKE out of STEP_POSITION range"
+  #endif
+#endif
+
 #define ERROR_RANGE 5U
 
 #define POSITION_MAXIMUM_RANGE 70000U
