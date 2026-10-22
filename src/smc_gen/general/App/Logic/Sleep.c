@@ -89,7 +89,8 @@ static void LinSleep_ParsingCommand(void)
         {
             Motor_Wakeup();
 
-            if (fail_safety_flag == ON)
+            /* FS 중(선점 시 FailSafety_Abort 가 flag 를 먼저 지움) 또는 위치 미확정 : 최종 명령 대신 OPEN (사양 5.2.8) */
+            if ((fail_safety_flag == ON) || (reinit_request_flag == ON))
             {
                 aaf_action = OPEN;
             }
@@ -396,18 +397,18 @@ static void LinSleep_Final(void)
         return;
     }
 
-    if ((AAF_Tx_Position == UNKOWN_POSITION) ||
-        (AAFx_Position_Status == Unknown_Status) ||
-        (AAFx_InitStatus == DURING_INITIALIZATION))
-    {
-        aaf_init_step = WAIT_INITIALIZATION;
-        AAF_Tx_Position = UNKOWN_POSITION;
-        AAFx_Position_Status = Unknown_Status;
-        AAFx_InitStatus = DURING_INITIALIZATION;
-    }
-
     if (G_Timer1ms.LinBusInactive >= LIN_BUS_CHK_TIME_4_SEC)
     {
+        if ((AAF_Tx_Position == UNKOWN_POSITION) ||
+            (AAFx_Position_Status == Unknown_Status) ||
+            (AAFx_InitStatus == DURING_INITIALIZATION))
+        {
+            aaf_init_step = WAIT_INITIALIZATION;
+            AAF_Tx_Position = UNKOWN_POSITION;
+            AAFx_Position_Status = Unknown_Status;
+            AAFx_InitStatus = DURING_INITIALIZATION;
+        }
+
         if ((AAF_LINOut == 0x00U) &&
             ((IGN_Chk == 1U) || (IGN_Chk == 2U)) &&
             (motor_start == OFF) &&
@@ -424,6 +425,7 @@ static void LinSleep_Final(void)
     }
     else
     {
+        /* MCU 전원 차단 전 LIN 재개 : 리셋 없이 복귀하므로 위치 미확정이면 초기화 재시작 */
         lin_bus_inactive_flag = OFF;
         lin_sleep_step = 0U;
 
@@ -433,9 +435,18 @@ static void LinSleep_Final(void)
         aaf_action = FLAP_STOP;
         aaf_action_complete_chk = FLAP_STOP;
 
-        if (aaf_step != AAF_INITIALIZATION) 
+        if (AAFx_InitStatus != NORMAL_FINISHED_INITIALIZATION)
+        {
+            aaf_step      = AAF_INITIALIZATION;
+            aaf_init_step = START_INITIALIZATION;
+        }
+        else if (aaf_step != AAF_INITIALIZATION) 
         {
             aaf_step = AAF_WAITING; 
+        }
+        else
+        {
+            /* invalid */
         }
     }
 }

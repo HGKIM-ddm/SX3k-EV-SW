@@ -77,36 +77,14 @@ void Lin_Status_Interrupt(void)
 	error_status = RLN30.LEST; // check status
 	g_lin_error_flag = 1U;
 	
-#if 1 // LEST Clear
-	while (1)
+	if ((RLN30.LTRC & 0x01U) == 0U)
 	{
-		if ((RLN30.LTRC & 0x01U) == 1U)
-		{
-			RLN30.LEST = 0U;
-			NOP();
-			NOP();
-			NOP();
-			NOP();
-			NOP();
-			NOP();
-			NOP();
-			NOP();
-			NOP();
-			NOP();
-			NOP();
-			NOP();
-			NOP();
-			NOP();
-			NOP();
-			NOP();
-			NOP();
-			NOP();
-			NOP();
-			NOP();
-			NOP();
-			error_status = RLN30.LEST;
-			break;
-		}
+		RLN30.LEST = 0x00U;     /* 에러 플래그 클리어 */
+		RLN30.LTRC = 0x01U;     /* FTS = 1 : 다음 헤더 수신 재개 */
 	}
-#endif
+	else
+	{
+		/* 이미 다음 통신 시작됨 (LEST 자동 클리어) : 쓰기 금지 */
+	}
+
 }

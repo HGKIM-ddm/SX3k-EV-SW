@@ -176,6 +176,10 @@ void Step_InitAndCheck(void)
         {
             Step_Check();   
 
+            /* 이전 종료 상태(power_chk) 판정 완료 → 런타임 값은 '이번 사이클 미종료'로 전환.
+               초기화 실패로 step_check_flag 가 2 가 되지 않아도 MCU_Sleep 이 정상 수행되도록 함 */
+            power_chk = Shutdown_Check;
+
             G_Timer1msFlag.MotorStepCheckFlag = 0U;
             G_Timer1ms.MotorStepCheck = 50U;
             step_check_flag = 1U;
