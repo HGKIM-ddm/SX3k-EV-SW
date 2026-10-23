@@ -46,6 +46,10 @@ static void Lin_Wakeup(void)
         G_Timer1msFlag.LinSleepModeFlag = 0U;
         G_Timer1ms.LinSleepMode = 0U;
 
+        /* Sleep 방어 타이머 정지 (Sleep_Wakeup 은 이 함수 뒤에 불려 flag OFF 라 실행 안 됨) */
+        G_Timer1msFlag.SleepGuardFlag = 0U;
+        G_Timer1ms.SleepGuard = 0U;
+        
         /* Sleep 중 모터가 동작하고 있었을 수 있으므로 모터 정지 */
         Motor_Off();
 

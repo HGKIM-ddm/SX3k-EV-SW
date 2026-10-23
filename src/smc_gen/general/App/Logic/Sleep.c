@@ -533,6 +533,16 @@ static void Sleep_PortConfig(void)
  ***********************************************************************************************************************/
 static void MCU_ForceOff(void)
 {
+    if (G_Timer1ms.SleepGuard >= (SLEEP_GUARD_TIME + 2000U))
+    {
+        /* 전원 차단 시도 후 2초가 지나도 살아 있음 = LDO 미차단 : WDT 리셋으로 복귀 */
+        DI();
+        while (1)
+        {
+            /* WDT 갱신 안 함 */
+        }
+    }
+
     Motor_Off();
 
     power_chk = Normal_Shutdown;

@@ -553,6 +553,9 @@ void Lin_BusCheck(void)
         G_Timer1msFlag.LinSleepModeFlag = 0U;
         G_Timer1ms.LinSleepMode = 0U;
 
+        G_Timer1msFlag.SleepGuardFlag = 0U;
+        G_Timer1ms.SleepGuard = 0U;
+
         wake_up_motor_range_init_chk = 0U;
 
         /* 수정된 부분: 초기화가 안 끝났다면 WAITING으로 덮어쓰는 것을 방지 */
