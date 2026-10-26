@@ -241,7 +241,6 @@ static void Operate_NormalAction(unsigned int direction)
     else Motor_Close2();
 
     Motor_On();
-    motor_start = ON;
     G_Timer1msFlag.External10sCheckFlag = ON; 
     G_Timer1msFlag.StallCheckFlag = ON;
     G_Timer1ms.StallTime = 0U;
@@ -297,7 +296,6 @@ static void Operate_DiagAction(unsigned int direction, unsigned int is_auto)
     else Motor_Close2();
 
     Motor_On();
-    motor_start = ON;
     G_Timer1msFlag.StallCheckFlag = ON;
     G_Timer1ms.StallTime = 0;
     Diag_Mode = 1;
@@ -458,8 +456,6 @@ static void Operate_HandleStall(void)
 	{
 		Drv8434a_StepStop();
 		Motor_Off();
-		motor_start = OFF;
-		softstart_complete = OFF;
 		antipinch_original_action = aaf_action;
 		
 		if (aaf_action == DIAG_MODE_OPEN)
@@ -505,7 +501,6 @@ static void Operate_CheckCondition(void)
 		antipinch_previous_action = OPEN;
 		antipinch_action_on = ON;
 
-		motor_start = OFF;
 		G_Timer1msFlag.StallTimeFlag = 0U;
 		G_Timer1ms.StallTime = 0U; // stall reset
 
@@ -516,7 +511,6 @@ static void Operate_CheckCondition(void)
 		antipinch_previous_action = CLOSE;
 		antipinch_action_on = ON;
 
-		motor_start = OFF;
 		G_Timer1msFlag.StallTimeFlag = 0U;
 		G_Timer1ms.StallTime = 0U; // stall reset
 
@@ -589,8 +583,7 @@ switch (aaf_init_step)
  ***********************************************************************************************************************/
 static void Operate_Finish(void)
 {
-	Motor_Off();							  // drv of
-	motor_start = OFF;					  // step stop
+	Motor_Off();							  // drv of// step stop
 	G_Timer1msFlag.External10sCheckFlag = OFF; // 10s chk timer off
 	G_Timer1ms.External10sCheck = 0U;
 
@@ -613,11 +606,9 @@ static void Operate_Finish(void)
 
 	G_Timer1ms.StallCheck = 0U;		 // test
 	G_Timer1msFlag.StallCheckFlag = 0U; // test
-	softstart_complete = OFF;
 	G_Timer1msFlag.InitCheckFlag = 0U;						  // test
 	G_Timer1ms.InitCheck = 0U;							  // test
-	G_Timer1msFlag.StallTimeFlag = 0U;								  // stall reset
-	G_Timer1ms.StallTime = 0U;							  // stall reset
+
     Operating_flag = 0U;
 
 	if (aaf_action == DIAG_MODE_AUTO)
@@ -643,13 +634,41 @@ static void Operate_Finish(void)
 }
 
 /***********************************************************************************************************************
+ * Function Name: Operate_Abort
+ * Description  : 상위 모드 선점 시 Normal/Diag/Init 진행 상태 정리.
+ *                aaf_step은 상위 모드 해제 시 Re_Init()이 재설정
+ * Called By    : Service_NormalAbort
+ ***********************************************************************************************************************/
+void Operate_Abort(void)
+{
+    /* 위치초기화 진행 중(START / CHECK_TRAVELRANGE / TRAVEL_RANGE_ERROR)에 선점된 경우만 위치 미확정 처리.
+       aaf_step 은 Lin_BusCheck 가 IG OFF Initial value 보고 시 INITIALIZATION 으로 바꾸므로 판단에 사용하지 않음 */
+    if (aaf_init_step <= TRAVEL_RANGE_ERROR)
+    {
+        reinit_request_flag = ON;
+    }
+    aaf_action = FLAP_STOP;
+    aaf_action_complete_chk = FLAP_STOP;
+    flap_move = FLAP_STOP;
+    init_move_step = 0U;
+    G_Timer1msFlag.InitMoveFlag = 0U;
+    G_Timer1ms.InitMove = 0U;
+    G_Timer1msFlag.InitFailCheckFlag = 0U;
+    G_Timer1ms.InitFailCheck = 0U;
+    G_Timer1msFlag.External10sCheckFlag = OFF;
+    G_Timer1ms.External10sCheck = 0U;
+    G_Timer1msFlag.StallCheckFlag = 0U;
+    G_Timer1ms.StallCheck = 0U;
+}
+
+/***********************************************************************************************************************
  * Function Name: Operate_GetTargetPosition
  * Description  : 동작 지령에 대한 목표 step 위치를 반환한다.
  *                step_position_open / step_position_close 에서 파생되는 값이므로
  *                전역 변수로 보관하지 않고 사용 시점마다 계산한다.
  *                (보관하면 위치 학습을 건너뛰는 경로 - FDL 복원 - 에서 갱신이 누락됨)
  * Called By    : Operate_NormalProcess, Operate_CheckRange,
- *                LinSleep_CheckCompletion, Antipinch_PrevOpen/PrevClose
+ *                Sleep_CheckCompletion, Antipinch_PrevOpen/PrevClose
  ***********************************************************************************************************************/
 unsigned int Operate_GetTargetPosition(unsigned int action)
 {
@@ -751,16 +770,15 @@ void Torque_TestMode(void)
     case OPEN:        /* 0x03 - 스토퍼 무시하고 OPEN 방향 계속 밀기 */
         Motor_Open();
         Motor_On();
-        motor_start = ON;
+
         break;
     case CLOSE:       /* 0x00 - 스토퍼 무시하고 CLOSE 방향 계속 밀기 */
         Motor_Close();
         Motor_On();
-        motor_start = ON;
+
         break;
     case UNKOWN_POSITION:  /* 0x07 - STOP */
         Motor_Off();
-        motor_start = OFF;
         break;
     default:
         break;

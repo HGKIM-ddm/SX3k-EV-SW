@@ -216,17 +216,23 @@ void Motor_Close2(void)
 void Motor_On(void)
 {
     Drv8434a_ON_TRQ8X();  /* ENABLE High : 출력 동작, 토크카운트 x8 */
+    motor_start = ON;
     FaultCheck_OnMotorStart();
 }
 
 void Motor_Off(void)
 {
+
     Drv8434a_OFF();
 
+    motor_start = OFF;
     G_Timer1msFlag.StallTimeFlag = 0U;
     G_Timer1ms.StallTime         = 0U;
+    
     ADC_TrqCountReset();
+    
     FaultCheck_OnMotorStop();
+
 }
 
 void Motor_Wakeup(void)

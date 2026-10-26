@@ -6,7 +6,7 @@
 void LimpHome_UpdateCount(void);
 
 void Limp_Home(void);
-
+void LimpHome_Abort(void);
 
 
 #endif

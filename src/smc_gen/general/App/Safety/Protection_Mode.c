@@ -2,6 +2,26 @@
 #include "Service.h"
 
 /***********************************************************************************************************************
+ * Function Name: Protection_Abort
+ * Description  : 상위 모드(Sleep/Torque Test) 선점 시 시퀀스 초기화
+ * Called By    : Service_ChangeMode
+ ***********************************************************************************************************************/
+void Protection_Abort(void)
+{
+    if (protection_Mode_step != 0U)
+    {
+        lin_aaf_command      = UNKOWN_POSITION;
+        AAF_Tx_Position      = UNKOWN_POSITION;
+        AAFx_Position_Status = Unknown_Status;
+        AAFx_InitStatus      = DURING_INITIALIZATION;
+        reinit_request_flag  = ON;
+    }
+    protection_Mode_step = 0U;
+    G_Timer1msFlag.ProtectionModeFlag = 0U;
+    G_Timer1ms.ProtectionMode = 0U;
+}
+
+/***********************************************************************************************************************
  * Function Name: Protection_Reset
  * Description  : Protection Mode 진입 시 초기화 수행 (Case 0)
  * Called By    : Protection_Cycle1
@@ -11,13 +31,10 @@
 static void Protection_Reset(void)
 {
     Motor_Off();
-    motor_start = OFF;
-    G_Timer1msFlag.StallTimeFlag = 0U;
-    G_Timer1ms.StallTime = 0U; // stall reset
+
     protection_Mode_step = 1U;
     G_Timer1msFlag.ProtectionModeFlag = 1U;
     aaf_action = FLAP_STOP;
-    softstart_complete = OFF;
 }
 
 /***********************************************************************************************************************
@@ -52,7 +69,7 @@ static void Protection_StartMotor(void)
 	{
         Motor_Open2();                    // dir OPEN
        	Motor_On();                        // drv on
-        motor_start = ON;                // step start
+
         G_Timer1msFlag.StallCheckFlag = ON;    // test
         motor_stall_flag = MOTOR_NORMAL; // stall reset
         G_Timer1ms.StallTime = 0U;          // stall reset
@@ -79,15 +96,12 @@ static void Protection_StallCheck(void)
     if ((step_position <= (step_position_open + limit_step_position)) || (motor_stall_flag == MOTOR_STALL))
     {
         Motor_Off();
-        motor_start = OFF;
-        G_Timer1msFlag.StallTimeFlag = 0U;
-        G_Timer1ms.StallTime = 0U; // stall reset
+
         G_Timer1msFlag.InitCheckFlag = 0U;
         G_Timer1ms.InitCheck = 0U;
         AAF_Tx_Position = UNKOWN_POSITION;
         AAFx_InitStatus = DURING_INITIALIZATION;
         AAFx_Position_Status = Unknown_Status;
-        softstart_complete = OFF;
         protection_Mode_step = 4U;
     }
 }

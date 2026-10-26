@@ -17,7 +17,6 @@ static void Init_StartMotor(uint8_t next_step, uint8_t dir, uint8_t is_case0)
 
     Motor_Wakeup();
     Motor_On();
-    motor_start = ON;
     
     // (Case 0, 6, 9)
     motor_stall_flag = MOTOR_NORMAL;
@@ -53,7 +52,6 @@ static void Init_StallCheck(uint8_t next_step, uint8_t retry_step, uint8_t dir)
     if ((motor_stall_flag == MOTOR_STALL) || (G_Timer1ms.InitCheck >= 8000U))
     {
         Motor_Off();
-        motor_start = OFF;
         
         if (dir == CLOSE) 
         {
@@ -66,9 +64,6 @@ static void Init_StallCheck(uint8_t next_step, uint8_t retry_step, uint8_t dir)
 
         }
 
-        G_Timer1msFlag.StallTimeFlag = 0U;
-        G_Timer1ms.StallTime = 0U;
-        softstart_complete = OFF;
         G_Timer1msFlag.InitFailCheckFlag = 0U;
         G_Timer1ms.InitFailCheck = 0U;
 
@@ -115,8 +110,6 @@ static void Init_MoveLimitPosition(void)
 	{
 		Motor_Close2();						 // dir CLOSE
 		Motor_On();							 // drv on
-		motor_start = ON;					 // step start
-		//G_Timer1msFlag.External10sCheckFlag = ON; // 10s chk timer on
 
 		motor_stall_flag = MOTOR_NORMAL; // stall reset
 		// G_Timer1msFlag.StallTimeFlag = 0;			 stall reset
@@ -151,24 +144,21 @@ static void Init_CheckLimitArrival(void)
     if (is_stall_error)
     {
         Motor_Off();
-        motor_start = OFF;
-        softstart_complete = OFF;
         G_Timer1msFlag.InitFailCheckFlag = 0U;
         G_Timer1ms.InitFailCheck = 0U;
         
         if (fail_safety_step == 0U) { fail_safety_flag = ON; }
         if (fail_safety_step == 4U) { fail_safety_step = 5U; }
         else if (fail_safety_step == 9U) { fail_safety_step = 10U; }
+
+        /* 실패 확정 후 재호출 방지 (FS Open 구동이 매 루프 Motor_Off 되는 문제) : FS 의 Re_Init 에서 START 로 복귀 */
+        aaf_init_step = TRAVEL_RANGE_ERROR;
     }
     else if (step_position >= step_position_open + limit_step_position)
     {
         Motor_Off();
-        motor_start = OFF;
-        G_Timer1msFlag.StallTimeFlag = 0U;
-        G_Timer1ms.StallTime = 0U; 
         G_Timer1msFlag.External10sCheckFlag = OFF;
         G_Timer1ms.External10sCheck = 0U;
-        softstart_complete = OFF;
         G_Timer1msFlag.InitFailCheckFlag = 0U;
         G_Timer1ms.InitFailCheck = 0U;
 

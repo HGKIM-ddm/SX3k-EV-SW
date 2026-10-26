@@ -46,7 +46,6 @@ static uint8_t Lin_ParseUiCommand(void)
     if ((Re_Init_check_flag == ON) && (Re_Init_check_prev == OFF))
     {
         Motor_Off();
-        motor_start = OFF;
 
         /* 토크 테스트 종료 */
         AAF_Maximum_Torque_Test_Mode = OFF;
@@ -538,14 +537,12 @@ void Lin_BusCheck(void)
     if ((G_Timer1ms.LinBusInactive >= LIN_BUS_CHK_TIME_4_SEC) && (lin_bus_inactive_flag == OFF) && (antipinch_action_on == OFF))
     {
         lin_bus_inactive_flag = ON;
-        lin_sleep_step = 0U;
+        sleep_step = 0U;
 
         Motor_Off();                           // drv off
-        motor_start = OFF;                        // step stop
 
         aaf_action = FLAP_STOP;
         aaf_action_complete_chk = FLAP_STOP;
-        softstart_complete = OFF;
    
         G_Timer1msFlag.External10sCheckFlag = OFF; // 10s chk timer off
         G_Timer1ms.External10sCheck = 0U;
@@ -555,6 +552,9 @@ void Lin_BusCheck(void)
 
         G_Timer1msFlag.LinSleepModeFlag = 0U;
         G_Timer1ms.LinSleepMode = 0U;
+
+        G_Timer1msFlag.SleepGuardFlag = 0U;
+        G_Timer1ms.SleepGuard = 0U;
 
         wake_up_motor_range_init_chk = 0U;
 

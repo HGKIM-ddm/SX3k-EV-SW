@@ -2,6 +2,25 @@
 #include "Service.h"
 
 /***********************************************************************************************************************
+ * Function Name: LimpHome_Abort
+ * Description  : 상위 모드(Protection/Sleep) 선점 시 시퀀스 초기화.
+ *                상위 모드 해제 후 카운트가 진입 조건 이상이면 case 0부터 재진입
+ * Called By    : Service_ChangeMode
+ ***********************************************************************************************************************/
+void LimpHome_Abort(void)
+{
+    if (LIMP_HOME_step != 0U)
+    {
+        lin_aaf_command      = UNKOWN_POSITION;
+        AAF_Tx_Position      = UNKOWN_POSITION;
+        AAFx_Position_Status = Unknown_Status;
+        AAFx_InitStatus      = DURING_INITIALIZATION;
+        reinit_request_flag  = ON;
+    }
+    LIMP_HOME_step = 0U;
+}
+
+/***********************************************************************************************************************
  * Function Name: LimpHome_UpdateCount
  * Description  : LIN 통신 상태에 따라 Limp Home 카운터를 증감시킴.
  *                - 정상 통신 시 4 감소, 에러 발생 시 2 증가.
@@ -40,8 +59,7 @@ void LimpHome_UpdateCount(void)
 
 void Limp_Home(void)
 {
-
-	if ((LIMP_HOME_Count < 80U) && (LIMP_HOME_step == 2U))
+	if ((LIMP_HOME_Count < LIMP_HOME_ENTRY_COUNT) && (LIMP_HOME_step == 2U))
 	{
 		LIMP_HOME_Count = 0U;
 		LIMP_HOME_step = 0U;
@@ -50,13 +68,13 @@ void Limp_Home(void)
 	switch (LIMP_HOME_step)
 	{
 	case 0:
-		if ((LIMP_HOME_Count >= 80U))
+		if ((LIMP_HOME_Count >= LIMP_HOME_ENTRY_COUNT))
 		{
 			if ((AAF_Tx_Position != OPEN))
 			{
 				Motor_Open();					 // dir OPEN
 				Motor_On();						 // drv on
-				motor_start = ON;				 // step start
+
 				G_Timer1msFlag.StallCheckFlag = ON;	 // test
 				motor_stall_flag = MOTOR_NORMAL; // stall reset
 				G_Timer1ms.StallTime = 0U;			 // stall reset
@@ -70,12 +88,9 @@ void Limp_Home(void)
 		}
 		break;
 	case 1:
-		if ((step_position <= (step_position_open + limit_step_position)) || (motor_stall_flag == MOTOR_STALL)) //
+		if ((step_position <= (step_position_open + limit_step_position)) || (motor_stall_flag == MOTOR_STALL))
 		{
 			Motor_Off();
-			motor_start = OFF;
-			G_Timer1msFlag.StallTimeFlag = 0U;
-			G_Timer1ms.StallTime = 0U; // stall reset
 			G_Timer1msFlag.InitCheckFlag = 0U;
 			G_Timer1ms.InitCheck = 0U;
 			AAF_Tx_Position = UNKOWN_POSITION;
@@ -83,7 +98,6 @@ void Limp_Home(void)
 			AAFx_InitStatus = DURING_INITIALIZATION;
 			aaf_step = FINISHED_OPERATE;
 			LIMP_HOME_step = 2U;
-			
 		}
 		else if ((AAF_Tx_Position == OPEN) && (AAFx_Position_Status == Open_Status))
 		{
@@ -92,7 +106,6 @@ void Limp_Home(void)
 			AAFx_InitStatus = DURING_INITIALIZATION;
 			aaf_step = FINISHED_OPERATE;
 			LIMP_HOME_step = 2U;
-
 		}
 		else
 		{
@@ -104,10 +117,10 @@ void Limp_Home(void)
 		{
 			FDL_Write();
 		}
-
 		break;
 
 	default:
 		break;
 	}
 }
+

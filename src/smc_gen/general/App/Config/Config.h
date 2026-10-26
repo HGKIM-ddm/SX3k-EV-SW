@@ -55,7 +55,6 @@ extern unsigned long long step_position;
 extern unsigned int dir_state;
 extern unsigned int init_move_step;
 extern unsigned int AAF_OpenLoad;
-extern volatile unsigned int softstart_complete;
 extern unsigned int motor_stall_flag;
 extern unsigned int step_start_flag;
 
@@ -122,7 +121,7 @@ extern volatile uint8_t g_lin_error_flag;
 
 extern char ret;
 extern unsigned int lin_bus_inactive_flag;
-extern unsigned int lin_sleep_step;
+extern unsigned int sleep_step;
 extern unsigned int lin_nrst_low_flag;
 extern unsigned int lin_nrst_debounce_count;
 
@@ -237,6 +236,7 @@ typedef struct {
     unsigned int NrstCheck;
     unsigned int MotorRunTime;
     unsigned int IGNOffCheck;
+    unsigned int SleepGuard;
 } Global_Timer1msType;
 
 typedef struct {
@@ -269,6 +269,7 @@ typedef struct {
     unsigned int NrstCheckFlag;
     unsigned int MotorRunTimeFlag;
     unsigned int IGNOffCheckFlag;
+    unsigned int SleepGuardFlag;
 } Global_Timer1msFlagType;
 
 extern Global_Timer1msType G_Timer1ms;
@@ -296,6 +297,7 @@ extern unsigned int Re_Init_check;
 extern unsigned int Re_Init_check_flag;
 extern unsigned int Re_Init_check_prev;
 
+extern unsigned int reinit_request_flag;
 
 /*******************************************************************************
  * MOTOR FAULT DATA

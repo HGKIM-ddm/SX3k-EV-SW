@@ -21,6 +21,12 @@ static void Error_ClearVoltageProtection(void)
         return;
     }
 
+    /* FS 진행 중 : Protection 미진입 상태이므로 Re_Init 하지 않고 FS 유지 */
+    if (fail_safety_flag == ON)
+    {
+        return;
+    }
+
     if (protection_Mode_step == 4U)
     {
         protection_Mode_step = 5U;
@@ -189,10 +195,6 @@ static void Error_CheckShort(void)
         Short_fault_check = 0U;
         motor_Short_chk_count++;
         Motor_Off();
-        motor_start = OFF;
-        G_Timer1msFlag.StallTimeFlag = 0U;
-        G_Timer1ms.StallTime = 0U;
-        softstart_complete = OFF;
         AAFx_InitStatus = DURING_INITIALIZATION;          
         AAF_Tx_Position = UNKOWN_POSITION;
         AAFx_Position_Status = Unknown_Status;
@@ -231,7 +233,6 @@ static void Error_CheckShort(void)
         if (motor_Short_chk_count >= 10U)
         {
             Motor_Off();
-            motor_start = OFF;
             AAFx_Circuit_Short = AAF_CIRCUIT_SHORT;
             Motor_Sleep();
             DTC_Status |= 0x04U;
@@ -264,10 +265,6 @@ static void Error_CheckOpen(void)
         Open_fault_check = 0U;
         motor_Open_chk_count++;
         Motor_Off();
-        motor_start = OFF;
-        G_Timer1msFlag.StallTimeFlag = 0U;
-        G_Timer1ms.StallTime = 0U;
-        softstart_complete = OFF;
         AAFx_InitStatus = DURING_INITIALIZATION;         
         AAF_Tx_Position = UNKOWN_POSITION;
         AAFx_Position_Status = Unknown_Status;
@@ -311,7 +308,6 @@ static void Error_CheckOpen(void)
         if (motor_Open_chk_count >= 10U)
         {
             Motor_Off();
-            motor_start = OFF;
             AAFx_Motor_Fault = 1U;
             Motor_Sleep();
             DTC_Status |= 0x10u;
@@ -333,6 +329,13 @@ static void Error_CheckOpen(void)
  ***********************************************************************************************************************/
 void Error_CheckAfterIGN(void)
 {
+
+    if ((LDCRdy == 0x00u))
+    {
+        G_Timer1ms.IgnCheck = 0U;
+        G_Timer1msFlag.IgnCheckFlag = 0U;
+    }
+    
     if (((LDCRdy == 0x01u) && (G_Timer1ms.IgnCheck <= 500U)) || (IGN_Chk_On == 1U)) 
     {
         G_Timer1msFlag.IgnCheckFlag = 1U;
@@ -389,7 +392,6 @@ void Error_Check(void)
                         AAFx_Circuit_Open = NO_ERROR;
                     }
                 }
-                Limp_Home(); 
                 error_step = 0U;
                 break;
 
@@ -397,21 +399,16 @@ void Error_Check(void)
                 error_step = 0U;
                 break;
         }
-        //Obd_DiagStatCheck();
     }
     else
     {
 		//invaild
     }
 }
-
 void Error_UnknownStatus(void)
 {
 	Motor_Off();
-	motor_start = OFF;
-	G_Timer1msFlag.StallTimeFlag = 0U;
-	G_Timer1ms.StallTime = 0U;
-	softstart_complete = OFF;
+    
 	AAF_Tx_Position = UNKOWN_POSITION;
 	AAFx_Position_Status = Unknown_Status;
 	AAFx_InitStatus = DURING_INITIALIZATION;

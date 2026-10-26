@@ -16,7 +16,7 @@ static void FS_MotorOpenStart(unsigned int next_step)
 {
     Motor_Open();                                             /* dir OPEN */
     Motor_On();                                                 /* drv on */
-    motor_start = ON;
+
     G_Timer1ms.TrqCheck = 0U;
     aaf_action = OPEN;
     aaf_step = AAF_WAITING;
@@ -40,14 +40,10 @@ static void FS_CheckStallStop(unsigned int next_step)
 {
     if ((motor_stall_flag == MOTOR_STALL) || (G_Timer1ms.InitCheck >= 8000U))
     {
-        Motor_Off();
-        motor_start = OFF;
-        G_Timer1msFlag.StallTimeFlag = 0U;
-        G_Timer1ms.StallTime = 0U;                               /* stall reset */
+        Motor_Off();                             /* stall reset */
         aaf_action = FLAP_STOP;
         G_Timer1msFlag.InitCheckFlag = 0U;
         G_Timer1ms.InitCheck = 0U;
-        softstart_complete = OFF;
         fail_safety_step = next_step;
     }
 }
@@ -217,7 +213,26 @@ static void FS_Cycle3(void)
 /* =========================================================================================
  * Main Fail Safety Mode Dispatcher
  * ========================================================================================= */
- 
+
+ /***********************************************************************************************************************
+ * Function Name: FailSafety_Abort
+ * Description  : 상위 모드(LimpHome/Protection 등) 선점 시 FS 초기화.
+ *                사양서 3.6: 상위 모드 해제 후 위치 초기화 수행 → 실패 시 5.2.8에 따라 FS 1차부터 진행
+ * Called By    : Service_NormalAbort
+ ***********************************************************************************************************************/
+void FailSafety_Abort(void)
+{
+    if (fail_safety_flag == ON)
+    {
+        reinit_request_flag = ON;
+    }
+    fail_safety_flag = OFF;
+    fail_safety_step = 0U;
+    G_Timer1msFlag.Timer3minuteFlag = 0U;
+    G_Timer1ms.Timer3minuteSec = 0U;
+    G_Timer1ms.Timer3minute = 0U;
+}
+
 /***********************************************************************************************************************
  * Function Name: FailSafety_Mode
  * Description  : Fail-Safety 모드의 진입점. 현재 단계(step)에 따라 1차/2차/최종 사이클 함수를 호출함.

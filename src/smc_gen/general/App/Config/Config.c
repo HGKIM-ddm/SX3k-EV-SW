@@ -62,7 +62,6 @@ unsigned long long step_position = 0;
 unsigned int dir_state = 0;
 unsigned int init_move_step = 0;
 unsigned int AAF_OpenLoad = 0;
-volatile unsigned int softstart_complete = 0;
 
 unsigned int motor_stall_flag = 0;
 unsigned int step_start_flag = 0;
@@ -130,7 +129,7 @@ volatile uint8_t g_lin_error_flag = 0U;
 
 char ret = 0;
 unsigned int lin_bus_inactive_flag = 0;
-unsigned int lin_sleep_step = 0;
+unsigned int sleep_step = 0;
 unsigned int lin_nrst_low_flag = 0;
 unsigned int lin_nrst_debounce_count = 0;
 
@@ -230,7 +229,7 @@ unsigned int Re_Init_check = 0U;
 unsigned int Re_Init_check_flag = 0U;
 unsigned int Re_Init_check_prev = 0U;
 
-
+unsigned int reinit_request_flag = 0U;
 
 
 /*******************************************************************************
