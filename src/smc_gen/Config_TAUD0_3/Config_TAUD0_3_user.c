@@ -105,6 +105,7 @@ void r_Config_TAUD0_3_interrupt(void)
     TIMER_1MS(HighSpeedExitCheck);
     TIMER_1MS(NrstCheck);
     TIMER_1MS(IGNOffCheck);
+    TIMER_1MS(SleepGuard);
     //Extra Timer
     #ifdef UDS
     uds_1ms++;     

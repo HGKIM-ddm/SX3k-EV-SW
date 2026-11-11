@@ -428,18 +428,18 @@ static void LinSleep_Final(void)
         return;
     }
 
-    if ((AAF_Tx_Position == UNKOWN_POSITION) ||
-        (AAFx_Position_Status == Unknown_Status) ||
-        (AAFx_InitStatus == DURING_INITIALIZATION))
-    {
-        aaf_init_step = WAIT_INITIALIZATION;
-        AAF_Tx_Position = UNKOWN_POSITION;
-        AAFx_Position_Status = Unknown_Status;
-        AAFx_InitStatus = DURING_INITIALIZATION;
-    }
-
     if (G_Timer1ms.LinBusInactive >= LIN_BUS_CHK_TIME_4_SEC)
     {
+        if ((AAF_Tx_Position == UNKOWN_POSITION) ||
+            (AAFx_Position_Status == Unknown_Status) ||
+            (AAFx_InitStatus == DURING_INITIALIZATION))
+        {
+            aaf_init_step = WAIT_INITIALIZATION;
+            AAF_Tx_Position = UNKOWN_POSITION;
+            AAFx_Position_Status = Unknown_Status;
+            AAFx_InitStatus = DURING_INITIALIZATION;
+        }
+
         if ((AAF_LINOut == 0x00U) &&
             ((IGN_Chk == 1U) || (IGN_Chk == 2U)) &&
             (motor_start == OFF) &&
@@ -456,18 +456,31 @@ static void LinSleep_Final(void)
     }
     else
     {
+        /* MCU 전원 차단 전 LIN 재개 : 리셋 없이 복귀하므로 위치 미확정이면 초기화 재시작 */
         lin_bus_inactive_flag = OFF;
         lin_sleep_step = 0U;
 
         G_Timer1msFlag.LinSleepModeFlag = 0U;
         G_Timer1ms.LinSleepMode = 0U;
 
+        G_Timer1msFlag.SleepGuardFlag = 0U;
+        G_Timer1ms.SleepGuard = 0U;
+
         aaf_action = FLAP_STOP;
         aaf_action_complete_chk = FLAP_STOP;
 
-        if (aaf_step != AAF_INITIALIZATION) 
+        if (AAFx_InitStatus != NORMAL_FINISHED_INITIALIZATION)
         {
-            aaf_step = AAF_WAITING; 
+            aaf_step      = AAF_INITIALIZATION;
+            aaf_init_step = START_INITIALIZATION;
+        }
+        else if (aaf_step != AAF_INITIALIZATION)
+        {
+            aaf_step = AAF_WAITING;
+        }
+        else
+        {
+            /* invalid */
         }
     }
 }
@@ -539,6 +552,27 @@ static void McuSleep_PortConfig(void)
 
     // LIN TX 핀을 Low로 설정하여 슬립 상태 유지 (Leakage 방지)
     PORT.P10 &= ~_PORT_Pn10_OUTPUT_HIGH; // MCU_LIN_Tx_Low Sleep go
+}
+
+static void MCU_ForceOff(void)
+{
+    if (G_Timer1ms.SleepGuard >= (SLEEP_GUARD_TIME + 2000U))
+    {
+        /* 전원 차단 시도 후 2초가 지나도 살아 있음 = LDO 미차단 : WDT 리셋으로 복귀 */
+        DI();
+        while (1)
+        {
+            /* WDT 갱신 안 함 */
+        }
+    }
+
+    Drv8889_Off2();
+    motor_start = OFF;
+
+    power_chk = Normal_Shutdown;
+
+    McuSleep_ExternalOff();
+    McuSleep_PortConfig();
 }
 
 /***********************************************************************************************************************
@@ -651,12 +685,19 @@ static void LinSleep_Cycle2(void)
  ***********************************************************************************************************************/
 void Lin_Sleep(void)
 {
-    // Step 0 ~ 2: 준비 및 명령 수신 단계
+    /* 방어 : Sleep 시퀀스 최대 시간 초과 (저전압 복구 대기 step 9 제외) */
+    G_Timer1msFlag.SleepGuardFlag = 1U;
+
+    if ((G_Timer1ms.SleepGuard >= SLEEP_GUARD_TIME) && (lin_sleep_step != 9U) && (lin_nrst_low_flag == OFF))
+    {
+        MCU_ForceOff();
+        return;
+    }
+
     if (lin_sleep_step <= 2U)
     {
         LinSleep_Cycle1();
     }
-    // Step 3 ~ 5: 모터 구동 및 Sleep 단계
     else
     {
         LinSleep_Cycle2();
@@ -691,7 +732,7 @@ void MCU_Sleep(void)
     First_Powerchk = 1U;
 
     // 2. 필요 시 플래시 메모리에 데이터 저장
-    if (step_check_flag == 2U)
+    if ((step_check_flag == 2U) || (step_check_flag == 1U))
     {
         FDL_Write();
     }

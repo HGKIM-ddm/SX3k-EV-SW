@@ -170,8 +170,9 @@ void Step_InitAndCheck(void)
 
         if (G_Timer1ms.MotorStepCheck >= 50U)
         {
-            Step_Check();   
-
+            Step_Check();  
+             
+            power_chk = Shutdown_Check;
             G_Timer1msFlag.MotorStepCheckFlag = 0U;
             G_Timer1ms.MotorStepCheck = 50U;
             step_check_flag = 1U;

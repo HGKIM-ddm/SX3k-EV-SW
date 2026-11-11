@@ -247,6 +247,7 @@ typedef struct {
     unsigned int HighSpeedExitCheck;
     unsigned int NrstCheck;
     unsigned int IGNOffCheck;
+    unsigned int SleepGuard;
 } Global_Timer1msType;
 
 typedef struct {
@@ -285,6 +286,7 @@ typedef struct {
     unsigned int HighSpeedExitCheckFlag;
     unsigned int NrstCheckFlag;
     unsigned int IGNOffCheckFlag;
+    unsigned int SleepGuardFlag;
 } Global_Timer1msFlagType;
 
 extern Global_Timer1msType G_Timer1ms;
