@@ -532,7 +532,9 @@ void Lin_BusCheck(void)
         G_Timer1msFlag.StallCheckFlag = 0U; // test
 
         G_Timer1msFlag.LinSleepModeFlag = 0U;
-        G_Timer1ms.LinSleepMode = 0U;
+        
+        G_Timer1msFlag.SleepGuardFlag = 0U;
+        G_Timer1ms.SleepGuard = 0U;
 
         wake_up_motor_range_init_chk = 0U;
 

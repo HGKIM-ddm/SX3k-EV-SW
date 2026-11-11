@@ -780,6 +780,9 @@ void Lin_WakeupFromSleep(void)
         G_Timer1msFlag.LinSleepModeFlag = 0U;
         G_Timer1ms.LinSleepMode = 0U;
 
+        G_Timer1msFlag.SleepGuardFlag = 0U;
+        G_Timer1ms.SleepGuard = 0U;
+
         /* Sleep 중 모터 구동 중일 수 있으므로 안전하게 정지 */
         Drv8889_Off2();
         motor_start = OFF;
