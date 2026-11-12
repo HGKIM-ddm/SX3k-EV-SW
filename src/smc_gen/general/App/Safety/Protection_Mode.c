@@ -168,6 +168,44 @@ static void Protection_Cycle2(void)
 }
 
 /***********************************************************************************************************************
+ * Function Name: ProtectionMode_UpdateTx
+ * Description  : AAF_ProtectionMode(Tx) 산출 - 사양 5.3.8 Byte3 bit7
+ *                "error 가 있고 failsafety 로 flap 을 열 수 있는 AAF" 일 때만 1.
+ *                VCU Protection 요청(Rx)에 의한 Open 은 AAF 자체 에러가 아니므로 0.
+ * Called By    : ProtectionMode_Check
+ ***********************************************************************************************************************/
+static void ProtectionMode_UpdateTx(void)
+{
+    unsigned int tx = OFF;
+
+    /* 1. 위치 초기화 최종 실패 (Abnormal Initialization, Open 방향 정지) - 단선/단락으로 정지한 경우 제외 */
+    if ((AAFx_InitStatus == ABNORMAL_FINISHED_INITIALIZATION) &&
+        (AAFx_Circuit_Open == NO_ERROR) &&
+        (AAFx_Circuit_Short == NO_ERROR))
+    {
+        tx = ON;
+    }
+    /* 2. LIMP Home (진입 조건 충족 또는 시퀀스 진행 중) */
+    else if ((LIMP_HOME_Count >= LIMP_HOME_ENTRY_COUNT) || (LIMP_HOME_step != 0U))
+    {
+        tx = ON;
+    }
+    /* 3. 전압 보호 Open 시도 구간 (7~9V / 16~18V). 7V 이하 / 18V 이상은 즉시 정지이므로 0 */
+    else if ((voltage_protection_function == ON) &&
+             (adc_avr > ADC_UNDER_VOLTAGE_7V) &&
+             (adc_avr < ADC_OVER_VOLTAGE_18V))
+    {
+        tx = ON;
+    }
+    else
+    {
+        /* 정상 / 정지형 에러 / VCU 요청 Open : 0 */
+    }
+
+    AAF_ProtectionMode_Tx = tx;
+}
+
+/***********************************************************************************************************************
  * Function Name: Protection_Mode
  * Description  : Protection Mode 동작 시퀀스 제어
  * Metric Info  : FUCYC = 3 (Pass), FUNDC = 2 (Pass)
@@ -199,19 +237,22 @@ void Protection_Mode(void)
  ***********************************************************************************************************************/
 void ProtectionMode_Check(void)
 {
-    /* Protection ON 요청 수신 시 모드 진입 */
+    /* VCU Protection ON 요청 수신 시 모드 진입 (전체 Open) */
     if ((AAF_ProtectionMode_Rx == ON) && (protection_function == OFF))
     {
         protection_function = ON;
-        AAF_ProtectionMode_Tx = ON;
         protection_Mode_step = 0U;  /* 시퀀스 재시작 */
     }
-    /* Protection OFF 요청 수신 시 모드 해제 */
+    /* VCU Protection OFF 요청 수신 시 모드 해제 */
     else if ((AAF_ProtectionMode_Rx == OFF) && (protection_function == ON))
     {
         protection_function = OFF;
-        AAF_ProtectionMode_Tx = OFF;
     }
-}
+    else
+    {
+        /* 유지 */
+    }
 
+    ProtectionMode_UpdateTx();
+}
 
