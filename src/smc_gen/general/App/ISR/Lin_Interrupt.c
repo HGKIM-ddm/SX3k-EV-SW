@@ -73,41 +73,11 @@ void Lin_Interrupt(void)
 #pragma ghs interrupt
 void Lin_Status_Interrupt(void)
 {
-	NOP();
 	error_status = RLN30.LEST; // check status
 	g_lin_error_flag = 1U;
-	
-#if 1 // LEST Clear
-	while (1)
-	{
-		if ((RLN30.LTRC & 0x01U) == 1U)
-		{
-			RLN30.LEST = 0U;
-			NOP();
-			NOP();
-			NOP();
-			NOP();
-			NOP();
-			NOP();
-			NOP();
-			NOP();
-			NOP();
-			NOP();
-			NOP();
-			NOP();
-			NOP();
-			NOP();
-			NOP();
-			NOP();
-			NOP();
-			NOP();
-			NOP();
-			NOP();
-			NOP();
-			error_status = RLN30.LEST;
-			break;
-		}
-	}
-#endif
+
+	/* 에러 플래그만 클리어해서는 RLIN 수신 상태가 정상화되지 않음 -> RLIN 재초기화 후 헤더 수신 재개 */
+	Lin_SlaveRecover();
+
 }
 

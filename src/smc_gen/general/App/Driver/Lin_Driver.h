@@ -4,6 +4,7 @@
 #include "Config.h"
 
 void Lin_SlaveInit(void);
+void Lin_SlaveRecover(void);
 void Lin_SlaveReceive(uint8_t Data_length);
 void Lin_SlaveTransmit(uint8_t *databuf, uint8_t Data_length);
 void Lin_SlaveNoResponse(void);

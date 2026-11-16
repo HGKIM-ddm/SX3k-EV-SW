@@ -102,6 +102,40 @@ void Lin_SlaveInit(void)
 }
 
 /***********************************************************************************************************************
+ * Function Name: Lin_SlaveRecover(void)
+ * Description  : LIN 수신 에러 후 RLIN30 을 LIN 리셋 모드 -> 운용 모드로 재진입시켜 헤더 수신을 다시 시작한다.
+ *                (에러 플래그(LEST) 클리어만으로는 RLIN 수신 상태가 정상화되지 않음)
+ *                포트/INTC 설정은 Lin_SlaveInit 그대로 두고 RLIN 레지스터만 다시 설정한다.
+ * Called By    : Lin_Status_Interrupt
+ * Arguments    : None
+ * Return Value : None
+ ***********************************************************************************************************************/
+void Lin_SlaveRecover(void)
+{
+	do
+	{
+		RLN30.LCUC = 0x00U; // LIN reset mode
+	} while (RLN30.LMST != 0x00U);
+
+	RLN30.LWBR = 0x34U;
+	RLN30.LBRP01.UINT16 = 0x0081U;
+	RLN30.LMD = 0x12U;
+	RLN30.LIE = 0x0FU;
+	RLN30.LEDE = 0xDDU;
+	RLN30.LBFC = 0x00U;
+	RLN30.LSC = 0x11U;
+	RLN30.LWUP = 0x30U;
+	RLN30.LIDB = 0x00U;
+
+	do
+	{
+		RLN30.LCUC = 0x03U; // LIN operation mode
+	} while (RLN30.LMST != 0x03U);
+
+	RLN30.LTRC = 0x01U; // FTS : 헤더 수신 재개
+}
+
+/***********************************************************************************************************************
  * Function Name: Lin_SlaveReceive(void)
  * Description  : This function clear data buffer for response reception start
  * Arguments    : uint8_t Data_length : receive data length.
