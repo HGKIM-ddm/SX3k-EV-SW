@@ -1,0 +1,2523 @@
+/*@!Encoding:949*/
+/* =====================================================================
+ * AAF_TC.cin   -  SX3K EV AAF 단품 TC 러너   v3 (스텝 시퀀스 방식)
+ *   기준 : 기능요구사양서 VerA.02 + AAF_EV_단품_TC (분류 번호는 패널 순서로 재정의)
+ *
+ *   [중요] CP949(ANSI) 로 저장되어 있습니다. UTF-8 로 저장하면 컴파일 에러납니다.
+ *   [중요] 컴파일 전에 AAF_TC_sysvar.vsysvar 를 먼저 Import 하십시오.
+ *
+ *   ---- 스텝 명령 ----
+ *     TC_Send("hex")        프레임 송신 (즉시, 다음 스텝으로)
+ *     TC_Wait(ms)           시간 대기
+ *     TC_Exp("exp", tmo)    응답이 exp 와 일치할 때까지 대기. 타임아웃 = FAIL
+ *     TC_Hold("exp", ms)    ms 동안 exp 가 유지되면 통과. 바뀌면 FAIL
+ *                           (무응답 상태로 통과하지 않도록 1회 이상 수신 필수)
+ *     TC_LinOff()           LIN 스케줄 정지  (슬레이브 Sleep 유도)
+ *     TC_LinOn()            LIN 스케줄 재개
+ *     TC_SkipIf("exp")      현재 응답이 이미 exp 면 뒤의 SEND+EXPECT 2스텝을 건너뜀
+ *     TC_Ready(ms)          안내문 + 카운트다운 후 자동 진행 (버튼 불필요)
+ *     TC_Track("exp",n,tmo) 안티핀치 단계 추적. n = 손 떼는 시점 (0 끝까지 / 1 즉시 / 2 3분대기1 / 3 3분대기2 / 4 최종)
+ *     TC_Guide("문구")      사람 조작 필요 -> 안내문 표시 후 카운트다운하고 자동 시작
+ *     TC_Note("문구")       육안 참고. 멈추지 않음
+ *     TC_LimpOn()           제어 프레임 Classic 체크섬 송신 시작 (LIMP Home 유도, .can Limp_ErrStart)
+ *     TC_LimpOff()          Enhanced 체크섬 복귀 (LIMP Home 해제, .can Limp_ErrStop)
+ *     TC_ShortOn()          제어 프레임(0x27) 응답 길이 7바이트로 단축 (linSetDlc)
+ *     TC_ShortOff()         제어 프레임(0x27) 응답 길이 8바이트 복귀
+ *     TC_Glitch()           비트스트림 송신 : 0x27 헤더 + 데이터 6바이트 + 7번째 바이트 도중 송신 중단 (실차 VPC 재현)
+ *     TC_Stray()            비트스트림 송신 : 단독 바이트 0x80 (실차 VPC 재기동 시 잔류 바이트 재현)
+ *
+ *   ---- 자동 원복 ----
+ *     TC 가 끝나거나(PASS/FAIL/SKIP) STOP 하면 러너가 정지시킨 LIN 스케줄은 자동 재개
+ *     FAIL / STOP / 다른 TC 시작 시 LIMP 유도(Classic 체크섬)는 자동 해제 (7-1 PASS 후 7-2 는 유지)
+ *
+ *   ---- 기대값 표기 (니블 단위 마스크) ----
+ *     "83 51 ** ** ** ** ** **"   ** = 해당 바이트 무시
+ *     "** 5* ** ..."              상위 니블만 5 로 비교, 하위 니블 무시
+ *     "** ** *2 ** ..."           하위 니블만 2 로 비교
+ *
+ *   ---- 개입 등급 (cNeed) ----
+ *     0 무인 자동 : 전체 실행 시 멈추지 않음
+ *     1 조작 필요 : guide 표시 + 카운트다운 후 자동 진행 (버튼 불필요)
+ *     2 수동 판정 : 스텝 수행 후 [PASS]/[FAIL] 필수
+ *
+ *   호출부(.can) 3곳
+ *     includes { #include "AAF_TC.cin" }
+ *     on start            { ... TC_Init(); }
+ *     on linFrame AAFResp { TC_OnResp(this.byte(0),this.byte(1),this.byte(2),this.byte(3),
+ *                                     this.byte(4),this.byte(5),this.byte(6),this.byte(7)); ... }
+ * ===================================================================== */
+
+variables
+{
+  /* ---- 결과 ---- */
+  byte  gResult[100];
+  long  gTimeMs[100];
+  byte  gGrpOf [100];
+  byte  gNeedOf[100];
+  byte  gHidOf [100];
+  byte  gShowHidden = 0;  /* 1 로 바꾸면 숨김 TC 도 패널에 나온다 (내부 평가용) */
+  int   gVisCnt     = 0;
+  byte  gRxLog [800];
+
+  int   gCnt   = 0;
+  int   gCur   = 0;
+  int   gRunTo = -1;
+
+  /* ---- 현재 TC ---- */
+  char  cId   [24];
+  char  cOld  [24];
+  char  cName [128];
+  char  cGuide[400];
+  char  cNote [400];
+  char  cPrep [200];
+  char  cGuide2[300];   /* 2번째 안내문 (TC_Ready2) */
+  char  cGuide3[300];   /* 3번째 안내문 (TC_Ready3) */
+  char  cGuide4[300];   /* 4번째 안내문 (TC_Ready4) */
+  char  gMsg  [400];    /* 카운트다운에 쓸 안내문 선택 결과 */
+  byte  cGroup = 0;
+  byte  cMode  = 0;
+  byte  cNeed  = 0;
+
+  /* ---- 스텝 (최대 40 : 사전 복구 10스텝 자동 삽입 여유 포함) ---- */
+  byte  cOp  [40];        /* 0 END / 1 SEND / 2 WAIT / 3 EXPECT / 4 HOLD / 5 LINOFF / 6 LINON
+                             7 TRACK (안티핀치 추적) / 8 PAUSE (조작 대기)
+                             9 SKIPIF / 11 LOCKPASS
+                             12 NORESP (통신 두절 확인) / 13 RESP (응답 복귀 확인) / 14 SAY
+                             15 LIMPON (Classic 체크섬 송신) / 16 LIMPOFF (Enhanced 복귀) */
+                          /* 8 READY : 안내문 + 카운트다운 후 자동으로 다음 스텝 */
+  byte  cDat [320];       /* step*8 + j */
+  byte  cMsk [320];
+  long  cArg [40];
+  long  cArg2[40];        /* TRACK : 제거 지시 코드 */
+  int   cNs  = 0;
+  byte  cHasPause = 0;
+  byte  cKeepFault = 0;
+  byte  cHidden    = 0;   /* 1 = 패널/연속실행/CSV 에서 숨김 (TC_Hide) */
+  char  cSay[6][200];     /* TC_Say 안내문 (스텝 진행에 맞춰 교체) */
+  int   cSayN      = 0;
+  char  cEye[8][80];      /* TC_Eye 육안 안내 (스텝 진행에 맞춰 교체, 짧게) */
+  int   cEyeN      = 0;
+  int   gEyeCur    = -1;
+  char  gEyeLast[220];
+  char  gFailWhy[160];    /* 마지막 FAIL 사유 (패널 조작 칸 표시용) */
+  int   gFailIdx   = -1;  /* gFailWhy 가 해당하는 TC 인덱스 */    /* 마지막으로 패널에 쓴 육안 문구 (중복 갱신 방지) */
+  int   gSayCur    = -1;  /* 현재 표시 중인 TC_Say 번호 (-1 = 없음) */   /* 1 = 이전 TC 고장 상태가 사전조건 (9-5, 7-2). 자동 사전 복구 안 함 */
+  int   gPreN      = 0;   /* 자동 삽입된 사전 복구 스텝 수 (0 = 없음) */
+
+  /* ---- 실행 상태 ---- */
+  byte  gState  = 0;      /* 0 IDLE / 1 GUIDE / 2 STEP / 3 MANUAL */
+  int   gPc     = 0;
+  long  gT0     = 0;      /* 현재 스텝 시작 */
+  long  gTcT0   = 0;      /* TC 전체 시작 */
+  byte  gHoldSeen = 0;
+  byte  gPauseWait = 0;     /* 사용 안 함 (호환 유지) */
+  byte  gLocked    = 0;     /* 1 = 판정 확정됨. 뒤따르는 복구 스텝은 결과를 못 바꾼다 */
+  long  gRdyLast   = -1;    /* 카운트다운 마지막 표시값 */
+  long  gLastRxT   = 0;     /* 마지막 응답 수신 시각 (통신 두절 감지용) */
+  long  gStartWait = 15000; /* 시작 안내문 카운트다운 ms */
+  byte  gShortOn    = 0;
+  byte  gBits[32];          /* 비트스트림 버퍼 (1 = recessive, 0 = dominant) */
+  long  gNbits      = 0;
+  byte  gBitMsbFirst = 0;   /* 비트 패킹 순서. 트레이스 파형이 뒤집혀 나오면 1 로 변경 */    /* 1 = 0x27 DLC 를 7 로 줄여 둔 상태 (TC 종료 시 자동 복귀) */
+  byte  gBusOffByTc = 0;    /* 1 = 러너가 LIN 스케줄을 정지시킨 상태 (TC 종료 시 자동 재개) */
+
+  /* ---- TRACK 상태 ---- */
+  long  gTrkT0    = 0;      /* 87 50 최초 관측 시각 */
+  byte  gTrkOn    = 0;
+  int   gTrkStage = 0;
+  int   gTrkLast  = -1;
+  char  gTrkName[96];
+  char  gBuf[400];
+
+  byte  gAdvance  = 0;      /* 1 = 다음 TC 자동 진행 예약 */
+  long  gAdvT0    = 0;
+  long  gGapMs    = 3000;   /* 다음 TC 표시 후 시작까지 ms. 패널에서 조정 가능 */
+  long  gResultHold = 2000; /* 끝난 TC 결과를 패널에 붙잡아 두는 시간 ms */
+  byte  gAdvPhase = 0;      /* 0 = 결과 표시 중 / 1 = 다음 TC 표시 + 카운트다운 */
+  int   gAdvNext  = -1;
+  long  gAdvLast  = -1;
+  byte  gRxNow[8];
+
+  msTimer tcTick;
+}
+
+/* =====================================================================
+ * 유틸
+ * ===================================================================== */
+long TC_Ms(void)
+{
+  return (long)(timeNow() / 100);
+}
+
+byte TC_HexVal(char c)
+{
+  if ((c >= '0') && (c <= '9')) return (byte)(c - '0');
+  if ((c >= 'A') && (c <= 'F')) return (byte)(c - 'A' + 10);
+  if ((c >= 'a') && (c <= 'f')) return (byte)(c - 'a' + 10);
+  return 0;
+}
+
+char TC_HexChar(byte n)
+{
+  if (n < 10) { return (char)('0' + n); }
+  return (char)('A' + (n - 10));
+}
+
+/* 니블 단위 파싱 : '*' 인 니블은 마스크 0 */
+void TC_Parse(char s[], byte v[], byte m[])
+{
+  int  i;
+  int  p;
+  char c1;
+  char c2;
+  byte hv;
+  byte hm;
+  byte lv;
+  byte lm;
+
+  p = 0;
+  for (i = 0; i < 8; i++)
+  {
+    v[i] = 0;
+    m[i] = 0;
+
+    while (s[p] == ' ') { p = p + 1; }
+
+    c1 = s[p];
+    if (c1 == 0) { continue; }
+    c2 = s[p + 1];
+
+    if (c1 == '*') { hv = 0; hm = 0x00; }
+    else           { hv = TC_HexVal(c1); hm = 0xF0; }
+
+    if (c2 == '*') { lv = 0; lm = 0x00; }
+    else           { lv = TC_HexVal(c2); lm = 0x0F; }
+
+    v[i] = (byte)((hv * 16) + lv);
+    m[i] = (byte)(hm | lm);
+
+    p = p + 2;
+  }
+}
+
+void TC_HexStr(byte b[], char out[], long outlen)
+{
+  snprintf(out, outlen, "%02X %02X %02X %02X %02X %02X %02X %02X",
+           b[0], b[1], b[2], b[3], b[4], b[5], b[6], b[7]);
+}
+
+/* 숨김 판정 (gHidOf 는 TC_Init 에서 채운다) */
+int TC_IsHid(int i)
+{
+  if (gShowHidden == 1) { return 0; }
+  if (gHidOf[i] == 1)   { return 1; }
+  return 0;
+}
+
+/* i 부터 dir(+1/-1) 방향으로 첫 번째 보이는 TC. 없으면 -1 */
+int TC_NextVis(int i, int dir)
+{
+  while ((i >= 0) && (i < gCnt))
+  {
+    if (TC_IsHid(i) == 0) { return i; }
+    i = i + dir;
+  }
+  return -1;
+}
+
+/* =====================================================================
+ * TRACK : 안티핀치 / Fail-Safety 단계 테이블
+ *   경과시간은 87 50 관측 시점(t0) 기준. 실측과 다르면 여기 숫자만 고치면 됩니다.
+ * ===================================================================== */
+long TC_TrkStart(int st)
+{
+  /* 실측 기준 : 8-3 3차 복구 398초 / 8-4 고장 확정 389초.
+     안내 표시용이며 판정에는 쓰이지 않는다. 개체차가 있으면 여기 숫자만 고치면 된다. */
+  if (st <= 1) { return      0; }   /* 1  1차 안티핀치 - 반대 방향 탈출      */
+  if (st == 2) { return   5000; }   /* 2  3초 대기                           */
+  if (st == 3) { return   8000; }   /* 3  2차 재시도 (Target 방향)           */
+  if (st == 4) { return  16000; }   /* 4  2차 실패 처리                      */
+  if (st == 5) { return  24000; }   /* 5  Fail-Safety 1차 3분 대기           */
+  if (st == 6) { return 200000; }   /* 6  위치 초기화 구동 2                 */
+  if (st == 7) { return 208000; }   /* 7  FS Open 구동 + 2차 3분 대기        */
+  if (st == 8) { return 374000; }   /* 8  위치 초기화 구동 3                 */
+  if (st == 9) { return 381000; }   /* 9  최종 Open 구동  <- 8-4 는 여기서 치운다 */
+  return 389000;                    /* 10 최종 확정                          */
+}
+
+int TC_TrkStageOf(long el)
+{
+  int st;
+
+  st = 10;
+  while (st > 1)
+  {
+    if (el >= TC_TrkStart(st)) { return st; }
+    st = st - 1;
+  }
+  return 1;
+}
+
+void TC_TrkNameOf(int st)
+{
+  if      (st == 1)  { strncpy(gTrkName, "안티핀치 감지 - 반대 방향으로 빠져나오는 중", 96); }
+  else if (st == 2)  { strncpy(gTrkName, "3초 대기 - 곧 다시 시도",                      96); }
+  else if (st == 3)  { strncpy(gTrkName, "다시 시도 중 - 원래 방향으로 가는 중",        96); }
+  else if (st == 4)  { strncpy(gTrkName, "재시도 실패 - 정지 후 대기 준비",              96); }
+  else if (st == 5)  { strncpy(gTrkName, "3분 대기 중 (1차)",                           96); }
+  else if (st == 6)  { strncpy(gTrkName, "위치 초기화 다시 하는 중 (1차)",              96); }
+  else if (st == 7)  { strncpy(gTrkName, "3분 대기 중 (2차)",                           96); }
+  else if (st == 8)  { strncpy(gTrkName, "위치 초기화 다시 하는 중 (2차)",              96); }
+  else if (st == 9)  { strncpy(gTrkName, "마지막 Open 구동 중",                         96); }
+  else               { strncpy(gTrkName, "고장 확정 대기",                              96); }
+}
+
+/* 제거를 지시할 단계. 0 = 끝까지 유지 */
+int TC_TrkRemoveStage(long ra)
+{
+  if (ra == 1) { return 2; }
+  if (ra == 2) { return 5; }
+  if (ra == 3) { return 7; }
+  if (ra == 4) { return 9; }
+  return 0;
+}
+
+/* 스텝 st 의 기대값을 문자열로 (마스크 0 니블은 -) */
+void TC_StepExpStr(int st, char out[], long outlen)
+{
+  int  i;
+  int  p;
+  int  k;
+
+  p = 0;
+  for (i = 0; i < 8; i++)
+  {
+    k = (st * 8) + i;
+
+    if ((cMsk[k] & 0xF0) == 0) { out[p] = '-'; }
+    else { out[p] = TC_HexChar((byte)(cDat[k] / 16)); }
+
+    if ((cMsk[k] & 0x0F) == 0) { out[p + 1] = '-'; }
+    else { out[p + 1] = TC_HexChar((byte)(cDat[k] % 16)); }
+
+    out[p + 2] = ' ';
+    p = p + 3;
+  }
+  out[p - 1] = 0;
+}
+
+/* =====================================================================
+ * TC 정의용 빌더
+ * ===================================================================== */
+void TC_Set(byte grp, char id[], char oldid[], char name[], byte mode)
+{
+  int i;
+
+  cGroup = grp;
+  strncpy(cId,    id,    24);
+  strncpy(cOld,   oldid, 24);
+  strncpy(cName,  name, 128);
+  strncpy(cGuide, "",   400);
+  strncpy(cNote,  "",   400);
+  strncpy(cPrep,  "준비 중입니다 - 시험 시작 위치로 플랩을 옮기고 있습니다. 막지 마십시오.", 200);
+  strncpy(cGuide2, "", 300);
+  strncpy(cGuide3, "", 300);
+  strncpy(cGuide4, "", 300);
+  cMode = mode;
+  cNs   = 0;
+
+  if (mode == 1) { cNeed = 2; }
+  else           { cNeed = 0; }
+
+  cHasPause = 0;
+  cKeepFault = 0;
+  cHidden    = 0;
+  cSayN      = 0;
+  cEyeN      = 0;
+
+  for (i = 0; i < 40; i++)  { cOp[i] = 0; cArg[i] = 0; cArg2[i] = 0; }
+  for (i = 0; i < 320; i++) { cDat[i] = 0; cMsk[i] = 0; }
+}
+
+void TC_Guide(char g[])
+{
+  strncpy(cGuide, g, 400);
+  if (cMode != 1) { cNeed = 1; }
+}
+
+void TC_Note(char g[]) { strncpy(cNote, g, 400); }
+void TC_Prep(char g[])   { strncpy(cPrep,   g, 200); }
+void TC_Guide2(char g[]) { strncpy(cGuide2, g, 300); }
+void TC_Guide3(char g[]) { strncpy(cGuide3, g, 300); }
+void TC_Guide4(char g[]) { strncpy(cGuide4, g, 300); }
+
+/* 카운트다운에 쓸 안내문 선택 */
+void TC_PickMsg(long idx)
+{
+  if      (idx == 1) { strncpy(gMsg, cGuide2, 400); }
+  else if (idx == 2) { strncpy(gMsg, cGuide3, 400); }
+  else if (idx == 3) { strncpy(gMsg, cGuide4, 400); }
+  else               { strncpy(gMsg, cGuide,  400); }
+}
+
+void TC_PutFrame(char s[])
+{
+  byte v[8];
+  byte m[8];
+  int  i;
+
+  TC_Parse(s, v, m);
+  for (i = 0; i < 8; i++)
+  {
+    cDat[(cNs * 8) + i] = v[i];
+    cMsk[(cNs * 8) + i] = m[i];
+  }
+}
+
+void TC_Send(char s[])
+{
+  if (cNs >= 40) { return; }
+  TC_PutFrame(s);
+  cOp[cNs] = 1;
+  cNs = cNs + 1;
+}
+
+void TC_Wait(long ms)
+{
+  if (cNs >= 40) { return; }
+  cOp[cNs]  = 2;
+  cArg[cNs] = ms;
+  cNs = cNs + 1;
+}
+
+void TC_Exp(char s[], long tmo)
+{
+  if (cNs >= 40) { return; }
+  TC_PutFrame(s);
+  cOp[cNs]  = 3;
+  cArg[cNs] = tmo;
+  cNs = cNs + 1;
+}
+
+void TC_Hold(char s[], long ms)
+{
+  if (cNs >= 40) { return; }
+  TC_PutFrame(s);
+  cOp[cNs]  = 4;
+  cArg[cNs] = ms;
+  cNs = cNs + 1;
+}
+
+void TC_LinOff(void)
+{
+  if (cNs >= 40) { return; }
+  cOp[cNs] = 5;
+  cNs = cNs + 1;
+}
+
+/* op 7 : 안티핀치/Fail-Safety 단계 추적
+ *   removeAt 0 = 끝까지 유지          기대 87 52 1*
+ *            1 = 87 50 뜨면 즉시 제거  기대 ** 51
+ *            2 = FS 1차 3분 대기 중    기대 ** 51
+ *            3 = FS 2차 3분 대기 중    기대 ** 51
+ *            4 = 최종 Open 구동 중     기대 87 52 1* (복구 불가 확인) */
+void TC_Track(char s[], long removeAt, long tmo)
+{
+  if (cNs >= 40) { return; }
+  cOp  [cNs] = 7;
+  cArg [cNs] = tmo;
+  cArg2[cNs] = removeAt;
+  TC_PutFrame(s);
+  cNs = cNs + 1;
+}
+
+/* op 9 : 현재 응답이 이미 s 와 일치하면 뒤따르는 SEND + EXPECT 2스텝을 건너뛴다 */
+void TC_SkipIf(char s[])
+{
+  if (cNs >= 40) { return; }
+  TC_PutFrame(s);
+  cOp[cNs] = 9;
+  cNs = cNs + 1;
+}
+
+/* op 12 : 응답이 quiet_ms 동안 한 번도 안 오면 통과 = 실제로 통신이 끊겼다 */
+void TC_NoResp(long quiet_ms, long tmo)
+{
+  if (cNs >= 40) { return; }
+  cOp  [cNs] = 12;
+  cArg [cNs] = tmo;
+  cArg2[cNs] = quiet_ms;
+  cNs = cNs + 1;
+  cHasPause = 1;
+  if (cNeed == 0) { cNeed = 1; }
+}
+
+/* op 13 : 응답이 다시 오면 통과 = 통신이 복구됐다 */
+void TC_Resp(long tmo)
+{
+  if (cNs >= 40) { return; }
+  cOp  [cNs] = 13;
+  cArg [cNs] = tmo;
+  cNs = cNs + 1;
+}
+
+/* op 11 : 여기까지 왔으면 판정 통과로 확정한다.
+           이후 스텝(복구 시퀀스)이 실패해도 결과를 FAIL 로 바꾸지 않는다 */
+void TC_LockPass(void)
+{
+  if (cNs >= 40) { return; }
+  cOp[cNs] = 11;
+  cNs = cNs + 1;
+}
+
+/* op 8 : 안내문을 띄우고 ms 만큼 카운트다운한 뒤 자동으로 다음 스텝.
+          버튼을 누를 필요가 없다. 문구는 TC_Guide 로 지정 */
+void TC_Ready(long ms)
+{
+  if (cNs >= 40) { return; }
+  cOp  [cNs] = 8;
+  cArg [cNs] = ms;
+  cArg2[cNs] = 0;              /* 안내문 = cGuide */
+  cNs = cNs + 1;
+  cHasPause = 1;
+  if (cNeed == 0) { cNeed = 1; }
+}
+
+void TC_Ready2(long ms)
+{
+  if (cNs >= 40) { return; }
+  cOp[cNs] = 8; cArg[cNs] = ms; cArg2[cNs] = 1;
+  cNs = cNs + 1; cHasPause = 1;
+  if (cNeed == 0) { cNeed = 1; }
+}
+
+void TC_Ready3(long ms)
+{
+  if (cNs >= 40) { return; }
+  cOp[cNs] = 8; cArg[cNs] = ms; cArg2[cNs] = 2;
+  cNs = cNs + 1; cHasPause = 1;
+  if (cNeed == 0) { cNeed = 1; }
+}
+
+void TC_Ready4(long ms)
+{
+  if (cNs >= 40) { return; }
+  cOp[cNs] = 8; cArg[cNs] = ms; cArg2[cNs] = 3;
+  cNs = cNs + 1; cHasPause = 1;
+  if (cNeed == 0) { cNeed = 1; }
+}
+
+void TC_LinOn(void)
+{
+  if (cNs >= 40) { return; }
+  cOp[cNs] = 6;
+  cNs = cNs + 1;
+}
+
+/* op 15 : 제어 프레임 Classic 체크섬 송신 시작 (LIMP Home 유도) */
+void TC_LimpOn(void)
+{
+  if (cNs >= 40) { return; }
+  cOp[cNs] = 15;
+  cNs = cNs + 1;
+}
+
+/* op 16 : Enhanced 체크섬 복귀 (LIMP Home 해제) */
+void TC_LimpOff(void)
+{
+  if (cNs >= 40) { return; }
+  cOp[cNs] = 16;
+  cNs = cNs + 1;
+}
+
+/* ---- 비트스트림 작성 (LIN UART : start 0, data LSB first, stop 1) ---- */
+void BS_Clear(void)
+{
+  int i;
+  for (i = 0; i < 32; i++) { gBits[i] = 0xFF; }
+  gNbits = 0;
+}
+
+void BS_Bit(byte v)
+{
+  int  idx;
+  int  pos;
+  byte m;
+
+  idx = (int)(gNbits / 8);
+  pos = (int)(gNbits % 8);
+  if (gBitMsbFirst == 1) { pos = 7 - pos; }
+  m = (byte)(1 << pos);
+  if (v == 0) { gBits[idx] = (byte)(gBits[idx] & (byte)(~m)); }
+  else        { gBits[idx] = (byte)(gBits[idx] | m); }
+  gNbits = gNbits + 1;
+}
+
+void BS_Byte(byte b)
+{
+  int i;
+  BS_Bit(0);
+  for (i = 0; i < 8; i++) { BS_Bit((byte)((b >> i) & 0x01)); }
+  BS_Bit(1);
+}
+
+/* 실차 VPC 중단 프레임 : Break + Sync + PID(0x27) + 00 x6 + 7번째 바이트 start + bit0~6 (이후 송신 중단 = recessive)
+   수신 측에는 7번째 바이트가 0x80 으로 읽히고, 8번째 바이트 / 체크섬은 오지 않는다 */
+void BS_SendGlitch(void)
+{
+  int i;
+  long r;
+
+  BS_Clear();
+  for (i = 0; i < 13; i++) { BS_Bit(0); }   /* Break 13 Tbit */
+  BS_Bit(1);                                 /* Break delimiter */
+  BS_Byte(0x55);                             /* Sync */
+  BS_Byte(0xE7);                             /* PID 0x27 */
+  for (i = 0; i < 6; i++) { BS_Byte(0x00); } /* Data 1~6 */
+  for (i = 0; i < 8; i++) { BS_Bit(0); }     /* Data 7 : start + bit0~6 후 중단 */
+  r = linSendBitStream(gBits, gNbits);
+  write("        중단 프레임 송신 (%d bit) 결과 = %d", gNbits, r);
+}
+
+/* 실차 VPC 재기동 시 버스에 남은 단독 바이트 0x80 */
+void BS_SendStray(void)
+{
+  int  i;
+  long r;
+
+  BS_Clear();
+  for (i = 0; i < 8; i++) { BS_Bit(0); }     /* start + bit0~6 = 0, 이후 recessive -> 0x80 */
+  BS_Bit(1);
+  BS_Bit(1);
+  r = linSendBitStream(gBits, gNbits);
+  write("        잔류 바이트 0x80 송신 결과 = %d", r);
+}
+
+/* op 20 : 중단 프레임 / op 21 : 잔류 바이트 */
+void TC_Glitch(void)
+{
+  if (cNs >= 40) { return; }
+  cOp[cNs] = 20;
+  cNs = cNs + 1;
+}
+
+void TC_Stray(void)
+{
+  if (cNs >= 40) { return; }
+  cOp[cNs] = 21;
+  cNs = cNs + 1;
+}
+
+/* op 18 : 제어 프레임(0x27) 응답을 7바이트로 단축 송신 시작 */
+void TC_ShortOn(void)
+{
+  if (cNs >= 40) { return; }
+  cOp[cNs] = 18;
+  cNs = cNs + 1;
+}
+
+/* op 19 : 제어 프레임(0x27) 응답 8바이트 복귀 */
+void TC_ShortOff(void)
+{
+  if (cNs >= 40) { return; }
+  cOp[cNs] = 19;
+  cNs = cNs + 1;
+}
+
+/* 이 TC 는 이전 TC 의 고장 상태를 그대로 이어받아야 한다 (자동 사전 복구 금지) */
+void TC_KeepFault(void) { cKeepFault = 1; }
+
+/* 이 TC 를 패널/연속실행/CSV 에서 숨긴다. 정의는 CAPL 에 그대로 남는다 (gShowHidden = 1 이면 노출) */
+void TC_Hide(void) { cHidden = 1; }
+
+/* op 14 : 스텝 진행에 맞춰 패널 조작 안내문을 바꾼다. 대기 없이 바로 다음 스텝 */
+void TC_Say(char s[])
+{
+  if (cNs >= 40)  { return; }
+  if (cSayN >= 6) { return; }
+  strncpy(cSay[cSayN], s, 200);
+  cOp [cNs] = 14;
+  cArg[cNs] = cSayN;
+  cSayN = cSayN + 1;
+  cNs   = cNs + 1;
+}
+
+/* op 17 : 육안 칸 안내를 바꾼다 (짧게, 79자 이내). 대기 없이 바로 다음 스텝 */
+void TC_Eye(char s[])
+{
+  if (cNs >= 40)  { return; }
+  if (cEyeN >= 8) { return; }
+  strncpy(cEye[cEyeN], s, 80);
+  cOp [cNs] = 17;
+  cArg[cNs] = cEyeN;
+  cEyeN = cEyeN + 1;
+  cNs   = cNs + 1;
+}
+
+/* 고장 래치 해제 시퀀스 : Close 명령으로는 안 풀린다 -> Sleep / Wakeup 으로 제어기 초기화
+     Sleep 조건 송신 -> LIN 정지 10초 (Bus Inactive 4초 + Sleep 진입 여유) -> LIN 재개
+     -> Wakeup 응답 -> LDCRdy 1 + Close -> 80 51 00 (고장 비트 전부 소거) 확인        (9 스텝) */
+void TC_RecoverSeq(void)
+{
+  TC_Send("00 00 00 00 00 00 00 00");
+  TC_Wait(500);
+  TC_LinOff();
+  TC_Wait(10000);
+  TC_LinOn();
+  TC_Resp(60000);
+  TC_Wait(1500);
+  TC_Send("00 00 00 00 00 00 00 14");
+  TC_Exp("80 51 00 ** ** ** ** **", 180000);
+}
+
+/* 고장 유발 TC 의 끝에 붙인다 : 판정 확정 -> 원복 안내 카운트다운 -> 고장 래치 해제   (11 스텝)
+     g  = 원복 안내문 (전압 복귀 / 배선 원복 / SW 원복 등)
+     ms = 원복 작업 시간. [조작 완료] 로 생략 가능 */
+void TC_Recover(char g[], long ms)
+{
+  strncpy(cGuide2, g, 300);
+  TC_LockPass();
+  TC_Ready2(ms);
+  TC_RecoverSeq();
+}
+
+/* =====================================================================
+ * TC 테이블  ---  TC 추가/수정은 여기만 건드립니다
+ *
+ *   Byte7 : 14 = LDCRdy1+LINOut1 / 04 = LDCRdy0+LINOut1
+ *           00 = LDCRdy0+LINOut0 (Sleep 조건) / 54 = Protection ON + 14
+ *   Byte6 : 차속.  92=146kph(진입)  86=134kph(해제 조건 <135)  FF=에러값
+ *   응답 B1 : 80 Close 81 1stOpen 82 2ndOpen 83 Open
+ *             84 DiagOpen 85 DiagClose 86 DiagAuto 87 Unknown
+ *   응답 B2 : 51 Normal  50 DuringInit  52 Abnormal
+ *
+ *   분류 번호는 패널 실행 순서대로 1~13 으로 새로 매겼습니다 (V1.2 시트 번호와 무관).
+ *     1 기본특성  2 초기화  3 Normal  4 진단  5 보호  6 Sleep/Wakeup  7 LIMP Home
+ *     8 안티핀치  9 진단 안티핀치/FS  10 전압보호  11 회로/모터/LIN
+ *     12 악의모드  13 소비전류/암전류
+ *   고속주행(구 6) 은 양산 미반영 요구로 삭제.
+ *   1~7 분류는 사람 개입 0회로 연속 자동 실행됩니다.
+ *   CSV 의 TC_ID / 구번호 는 Excel 날짜 변환 방지를 위해 ="1-1" 형식으로 기록합니다.
+ * ===================================================================== */
+int TC_Load(int idx)
+{
+  switch (idx)
+  {
+  case 0:
+    TC_Set(1, "1-1", "1-1", "AAF 개수 / Index 확인", 0);
+    TC_Eye("플랩 회전 방향이 도면과 같은지 확인");
+    TC_Note("응답 2번째 바이트 5x = AAF 1개 · Index 1번이면 PASS. 플랩 회전 방향(도면 대비)은 육안 확인 - 자동 판정에는 미반영");
+    TC_Exp("** 5* ** ** ** ** ** **", 15000);
+    break;
+
+  case 1:
+    TC_Set(2, "2-1", "2-2", "LDCRdy 수신 - 위치 초기화 수행", 0);
+    TC_Eye("초기화면 Open → Close → Open 왕복 후 Close");
+    TC_Note("시동 신호(LDCRdy=1) 송신 → 필요하면 위치 초기화(왕복, 87 50)를 거쳐 Close(80 51)이 되면 PASS. 초기화가 필요 없으면 바로 Close(80 51)");
+    TC_Send("00 00 00 00 00 00 00 14");
+    TC_Exp("80 51 ** ** ** ** ** **", 60000);
+    break;
+
+  case 2:
+    TC_Set(2, "2-2", "2-6", "LINOut 1 상태 LIN 단선 - Wakeup 시 초기화 없음", 0);
+    TC_Note("Open(83 51)에서 IG ON(LINOut 1) 상태로 LIN 20초 차단 → 재연결 후 3초간 초기화 중(87 50) 없이 정상(x 51)이 유지되면 PASS. 끝나면 Close(80 51)로 복귀");
+    TC_Send("00 00 00 00 03 00 00 14");
+    TC_Exp("83 51 ** ** ** ** ** **", 25000);
+    TC_Send("00 00 00 00 03 00 00 14");
+    TC_Wait(500);
+    TC_LinOff();
+    TC_Eye("LIN 차단 - 플랩 Open 유지, Sleep 대기");
+    TC_Wait(20000);
+    TC_LinOn();
+    TC_Eye("Wakeup - 87 50 없이 x 51 이어야 함");
+    TC_Resp(60000);
+    TC_Wait(1500);
+    TC_Hold("** 51 ** ** ** ** ** **", 3000);
+    TC_Send("00 00 00 00 00 00 00 14");
+    TC_Exp("80 51 ** ** ** ** ** **", 25000);
+    break;
+
+  case 3:
+    TC_Set(3, "3-1", "3-1", "Open 상태에서 Open 명령 - 유지", 0);
+    TC_Note("Open(83 51) 상태에서 Open 명령 재송신 → 2초 동안 Open(83 51) 그대로면 PASS (추가 동작 없음)");
+    TC_Send("00 00 00 00 03 00 00 14");
+    TC_Exp("83 51 ** ** ** ** ** **", 25000);
+    TC_Send("00 00 00 00 03 00 00 14");
+    TC_Hold("83 51 ** ** ** ** ** **", 2000);
+    break;
+
+  case 4:
+    TC_Set(3, "3-2", "3-2", "Close 상태에서 Close 명령 - 유지", 0);
+    TC_Note("Close(80 51) 상태에서 Close 명령 재송신 → 2초 동안 Close(80 51) 그대로면 PASS (추가 동작 없음)");
+    TC_Send("00 00 00 00 00 00 00 14");
+    TC_Exp("80 51 ** ** ** ** ** **", 25000);
+    TC_Send("00 00 00 00 00 00 00 14");
+    TC_Hold("80 51 ** ** ** ** ** **", 2000);
+    break;
+
+  case 5:
+    TC_Set(3, "3-3", "3-3", "Close to Open 이동", 0);
+    TC_Note("Close(80 51) 확인 후 Open 명령 → 도착하여 Open(83 51)이 되면 PASS");
+    TC_Send("00 00 00 00 00 00 00 14");
+    TC_Exp("80 51 ** ** ** ** ** **", 25000);
+    TC_Send("00 00 00 00 03 00 00 14");
+    TC_Exp("83 51 ** ** ** ** ** **", 25000);
+    break;
+
+  case 6:
+    TC_Set(3, "3-4", "3-4", "Open to Close 이동", 0);
+    TC_Note("Open(83 51) 확인 후 Close 명령 → 도착하여 Close(80 51)이 되면 PASS");
+    TC_Send("00 00 00 00 03 00 00 14");
+    TC_Exp("83 51 ** ** ** ** ** **", 25000);
+    TC_Send("00 00 00 00 00 00 00 14");
+    TC_Exp("80 51 ** ** ** ** ** **", 25000);
+    break;
+
+  case 7:
+    TC_Set(3, "3-5", "3-5", "Close to 1st Open", 0);
+    TC_Note("Close(80 51) 확인 후 1st Open 명령 → 도착하여 1st Open(81 51, 약 25% 열림)이 되면 PASS");
+    TC_Send("00 00 00 00 00 00 00 14");
+    TC_Exp("80 51 ** ** ** ** ** **", 25000);
+    TC_Send("00 00 00 00 01 00 00 14");
+    TC_Exp("81 51 ** ** ** ** ** **", 25000);
+    break;
+
+  case 8:
+    TC_Set(3, "3-6", "3-6", "Close to 2nd Open", 0);
+    TC_Note("Close(80 51) 확인 후 2nd Open 명령 → 도착하여 2nd Open(82 51, 약 50% 열림)이 되면 PASS");
+    TC_Send("00 00 00 00 00 00 00 14");
+    TC_Exp("80 51 ** ** ** ** ** **", 25000);
+    TC_Send("00 00 00 00 02 00 00 14");
+    TC_Exp("82 51 ** ** ** ** ** **", 25000);
+    break;
+
+  case 9:
+    TC_Set(3, "3-7", "3-7", "Open 구동 중 Close 변경 - 완주 후 전환", 0);
+    TC_Eye("Open 끝까지 간 뒤 Close (중간 정지 없음)");
+    TC_Note("Open 명령 1.5초 뒤 Close 로 변경 → Open(83 51)에 먼저 도착한 뒤 Close(80 51)이 되면 PASS (중간 정지·역방향 없음)");
+    TC_Send("00 00 00 00 00 00 00 14");
+    TC_Exp("80 51 ** ** ** ** ** **", 25000);
+    TC_Send("00 00 00 00 03 00 00 14");
+    TC_Wait(1500);
+    TC_Send("00 00 00 00 00 00 00 14");
+    TC_Exp("83 51 ** ** ** ** ** **", 25000);
+    TC_Exp("80 51 ** ** ** ** ** **", 25000);
+    break;
+
+  case 10:
+    TC_Set(3, "3-8", "3-8", "Close 구동 중 Open 변경 - 완주 후 전환", 0);
+    TC_Eye("Close 끝까지 간 뒤 Open (중간 정지 없음)");
+    TC_Note("Close 명령 1.5초 뒤 Open 으로 변경 → Close(80 51)에 먼저 도착한 뒤 Open(83 51)이 되면 PASS (중간 정지·역방향 없음)");
+    TC_Send("00 00 00 00 03 00 00 14");
+    TC_Exp("83 51 ** ** ** ** ** **", 25000);
+    TC_Send("00 00 00 00 00 00 00 14");
+    TC_Wait(1500);
+    TC_Send("00 00 00 00 03 00 00 14");
+    TC_Exp("80 51 ** ** ** ** ** **", 25000);
+    TC_Exp("83 51 ** ** ** ** ** **", 25000);
+    break;
+
+  case 11:
+    TC_Set(3, "3-9", "3-9", "Normal 완료 후 진단 모드 전환", 0);
+    TC_Note("Close(80 51)에서 진단 Open 명령 → 이동이 끝나면 응답이 진단 Open(84 51)이 되면 PASS");
+    TC_Send("00 00 00 00 00 00 00 14");
+    TC_Exp("80 51 ** ** ** ** ** **", 25000);
+    TC_Send("00 00 00 00 04 00 00 14");
+    TC_Exp("84 51 ** ** ** ** ** **", 25000);
+    break;
+
+  case 12:
+    TC_Set(4, "4-1", "4-1", "진단 Auto - 5초 간격 반복", 0);
+    TC_Note("진단 Auto 명령 → 응답이 진단 Auto(86 51)이 되면 PASS. 플랩 5초 간격 Open↔Close 반복은 육안 확인 - 자동 판정에는 미반영");
+    TC_Send("00 00 00 00 00 00 00 14");
+    TC_Exp("80 51 ** ** ** ** ** **", 25000);
+    TC_Send("00 00 00 00 06 00 00 14");
+    TC_Eye("플랩 5초 간격 Open ↔ Close 반복 확인");
+    TC_Exp("86 51 ** ** ** ** ** **", 25000);
+    break;
+
+  case 13:
+    TC_Set(4, "4-2", "4-2", "진단 Open", 0);
+    TC_Eye("플랩 Open 쪽 이동 확인");
+    TC_Note("진단 Open 명령 → 응답이 진단 Open(84 51)이 되면 PASS. 플랩이 Open 쪽으로 움직이는지 육안 확인");
+    TC_Send("00 00 00 00 04 00 00 14");
+    TC_Exp("84 51 ** ** ** ** ** **", 25000);
+    break;
+
+  case 14:
+    TC_Set(4, "4-3", "4-3", "진단 Close", 0);
+    TC_Eye("플랩 Close 쪽 이동 확인");
+    TC_Note("진단 Close 명령 → 응답이 진단 Close(85 51)이 되면 PASS. 플랩이 Close 쪽으로 움직이는지 육안 확인");
+    TC_Send("00 00 00 00 05 00 00 14");
+    TC_Exp("85 51 ** ** ** ** ** **", 25000);
+    break;
+
+  case 15:
+    TC_Set(4, "4-4", "4-4", "진단 to Normal 전환 - 완료 전 진단값 유지", 0);
+    TC_Note("진단 Open(84 51)에서 Close 명령 → 최종 Close(80 51)이 되면 PASS. 이동 중 진단 Open(84 51) 유지 여부는 트레이스로 확인");
+    TC_Send("00 00 00 00 04 00 00 14");
+    TC_Exp("84 51 ** ** ** ** ** **", 25000);
+    TC_Send("00 00 00 00 00 00 00 14");
+    TC_Exp("80 51 ** ** ** ** ** **", 25000);
+    break;
+
+  case 16:
+    TC_Set(5, "5-1", "6-1", "보호 모드 ON - 강제 Open", 0);
+    TC_Note("보호모드 ON 신호 → 플랩 Open 후 응답 87 50 0x 유지 → 보호모드 OFF 신호 → 초기화 후 Close(80 51)이면 PASS");
+    TC_Send("00 00 00 00 00 00 00 14");
+    TC_Exp("80 51 ** ** ** ** ** **", 90000);
+    TC_Eye("보호 ON - 플랩 Open 이동 확인");
+    TC_Send("00 00 00 00 00 00 00 54");
+    TC_Exp("87 50 ** ** ** ** ** **", 10000);
+    TC_Wait(8000);
+    TC_Eye("응답 87 50 0x 확인");
+    TC_Hold("87 50 0* ** ** ** ** **", 3000);
+    TC_Eye("보호 OFF - 초기화 후 80 51");
+    TC_Send("00 00 00 00 00 00 00 14");
+    TC_Exp("80 51 0* ** ** ** ** **", 90000);
+    break;
+
+  case 17:
+    TC_Set(5, "5-2", "11-1", "LIN 통신 오류 - LIMP Home 진입 후 해제", 0);
+    TC_Note("Close(80 51)에서 제어 프레임 Classic 체크섬 송신 → 플랩 Open 후 응답 87 50 8x 유지 → 정상 체크섬 복귀 → 초기화 후 Close(80 51)이면 PASS");
+    TC_Send("00 00 00 00 00 00 00 14");
+    TC_Exp("80 51 ** ** ** ** ** **", 90000);
+    TC_LimpOn();
+    TC_Eye("LIN 오류 주입 - 플랩 Open 후 정지");
+    TC_Exp("87 50 ** ** ** ** ** **", 30000);
+    TC_Wait(8000);
+    TC_Eye("응답 87 50 8x 확인");
+    TC_Hold("87 50 8* ** ** ** ** **", 3000);
+    TC_LimpOff();
+    TC_Eye("오류 해제 - 초기화 후 80 51");
+    TC_Send("00 00 00 00 00 00 00 14");
+    TC_Exp("80 51 0* ** ** ** ** **", 180000);
+    break;
+
+  case 18:
+    TC_Set(6, "6-1", "10-1", "정상 종료 Open - Sleep 후 Wakeup 시 초기화 없음", 0);
+    TC_Note("Open(83 51) 에서 IG OFF 프레임(00 00 00 00 03 00 00 00) → LIN 차단 6초(Sleep) → LIN 재개 + 시동 신호 → 87 50 없이 83 51 이면 PASS");
+    TC_Eye("Open 으로 이동 중");
+    TC_Send("00 00 00 00 03 00 00 14");
+    TC_Exp("83 51 ** ** ** ** ** **", 30000);
+    TC_Eye("IG OFF 프레임 송신 → 곧 LIN 차단");
+    TC_Send("00 00 00 00 03 00 00 00");
+    TC_Wait(500);
+    TC_LinOff();
+    TC_Eye("Sleep 진입 대기 - 플랩 Open 유지 확인");
+    TC_Wait(6000);
+    TC_LinOn();
+    TC_Send("00 00 00 00 03 00 00 14");
+    TC_Eye("Wakeup - 87 50 없이 83 51 이어야 함");
+    TC_Resp(60000);
+    TC_Exp("83 51 ** ** ** ** ** **", 5000);
+    TC_Hold("83 51 ** ** ** ** ** **", 3000);
+    break;
+
+  case 19:
+    TC_Set(6, "6-2", "10-2", "정상 종료 Close - 스토퍼 정렬 후 Sleep, Wakeup 시 초기화 없음", 0);
+    TC_Note("Close(80 51) 에서 IG OFF 프레임(00 00 00 00 00 00 00 00) → LIN 차단 10초(스토퍼 정렬 + Sleep) → LIN 재개 + 시동 신호 → 87 50 없이 80 51 이면 PASS");
+    TC_Eye("Close 로 이동 중");
+    TC_Send("00 00 00 00 00 00 00 14");
+    TC_Exp("80 51 ** ** ** ** ** **", 30000);
+    TC_Eye("IG OFF 프레임 송신 → 곧 LIN 차단");
+    TC_Send("00 00 00 00 00 00 00 00");
+    TC_Wait(500);
+    TC_LinOff();
+    TC_Eye("스토퍼 정렬 + Sleep 대기 - 플랩 Close 확인");
+    TC_Wait(10000);
+    TC_LinOn();
+    TC_Send("00 00 00 00 00 00 00 14");
+    TC_Eye("Wakeup - 87 50 없이 80 51 이어야 함");
+    TC_Resp(60000);
+    TC_Exp("80 51 ** ** ** ** ** **", 5000);
+    TC_Hold("80 51 ** ** ** ** ** **", 3000);
+    break;
+
+  case 20:
+    TC_Set(6, "6-3", "10-3", "비정상 종료(초기화 중 LIN 두절) - Wakeup 시 위치 초기화", 0);
+    TC_Note("보호모드 ON→OFF 로 위치 초기화(87 50 00)를 시작시키고 바로 LIN 차단(비정상 종료) → LIN 재개 + 시동 신호 → 위치 초기화(87 50)를 거쳐 Close(80 51)이면 PASS. 정상 종료 Wakeup(초기화 없음)은 6-1 / 6-2 에서 확인");
+    TC_Send("00 00 00 00 00 00 00 14");
+    TC_Exp("80 51 ** ** ** ** ** **", 25000);
+    TC_Send("00 00 00 00 00 00 00 54");
+    TC_Exp("87 50 ** ** ** ** ** **", 10000);
+    TC_Wait(8000);
+    TC_Send("00 00 00 00 00 00 00 14");
+    TC_Exp("87 50 00 ** ** ** ** **", 10000);
+    TC_Wait(500);
+    TC_LinOff();
+    TC_Eye("초기화 도중 LIN 차단 (비정상 종료)");
+    TC_Wait(20000);
+    TC_LinOn();
+    TC_Eye("Wakeup - 87 50 초기화 후 80 51");
+    TC_Send("00 00 00 00 00 00 00 14");
+    TC_Resp(60000);
+    TC_Exp("87 50 ** ** ** ** ** **", 10000);
+    TC_Exp("80 51 ** ** ** ** ** **", 180000);
+    break;
+
+  case 21:
+    TC_Set(8, "8-1", "5-1", "닫힐 때 막기 - 1차 탈출 (안티핀치 재시도)", 0);
+    TC_Guide("Close 구동 시 플랩을 막고, 87 50 뜨면 바로 손 떼기");
+    TC_Note("반대로 갔다가 다시 닫히고 80 51 되면 합격 (약 20초)  /  탈출 기회 3번 : [1~3] 안티핀치 재시도 / [5] 3분 대기 후 초기화2 / [7] 3분 대기 후 초기화3. 3번 다 실패하면 87 52 고장 확정.");
+    TC_Prep("준비 중 (Open 이동) - 손대지 마세요");
+    TC_SkipIf("83 51 ** ** ** ** ** **");
+    TC_Send("00 00 00 00 03 00 00 14");
+    TC_Exp("83 51 ** ** ** ** ** **", 40000);
+    TC_Ready(8000);
+    TC_Send("00 00 00 00 00 00 00 14");
+    TC_Track("80 51 ** ** ** ** ** **", 1, 150000);
+    break;
+
+  case 22:
+    TC_Set(8, "8-2", "5-2", "닫힐 때 막기 - 2차 탈출 (위치 초기화 2차)", 0);
+    TC_Guide("Close 구동 시 플랩을 막고, [5/10] 뜨면 치우기");
+    TC_Note("위치 초기화 후 닫히고 80 51 되면 합격 (약 4분)  /  탈출 기회 3번 : [1~3] 안티핀치 재시도 / [5] 3분 대기 후 초기화2 / [7] 3분 대기 후 초기화3. 3번 다 실패하면 87 52 고장 확정.");
+    TC_Prep("준비 중 (Open 이동) - 손대지 마세요");
+    TC_SkipIf("83 51 ** ** ** ** ** **");
+    TC_Send("00 00 00 00 03 00 00 14");
+    TC_Exp("83 51 ** ** ** ** ** **", 40000);
+    TC_Ready(8000);
+    TC_Send("00 00 00 00 00 00 00 14");
+    TC_Track("80 51 ** ** ** ** ** **", 2, 400000);
+    break;
+
+  case 23:
+    TC_Set(8, "8-3", "5-3", "닫힐 때 막기 - 3차 탈출 (위치 초기화 3차)", 0);
+    TC_Guide("Close 구동 시 플랩을 막고, [7/10] 뜨면 치우기");
+    TC_Note("두 번째 초기화로 복귀해 80 51 되면 합격 (약 8분)  /  탈출 기회 3번 : [1~3] 안티핀치 재시도 / [5] 3분 대기 후 초기화2 / [7] 3분 대기 후 초기화3. 3번 다 실패하면 87 52 고장 확정.");
+    TC_Prep("준비 중 (Open 이동) - 손대지 마세요");
+    TC_SkipIf("83 51 ** ** ** ** ** **");
+    TC_Send("00 00 00 00 03 00 00 14");
+    TC_Exp("83 51 ** ** ** ** ** **", 40000);
+    TC_Ready(8000);
+    TC_Send("00 00 00 00 00 00 00 14");
+    TC_Track("80 51 ** ** ** ** ** **", 3, 700000);
+    break;
+
+  case 24:
+    TC_Set(8, "8-4", "5-4", "닫힐 때 막기 - 3번 다 실패 시 모터 고장 확정", 0);
+    TC_Guide("Close 구동 시 플랩을 막고, 치우라고 뜰 때까지 잡기");
+    TC_Note("87 52 + Motor Fault 비트 ON 이면 합격. 이후 자동 복구 (약 8분)  /  탈출 기회 3번 : [1~3] 안티핀치 재시도 / [5] 3분 대기 후 초기화2 / [7] 3분 대기 후 초기화3. 3번 다 실패하면 87 52 고장 확정.");
+    TC_Prep("준비 중 (Open 이동) - 손대지 마세요");
+    TC_SkipIf("83 51 ** ** ** ** ** **");
+    TC_Send("00 00 00 00 03 00 00 14");
+    TC_Exp("83 51 ** ** ** ** ** **", 40000);
+    TC_Ready(8000);
+    TC_Send("00 00 00 00 00 00 00 14");
+    TC_Track("87 52 ** ** ** ** ** **", 0, 700000);
+    TC_LockPass();
+    TC_Send("00 00 00 00 00 00 00 00");
+    TC_Wait(500);
+    TC_LinOff();
+    TC_Wait(20000);
+    TC_LinOn();
+    TC_Resp(60000);
+    TC_Wait(1500);
+    TC_Send("00 00 00 00 00 00 00 14");
+    TC_Exp("** 51 ** ** ** ** ** **", 180000);
+    break;
+
+  case 25:
+    TC_Set(9, "9-1", "-", "제어 프레임 송신 중단 + 잔류 바이트 수신 후 통신 유지", 0);
+    TC_Note("IG OFF 상태에서 스케줄 정지 → 0x27 헤더 + 데이터 6바이트 + 7번째 바이트 도중 중단 → 50ms 후 단독 바이트 0x80 → 15ms 후 스케줄 재개 → 응답이 끊기지 않고 3초 유지되면 PASS. 약 4초 무응답 = FAIL");
+    TC_Eye("Close 로 이동 중");
+    TC_Send("00 00 00 00 00 00 00 14");
+    TC_Exp("80 51 ** ** ** ** ** **", 90000);
+    TC_Eye("IG OFF 프레임 송신");
+    TC_Send("00 00 00 00 18 03 00 00");
+    TC_Wait(1500);
+    TC_LinOff();
+    TC_Wait(60);
+    TC_Eye("0x27 송신 도중 중단 → 잔류 바이트");
+    TC_Glitch();
+    TC_Wait(50);
+    TC_Stray();
+    TC_Wait(15);
+    TC_Send("00 00 00 00 00 00 00 00");
+    TC_LinOn();
+    TC_Wait(300);
+    TC_Eye("응답 끊기면 FAIL (약 4초 무응답 후 자동 복구)");
+    TC_Hold("** 5* ** ** ** ** ** **", 3000);
+    TC_Eye("시동 신호 복귀 - 80 51");
+    TC_Send("00 00 00 00 00 00 00 14");
+    TC_Exp("80 51 ** ** ** ** ** **", 60000);
+    break;
+
+  case 26:
+    TC_Set(9, "9-2", "-", "위치 초기화 중 제어 프레임 송신 중단 - 통신 자동 복구", 0);
+    TC_Note("직전 사이클을 위치 초기화 도중 LIN 차단으로 종료 → 재기동 후 위치 초기화(87 50) 진행 중 IG OFF + 0x27 송신 중단 주입 → 실차처럼 IG OFF 프레임으로 LIN 60초 유지 → LIN 정지 20초(Sleep) → Wakeup + 시동 신호 후 응답이 돌아오면 PASS. 돌아오지 않으면 영구 고착(FAIL) - 전원 OFF/ON 으로 복구");
+    TC_Send("00 00 00 00 00 00 00 14");
+    TC_Exp("80 51 ** ** ** ** ** **", 90000);
+    TC_Eye("보호 ON→OFF 로 위치 초기화 시작");
+    TC_Send("00 00 00 00 00 00 00 54");
+    TC_Exp("87 50 ** ** ** ** ** **", 10000);
+    TC_Wait(8000);
+    TC_Send("00 00 00 00 00 00 00 14");
+    TC_Exp("87 50 00 ** ** ** ** **", 10000);
+    TC_Wait(500);
+    TC_Eye("초기화 도중 LIN 차단 (비정상 종료) - Sleep 대기");
+    TC_LinOff();
+    TC_Wait(20000);
+    TC_Eye("재기동 - 위치 초기화 진행 대기");
+    TC_LinOn();
+    TC_Send("00 00 00 00 00 00 00 14");
+    TC_Resp(60000);
+    TC_Exp("87 50 ** ** ** ** ** **", 10000);
+    TC_Wait(2000);
+    TC_Eye("초기화 중 IG OFF + 0x27 송신 중단 주입");
+    TC_Send("00 00 00 00 18 03 00 00");
+    TC_Wait(500);
+    TC_LinOff();
+    TC_Wait(60);
+    TC_Glitch();
+    TC_Wait(50);
+    TC_Stray();
+    TC_Wait(15);
+    TC_Send("00 00 00 00 18 03 00 00");
+    TC_LinOn();
+    TC_Eye("IG OFF 프레임으로 LIN 60초 유지 (실차 LIN Sleep 전 구간)");
+    TC_Wait(60000);
+    TC_Eye("LIN 정지 - Sleep 대기");
+    TC_LinOff();
+    TC_Wait(20000);
+    TC_Eye("Wakeup + 시동 신호 - 응답 복귀 확인 (안 돌아오면 영구 고착)");
+    TC_LinOn();
+    TC_Send("00 00 00 00 00 00 00 14");
+    TC_Resp(60000);
+    TC_Exp("80 51 ** ** ** ** ** **", 180000);
+    break;
+
+  default:
+    return 0;
+  }
+  return 1;
+}
+
+/* =====================================================================
+ * LIN 버스 제어
+ *   CANoe 버전에 따라 함수명이 다르면 이 두 곳만 고치면 됩니다.
+ * ===================================================================== */
+void TC_BusOff(void)
+{
+  gBusOffByTc = 1;
+  linStopScheduler();
+  write("        LIN 스케줄 정지");
+}
+
+void TC_BusOn(void)
+{
+  gBusOffByTc = 0;
+  linStartScheduler();
+  write("        LIN 스케줄 재개");
+}
+
+/* =====================================================================
+ * 육안 칸 : 현재 응답을 짧게 풀어서 보여준다. 응답이 바뀔 때마다 갱신
+ *   예) "Open · 정상   |   Wakeup - 87 50 없이 83 51 이어야 함"
+ * ===================================================================== */
+void TC_PosName(byte v, char out[])
+{
+  v = v & 0x0F;
+  if      (v == 0) { strncpy(out, "Close",     24); }
+  else if (v == 1) { strncpy(out, "1st Open",  24); }
+  else if (v == 2) { strncpy(out, "2nd Open",  24); }
+  else if (v == 3) { strncpy(out, "Open",      24); }
+  else if (v == 4) { strncpy(out, "진단Open",  24); }
+  else if (v == 5) { strncpy(out, "진단Close", 24); }
+  else if (v == 6) { strncpy(out, "진단Auto",  24); }
+  else             { strncpy(out, "Unknown",   24); }
+}
+
+void TC_StaName(byte b1, byte b2, char out[])
+{
+  b1 = b1 & 0x0F;
+  if      ((b2 & 0x80) == 0x80) { strncpy(out, "보호모드",   24); }
+  else if ((b2 & 0x10) == 0x10) { strncpy(out, "모터고장",   24); }
+  else if ((b2 & 0x20) == 0x20) { strncpy(out, "저전압",     24); }
+  else if ((b2 & 0x40) == 0x40) { strncpy(out, "과전압",     24); }
+  else if ((b2 & 0x04) == 0x04) { strncpy(out, "회로단락",   24); }
+  else if ((b2 & 0x02) == 0x02) { strncpy(out, "회로단선",   24); }
+  else if (b1 == 1)             { strncpy(out, "정상",       24); }
+  else if (b1 == 0)             { strncpy(out, "초기화중",   24); }
+  else if (b1 == 2)             { strncpy(out, "고장확정",   24); }
+  else                          { strncpy(out, "?",          24); }
+}
+
+/* 기대 응답(마스크 적용)을 사람이 읽는 말로. 위치/상태 니블이 지정 안 됐으면 생략 */
+void TC_ExpName(int st, char out[])
+{
+  char pos[24];
+  char sta[24];
+  int  k;
+
+  k = st * 8;
+  strncpy(pos, "", 24);
+  strncpy(sta, "", 24);
+  if (cMsk[k] == 0xFF) { TC_PosName(cDat[k], pos); }
+  if (((cMsk[k + 1] & 0x0F) != 0) || ((cMsk[k + 2] & cDat[k + 2]) != 0))
+  {
+    TC_StaName((byte)(cDat[k + 1] & cMsk[k + 1]), (byte)(cDat[k + 2] & cMsk[k + 2]), sta);
+    if ((cMsk[k + 1] & 0x0F) == 0)
+    {
+      if ((cDat[k + 2] & cMsk[k + 2]) == 0) { strncpy(sta, "", 24); }
+    }
+  }
+  if ((strlen(pos) > 0) && (strlen(sta) > 0)) { snprintf(out, 48, "%s · %s", pos, sta); }
+  else if (strlen(pos) > 0)                   { strncpy(out, pos, 48); }
+  else if (strlen(sta) > 0)                   { strncpy(out, sta, 48); }
+  else                                        { strncpy(out, "응답", 48); }
+}
+
+/* 지금 스텝이 하는 일 (경과 / 제한 초 포함) */
+void TC_StepDesc(char out[])
+{
+  byte op;
+  long el;
+  long lim;
+  char ex[48];
+
+  strncpy(out, "", 80);
+  if (gState == 0)
+  {
+    if      (gResult[gCur] == 1) { strncpy(out, "완료 - PASS", 80); }
+    else if (gResult[gCur] == 2) { strncpy(out, "완료 - FAIL", 80); }
+    else if (gResult[gCur] == 3) { strncpy(out, "SKIP", 80); }
+    return;
+  }
+  if (gState == 1) { strncpy(out, "시작 전 카운트다운", 80); return; }
+  if (gState == 3) { strncpy(out, "판정 대기 - PASS / FAIL", 80); return; }
+  if (gPc >= cNs)  { return; }
+
+  op  = cOp[gPc];
+  el  = (TC_Ms() - gT0) / 1000;
+  lim = cArg[gPc] / 1000;
+
+  if (op == 3)
+  {
+    TC_ExpName(gPc, ex);
+    snprintf(out, 80, "%s 기다리는 중 (%d/%d초)", ex, el, lim);
+  }
+  else if (op == 4)
+  {
+    TC_ExpName(gPc, ex);
+    snprintf(out, 80, "%s 유지 확인 (%d/%d초)", ex, el, lim);
+  }
+  else if (op == 2)
+  {
+    if (gBusOffByTc == 1) { snprintf(out, 80, "LIN 차단 상태로 대기 (%d/%d초)", el, lim); }
+    else                  { snprintf(out, 80, "대기 (%d/%d초)", el, lim); }
+  }
+  else if (op == 8)  { strncpy(out, "조작 준비 - 조작 칸 확인", 80); }
+  else if (op == 12) { snprintf(out, 80, "통신 끊기길 기다리는 중 (%d초)", el); }
+  else if (op == 13) { snprintf(out, 80, "응답 복귀 기다리는 중 (%d초)", el); }
+  else if (op == 7)
+  {
+    if (gTrkOn == 0) { strncpy(out, "안티핀치 감지(87 50) 기다리는 중", 80); }
+    else             { snprintf(out, 80, "안티핀치 복구 진행 [%d/10]", gTrkStage); }
+  }
+}
+
+void TC_UpdateEye(void)
+{
+  char pos[24];
+  char sta[24];
+  char sNow[64];
+  char stp[80];
+  char out[220];
+
+  if ((gLastRxT == 0) || ((TC_Ms() - gLastRxT) > 1000))
+  {
+    strncpy(sNow, "응답 없음", 64);
+  }
+  else
+  {
+    TC_PosName(gRxNow[0], pos);
+    TC_StaName(gRxNow[1], gRxNow[2], sta);
+    snprintf(sNow, 64, "%s · %s", pos, sta);
+  }
+
+  TC_StepDesc(stp);
+
+  if ((gState != 0) && (gEyeCur >= 0))
+  {
+    snprintf(out, 220, "[현재] %s  ▶ %s  ※ %s", sNow, stp, cEye[gEyeCur]);
+  }
+  else if (strlen(stp) > 0)
+  {
+    snprintf(out, 220, "[현재] %s  ▶ %s", sNow, stp);
+  }
+  else
+  {
+    snprintf(out, 220, "[현재] %s", sNow);
+  }
+
+  if (strncmp(out, gEyeLast, 200) != 0)
+  {
+    strncpy(gEyeLast, out, 200);
+    sysSetVariableString(sysvar::TC::Eye, out);
+  }
+}
+
+/* =====================================================================
+ * 패널 표시
+ * ===================================================================== */
+void TC_UpdatePanel(void)
+{
+  char buf[64];
+  char st[24];
+  char nd[24];
+  int  i;
+  int  nx;
+  int  pz;
+  int  pre;
+  int  p;
+  int  f;
+  int  s;
+
+  sysSetVariableString(sysvar::TC::CurId,   cId);
+  sysSetVariableString(sysvar::TC::CurName, cName);
+  TC_UpdateEye();
+
+  /* PAUSE 스텝 위치. 그 앞은 전부 사전조건 구간이다. */
+  pz  = -1;
+  pre = 0;
+  if (cHasPause == 1)
+  {
+    for (i = 0; i < cNs; i++) { if ((cOp[i] == 8) && (pz < 0)) { pz = i; } }
+    if ((pz >= 0) && (gPc < pz) && (gState == 2)) { pre = 1; }
+  }
+
+  if (gState == 0)
+  {
+    /* IDLE : 끝난 TC 의 조작 안내를 다시 보여주지 않는다 */
+    if      ((gResult[gCur] == 1) && (cNeed == 0)) { strncpy(gBuf, "PASS", 400); }
+    else if (gResult[gCur] == 1)                   { strncpy(gBuf, "PASS - 장애물 / 배선 / 전압을 원래대로 돌려 두세요", 400); }
+    else if ((gResult[gCur] == 2) && (gFailIdx == gCur)) { snprintf(gBuf, 400, "FAIL : %s", gFailWhy); }
+    else if (gResult[gCur] == 2)                   { strncpy(gBuf, "FAIL (이전 실행 결과)", 400); }
+    else if (gResult[gCur] == 3) { strncpy(gBuf, "SKIP", 400); }
+    else if (strlen(cGuide) > 0) { snprintf(gBuf, 400, "실행 후 할 일 : %s", cGuide); }
+    else                         { strncpy(gBuf, "실행하면 자동 진행 (조작 없음)", 400); }
+    sysSetVariableString(sysvar::TC::Guide, gBuf);
+  }
+  else if (gState == 3)
+  {
+    snprintf(gBuf, 400, "%s", "▶ 확인 후 PASS / FAIL 누르기");
+    sysSetVariableString(sysvar::TC::Guide, gBuf);
+  }
+  else if ((gPreN > 0) && (gPc < gPreN) && (gState == 2))
+  {
+    sysSetVariableString(sysvar::TC::Guide,
+                         "사전 복구 중 (이전 고장 해제) - 손대지 마세요");
+  }
+  else if (pre == 1)
+  {
+    sysSetVariableString(sysvar::TC::Guide, cPrep);
+  }
+  else if (gLocked == 1)
+  {
+    /* 판정 확정 후 복구 구간 : 시험용 조작 안내가 다시 뜨지 않도록 */
+    sysSetVariableString(sysvar::TC::Guide,
+                         "판정 완료, 자동 복구 중 - 손대지 마세요");
+  }
+  else if (gSayCur >= 0)
+  {
+    sysSetVariableString(sysvar::TC::Guide, cSay[gSayCur]);
+  }
+  else if (strlen(cGuide) > 0)
+  {
+    sysSetVariableString(sysvar::TC::Guide, cGuide);
+  }
+  else
+  {
+    sysSetVariableString(sysvar::TC::Guide, "자동 진행 중 - 손대지 마세요");
+  }
+
+  if      (cNeed == 0) { strncpy(nd, "자동 판정", 24); }
+  else if (cNeed == 1) { strncpy(nd, "조작 필요", 24); }
+  else                 { strncpy(nd, "수동 판정", 24); }
+  sysSetVariableString(sysvar::TC::Need, nd);
+  @TC::NeedUser = cNeed;
+
+  /* 송신 : 지금 버스에 나가고 있는 프레임을 보여준다.
+     READY 카운트다운 중이면 곧 나갈 SEND 를, 그게 없으면 직전에 보낸 프레임을 그대로 표시한다.
+     (LIN 마스터는 마지막으로 output 한 내용을 스케줄 주기마다 계속 송신한다) */
+  strncpy(buf, "", 64);
+  nx = 0;
+  if ((gPc < cNs) && (cOp[gPc] == 8))
+  {
+    for (i = gPc + 1; i < cNs; i++)
+    {
+      if ((cOp[i] == 1) && (nx == 0)) { TC_StepExpStr(i, buf, 64); nx = 1; }
+    }
+  }
+  if (nx == 0)
+  {
+    for (i = 0; i < cNs; i++)
+    {
+      if ((cOp[i] == 1) && (i <= gPc)) { TC_StepExpStr(i, buf, 64); }
+    }
+  }
+  sysSetVariableString(sysvar::TC::TxHex, buf);
+
+  /* 기대 : 현재 스텝이 EXPECT/HOLD 면 그 값 */
+  strncpy(buf, "", 64);
+  if (gPc < cNs)
+  {
+    if ((cOp[gPc] == 3) || (cOp[gPc] == 4)) { TC_StepExpStr(gPc, buf, 64); }
+  }
+  sysSetVariableString(sysvar::TC::ExpHex, buf);
+
+  TC_HexStr(gRxNow, buf, 64);
+  sysSetVariableString(sysvar::TC::RxHex, buf);
+
+  if      (gState == 0) { strncpy(st, "대기",      24); }
+  else if (gState == 1) { strncpy(st, "시작 카운트다운", 24); }
+  else if (gState == 3) { strncpy(st, "수동 판정", 24); }
+  else if ((gPreN > 0) && (gPc < gPreN)) { strncpy(st, "이전 고장 해제", 24); }
+  else if (pre == 1)    { strncpy(st, "준비 중", 24); }
+  else
+  {
+    if      (cOp[gPc] == 8)  { strncpy(st, "조작 준비",   24); }
+    else if (cOp[gPc] == 12) { strncpy(st, "통신 끊김 대기", 24); }
+    else if (cOp[gPc] == 13) { strncpy(st, "응답 복귀 대기", 24); }
+    else if (cOp[gPc] == 2) { strncpy(st, "대기 중",       24); }
+    else if (cOp[gPc] == 4) { strncpy(st, "유지 확인",     24); }
+    else if (cOp[gPc] == 7) { strncpy(st, "안티핀치 추적", 24); }
+    else                    { strncpy(st, "응답 대기",     24); }
+  }
+  sysSetVariableString(sysvar::TC::State, st);
+
+  @TC::StepNo    = gPc + 1;
+  @TC::StepTotal = cNs;
+  @TC::Index     = gCur;
+
+  p = 0; f = 0; s = 0;
+  for (i = 0; i < gCnt; i++)
+  {
+    if (TC_IsHid(i) == 1) { continue; }
+    if      (gResult[i] == 1) { p = p + 1; }
+    else if (gResult[i] == 2) { f = f + 1; }
+    else if (gResult[i] == 3) { s = s + 1; }
+  }
+  @TC::CntPass  = p;
+  @TC::CntFail  = f;
+  @TC::CntSkip  = s;
+  @TC::CntTotal = gVisCnt;
+
+  snprintf(buf, 64, "%d / %d", p + f + s, gVisCnt);
+  sysSetVariableString(sysvar::TC::Progress, buf);
+
+  @TC::Verdict = gResult[gCur];
+}
+
+/* =====================================================================
+ * 프레임 송신 (패널 신호 우회. output 은 1회만)
+ * ===================================================================== */
+void TC_Output(int st)
+{
+  byte f[8];
+  int  i;
+
+  for (i = 0; i < 8; i++) { f[i] = cDat[(st * 8) + i]; }
+
+  rawTxLock = 1;
+
+  req_aaf1 = (byte)(f[4] & 0x07);
+  req_aaf2 = (byte)((f[4] >> 3) & 0x07);
+  req_aaf3 = (byte)(f[5] & 0x07);
+
+  setSignal(LDCRdy,                 (f[7] >> 4) & 0x03);
+  setSignal(AAFLINOut,              (f[7] >> 2) & 0x03);
+  setSignal(AAF_ProtectionMode_VCU, (f[7] >> 6) & 0x01);
+  setSignal(CR_Mcu_VehSpdInt_Kph,   f[6]);
+
+  mCtrl.byte(0) = f[0];
+  mCtrl.byte(1) = f[1];
+  mCtrl.byte(2) = f[2];
+  mCtrl.byte(3) = f[3];
+  mCtrl.byte(4) = f[4];
+  mCtrl.byte(5) = f[5];
+  mCtrl.byte(6) = f[6];
+  mCtrl.byte(7) = f[7];
+
+  output(mCtrl);
+
+  rawTxLock = 0;
+}
+
+/* =====================================================================
+ * 실행 엔진
+ * ===================================================================== */
+
+/* 러너가 바꿔 둔 버스 상태 원복 : LIN 스케줄 재개 / LIMP 유도 해제 */
+void TC_RestoreBus(byte stopLimp)
+{
+  if (gBusOffByTc == 1)
+  {
+    TC_BusOn();
+    write("        LIN 스케줄 자동 재개 (TC 종료)");
+  }
+  if (gShortOn == 1)
+  {
+    linSetDlc(0x27, 8);
+    gShortOn = 0;
+    write("        0x27 응답 길이 자동 복귀 (8바이트)");
+  }
+  if ((stopLimp == 1) && (limpErrOn == 1))
+  {
+    Limp_ErrStop();
+    write("        LIMP 유도 자동 해제 (Enhanced 체크섬 복귀)");
+  }
+}
+
+/* FAIL 시점의 스텝으로 사유를 한 줄로 만든다 */
+void TC_MakeFailWhy(void)
+{
+  char ex[48];
+  char pos[24];
+  char sta[24];
+  char sRxNow[56];
+  byte op;
+
+  if ((gLastRxT == 0) || ((TC_Ms() - gLastRxT) > 1000)) { strncpy(sRxNow, "응답 없음", 56); }
+  else
+  {
+    TC_PosName(gRxNow[0], pos);
+    TC_StaName(gRxNow[1], gRxNow[2], sta);
+    snprintf(sRxNow, 56, "%s · %s", pos, sta);
+  }
+
+  gFailIdx = gCur;
+  if (gState == 3)              { strncpy(gFailWhy, "수동 FAIL 판정", 160); return; }
+  if (gPc >= cNs)               { snprintf(gFailWhy, 160, "실패 (현재 %s)", sRxNow); return; }
+  if ((gPreN > 0) && (gPc < gPreN))
+  {
+    snprintf(gFailWhy, 160, "사전 복구 실패 - 이전 고장이 안 풀림 (현재 %s)", sRxNow);
+    return;
+  }
+
+  op = cOp[gPc];
+  if (op == 3)
+  {
+    TC_ExpName(gPc, ex);
+    snprintf(gFailWhy, 160, "%s 이 %d초 안에 안 나옴 (현재 %s)", ex, cArg[gPc] / 1000, sRxNow);
+  }
+  else if (op == 4)
+  {
+    TC_ExpName(gPc, ex);
+    if (gHoldSeen == 0) { snprintf(gFailWhy, 160, "%s 유지 확인 중 응답 없음", ex); }
+    else                { snprintf(gFailWhy, 160, "%s 유지해야 하는데 바뀜 (현재 %s)", ex, sRxNow); }
+  }
+  else if (op == 12) { strncpy(gFailWhy, "통신이 끊기지 않음", 160); }
+  else if (op == 13) { strncpy(gFailWhy, "통신이 다시 돌아오지 않음 (Wakeup 실패)", 160); }
+  else if (op == 7)
+  {
+    if (gTrkOn == 0) { strncpy(gFailWhy, "안티핀치(87 50) 미발생 - 플랩을 막지 않았거나 감지 안 됨", 160); }
+    else             { snprintf(gFailWhy, 160, "안티핀치 결과가 기대와 다름 [%d/10] (현재 %s)", gTrkStage, sRxNow); }
+  }
+  else               { snprintf(gFailWhy, 160, "실패 (현재 %s)", sRxNow); }
+}
+
+void TC_Finish(byte result)
+{
+  char sRx[40];
+  int  i;
+
+  if ((result == 2) && (gLocked == 0)) { TC_MakeFailWhy(); }
+
+  if ((gLocked == 1) && (result == 2))
+  {
+    write("[TC %s] 복구 시퀀스가 끝나지 않았습니다 - 판정은 PASS 로 유지합니다", cId);
+    write("[TC %s]   다음 TC 전에 장애물을 치우고 상태를 확인해 주십시오", cId);
+    result = 1;
+  }
+  gLocked = 0;
+  gPreN   = 0;
+  gSayCur = -1;
+  gEyeCur = -1;
+
+  /* FAIL / SKIP 이면 LIMP 유도도 해제. PASS 면 유지 (7-1 -> 7-2 연속) */
+  if (result == 1) { TC_RestoreBus(0); }
+  else             { TC_RestoreBus(1); }
+
+  gResult[gCur] = result;
+  gTimeMs[gCur] = TC_Ms() - gTcT0;
+
+  for (i = 0; i < 8; i++) { gRxLog[(gCur * 8) + i] = gRxNow[i]; }
+
+  TC_HexStr(gRxNow, sRx, 40);
+
+  if      (result == 1) { write("[TC %s] PASS  (%d ms)  Rx=%s", cId, gTimeMs[gCur], sRx); }
+  else if (result == 2) { write("[TC %s] FAIL  (%d ms)  Rx=%s  사유: %s", cId, gTimeMs[gCur], sRx, gFailWhy); }
+  else                  { write("[TC %s] SKIP", cId); }
+
+  gState = 0;
+  TC_UpdatePanel();
+
+  /* 연속 실행 자동 진행 : 타이머에서 처리 (순환 참조/재귀 방지) */
+  if (gRunTo >= 0)
+  {
+    if (gCur < gRunTo)
+    {
+      gAdvance  = 1;
+      gAdvPhase = 0;
+      gAdvT0    = TC_Ms();
+    }
+    else
+    {
+      gRunTo = -1;
+      write("[TC] ===== 구간 실행 완료 =====");
+    }
+  }
+}
+
+/* 다음 실행 가능 스텝까지 진행. 대기형 스텝을 만나면 멈춘다 */
+void TC_RunStep(void)
+{
+  byte op;
+  byte sk;
+  int  j;
+  int  kk;
+  int  guard;
+
+  guard = 0;
+  while (guard < 64)
+  {
+    guard = guard + 1;
+
+    if (gPc >= cNs)
+    {
+      if (cMode == 1)
+      {
+        gState = 3;
+        write("        스텝 완료. 수동 판정 대기");
+        TC_UpdatePanel();
+      }
+      else
+      {
+        TC_Finish(1);
+      }
+      return;
+    }
+
+    op = cOp[gPc];
+
+    if (op == 1)                       /* SEND */
+    {
+      TC_Output(gPc);
+      gPc = gPc + 1;
+    }
+    else if (op == 5)                  /* LINOFF */
+    {
+      TC_BusOff();
+      gPc = gPc + 1;
+    }
+    else if (op == 6)                  /* LINON */
+    {
+      TC_BusOn();
+      gPc = gPc + 1;
+    }
+    else if (op == 15)                 /* LIMPON : Classic 체크섬 송신 */
+    {
+      Limp_ErrStart();
+      gPc = gPc + 1;
+    }
+    else if (op == 16)                 /* LIMPOFF : Enhanced 복귀 */
+    {
+      Limp_ErrStop();
+      gPc = gPc + 1;
+    }
+    else if (op == 20)                 /* GLITCH : 0x27 중단 프레임 */
+    {
+      BS_SendGlitch();
+      gPc = gPc + 1;
+    }
+    else if (op == 21)                 /* STRAY : 잔류 바이트 0x80 */
+    {
+      BS_SendStray();
+      gPc = gPc + 1;
+    }
+    else if (op == 18)                 /* SHORTON : 0x27 응답 7바이트 */
+    {
+      linSetDlc(0x27, 7);
+      gShortOn = 1;
+      write("        0x27 응답 길이 7바이트로 단축");
+      gPc = gPc + 1;
+    }
+    else if (op == 19)                 /* SHORTOFF : 0x27 응답 8바이트 복귀 */
+    {
+      linSetDlc(0x27, 8);
+      gShortOn = 0;
+      write("        0x27 응답 길이 8바이트 복귀");
+      gPc = gPc + 1;
+    }
+    else if (op == 17)                 /* EYE : 육안 칸 안내 교체 */
+    {
+      gEyeCur = (int)cArg[gPc];
+      gPc = gPc + 1;
+      TC_UpdateEye();
+    }
+    else if (op == 14)                 /* SAY : 안내문 교체 */
+    {
+      gSayCur = (int)cArg[gPc];
+      gPc = gPc + 1;
+    }
+    else if (op == 11)                 /* LOCKPASS : 판정 조기 확정 */
+    {
+      gLocked = 1;
+      gResult[gCur] = 1;
+      gTimeMs[gCur] = TC_Ms() - gTcT0;
+      write("[TC %s] PASS 확정 (%d ms) - 이제 복구 시퀀스를 진행합니다", cId, gTimeMs[gCur]);
+      write("[TC %s] ■■ 장애물 / 시험용 배선 조작을 원복해 주십시오 ■■", cId);
+      @TC::Verdict = 1;
+      gPc = gPc + 1;
+    }
+    else if (op == 9)                  /* SKIPIF : 이미 충족이면 준비 동작 생략 */
+    {
+      sk = 1;
+      for (j = 0; j < 8; j++)
+      {
+        kk = (gPc * 8) + j;
+        if ((gRxNow[j] & cMsk[kk]) != (cDat[kk] & cMsk[kk])) { sk = 0; }
+      }
+      if (sk == 1)
+      {
+        write("        이미 시작 위치입니다 - 준비 동작 생략");
+        gPc = gPc + 3;
+      }
+      else
+      {
+        gPc = gPc + 1;
+      }
+    }
+    else if (op == 8)                  /* READY : 카운트다운 */
+    {
+      gT0      = TC_Ms();
+      gRdyLast = -1;
+      gState   = 2;
+      TC_PickMsg(cArg2[gPc]);
+      write("        [준비] %s", gMsg);
+      TC_UpdatePanel();
+      return;
+    }
+    else                               /* WAIT / EXPECT / HOLD / TRACK */
+    {
+      gT0       = TC_Ms();
+      gHoldSeen = 0;
+      gRdyLast  = -1;
+      gTrkOn    = 0;
+      gTrkStage = 0;
+      gTrkLast  = -1;
+      gState    = 2;
+      TC_UpdatePanel();
+      return;
+    }
+  }
+
+  write("[TC %s] 스텝 루프 이상", cId);
+  TC_Finish(2);
+}
+
+void TC_Fire(void)
+{
+  gSayCur    = -1;
+  gEyeCur    = -1;
+  gPc        = 0;
+  gPauseWait = 0;
+  gLocked    = 0;
+  gTcT0      = TC_Ms();
+  TC_RunStep();
+}
+
+void TC_Select(int idx)
+{
+  if (idx < 0)     { return; }
+  if (idx >= gCnt) { return; }
+  if (TC_IsHid(idx) == 1) { return; }
+
+  gCur   = idx;
+  gPc    = 0;
+  gState  = 0;
+  gPreN   = 0;
+  gSayCur = -1;
+  gEyeCur = -1;
+  TC_Load(gCur);
+  TC_UpdatePanel();
+}
+
+/* 직전 응답에 래치된 고장이 남아 있는가
+     Byte3 bit7 (0x80) 은 VCU 보호모드 표시이므로 고장으로 보지 않는다 (5-1 -> 5-2 연속 실행)
+     B1 = 87 52 (Abnormal) 도 고장으로 본다 */
+int TC_NeedPreRecover(void)
+{
+  if (cKeepFault == 1) { return 0; }
+  if ((gRxNow[2] & 0x7F) != 0x00) { return 1; }
+  if ((gRxNow[0] == 0x87) && ((gRxNow[1] & 0x0F) == 0x02)) { return 1; }
+  return 0;
+}
+
+/* 현재 TC 스텝 앞에 고장 해제 시퀀스(TC_RecoverSeq 9스텝)를 끼워 넣는다.
+   시작 안내 카운트다운을 쓰는 TC 는 복구가 끝난 뒤 카운트다운하도록 READY 1스텝을 추가한다. */
+void TC_PrependRecover(void)
+{
+  int i;
+  int j;
+  int n;
+  int oldNs;
+  int addReady;
+
+  addReady = 0;
+  if ((strlen(cGuide) > 0) && (cHasPause == 0)) { addReady = 1; }
+  n = 9 + addReady;
+
+  if ((cNs + n) > 40)
+  {
+    write("[TC %s] 스텝 수 초과 - 사전 복구를 넣을 수 없습니다. 수동으로 Sleep/Wakeup 후 실행하십시오", cId);
+    return;
+  }
+
+  for (i = cNs - 1; i >= 0; i--)
+  {
+    cOp  [i + n] = cOp  [i];
+    cArg [i + n] = cArg [i];
+    cArg2[i + n] = cArg2[i];
+    for (j = 0; j < 8; j++)
+    {
+      cDat[((i + n) * 8) + j] = cDat[(i * 8) + j];
+      cMsk[((i + n) * 8) + j] = cMsk[(i * 8) + j];
+    }
+  }
+  for (i = 0; i < n; i++)
+  {
+    cOp[i] = 0; cArg[i] = 0; cArg2[i] = 0;
+    for (j = 0; j < 8; j++) { cDat[(i * 8) + j] = 0; cMsk[(i * 8) + j] = 0; }
+  }
+
+  oldNs = cNs;
+  cNs   = 0;
+  TC_RecoverSeq();                         /* 0 ~ 8 */
+  if (addReady == 1) { TC_Ready(gStartWait); }   /* 9 : 기존 시작 안내 카운트다운 */
+  cNs   = oldNs + n;
+  gPreN = 9;
+}
+
+void TC_Start(int idx)
+{
+  if (idx < 0)     { return; }
+  if (idx >= gCnt) { return; }
+  if (TC_IsHid(idx) == 1) { return; }
+
+  gCur  = idx;
+  gPc   = 0;
+  gPreN = 0;
+  TC_Load(gCur);
+
+  write("[TC %s] %s", cId, cName);
+  if (strlen(cNote) > 0) { write("        [확인] %s", cNote); }
+
+  /* LIMP 를 이어받는 TC(7-2) 가 아니면 남아 있는 LIMP 유도 / LIN 정지를 먼저 원복 */
+  TC_RestoreBus((byte)(1 - cKeepFault));
+
+  /* 이전 TC 가 고장을 남겼으면 Sleep/Wakeup 으로 먼저 풀고 시작한다 */
+  if (TC_NeedPreRecover() == 1)
+  {
+    write("[TC %s] 이전 고장 상태 감지 (Rx = %02X %02X %02X) - Sleep/Wakeup 사전 복구 후 시작합니다",
+          cId, gRxNow[0], gRxNow[1], gRxNow[2]);
+    TC_PrependRecover();
+  }
+
+  /* READY 스텝이 있는 TC 는 사전조건을 먼저 자동 수행한다.
+     없으면 안내문을 띄우고 카운트다운한 뒤 자동으로 시작한다. 버튼은 필요 없다. */
+  if ((strlen(cGuide) > 0) && (cHasPause == 0))
+  {
+    gState   = 1;
+    gT0      = TC_Ms();
+    gTcT0    = TC_Ms();
+    gRdyLast = -1;
+    write("        [준비] %s", cGuide);
+    TC_UpdatePanel();
+    return;
+  }
+
+  TC_Fire();
+}
+
+/* 응답 수신 : .can 의 on linFrame AAFResp 에서 호출 */
+void TC_OnResp(byte b0, byte b1, byte b2, byte b3, byte b4, byte b5, byte b6, byte b7)
+{
+  int  i;
+  int  k;
+  byte ok;
+  byte op;
+  long ra;
+  long tel;
+  int  back;
+
+  gRxNow[0] = b0; gRxNow[1] = b1; gRxNow[2] = b2; gRxNow[3] = b3;
+  gRxNow[4] = b4; gRxNow[5] = b5; gRxNow[6] = b6; gRxNow[7] = b7;
+
+  gLastRxT = TC_Ms();           /* 통신 두절 감지용 */
+  TC_UpdateEye();               /* 응답이 바뀌었을 때만 패널에 쓴다 */
+
+  if (gState != 2) { return; }
+  if (gPc >= cNs)  { return; }
+
+  op = cOp[gPc];
+
+  if (op == 7)                         /* TRACK */
+  {
+    ra = cArg2[gPc];
+
+    /* 1 : 안티핀치 진입 감지 - 87 50 */
+    if (gTrkOn == 0)
+    {
+      if ((gRxNow[0] == 0x87) && ((gRxNow[1] & 0x0F) == 0x00))
+      {
+        gTrkOn    = 1;
+        gTrkT0    = TC_Ms();
+        gTrkStage = 1;
+        gTrkLast  = -1;
+        write("[TC %s] 안티핀치 감지 (87 50) - 여기서부터 복구 시간 측정 시작", cId);
+      }
+      return;
+    }
+
+    /* 2 : 기대 응답과 일치하는가 - 위치 + InitStatus 전부 비교 */
+    ok = 1;
+    for (i = 0; i < 8; i++)
+    {
+      k = (gPc * 8) + i;
+      if ((gRxNow[i] & cMsk[k]) != (cDat[k] & cMsk[k])) { ok = 0; }
+    }
+
+    if (ok == 1)
+    {
+      tel = TC_Ms() - gTrkT0;
+
+      if ((ra == 0) || (ra == 4))
+      {
+        /* Byte3 bit4 = Motor Fault. 다른 보호비트가 같이 서도 되도록 비트단위로 본다 */
+        if ((gRxNow[2] & 0x10) != 0x10)
+        {
+          write("[TC %s] Abnormal(87 52) 은 떴으나 Motor Fault 비트가 없습니다 (Byte3 = %02X)",
+                cId, gRxNow[2]);
+          TC_Finish(2);
+          return;
+        }
+        write("[TC %s] 고장 확정 확인 - Abnormal + Motor Fault (%02X %02X %02X / %d 초)",
+              cId, gRxNow[0], gRxNow[1], gRxNow[2], tel / 1000);
+        gPc = gPc + 1;
+        TC_RunStep();
+        sysSetVariableString(sysvar::TC::Guide,
+                             "▶ 장애물 치우세요 (곧 자동 복구)");
+        return;
+        /* 이후 TC_LockPass 스텝에서 PASS 가 확정된다 */
+      }
+
+      /* 복구 사이클 사이가 3분(180초) 씩 벌어지므로 경계를 그 사이에 둔다.
+         1차 복구 : t0 + 20 ~ 60초      2차 복구 : t0 + 200 ~ 250초
+         3차 복구 : t0 + 400 ~ 460초                                   */
+      if      (tel < 130000) { back = 1; }
+      else if (tel < 330000) { back = 2; }
+      else                   { back = 3; }
+
+      if (back != ra)
+      {
+        write("[TC %s] 복귀 시점 불일치 - 기대 %d 차 복구 / 실제 %d 차 복구 (안티핀치 감지 후 %d 초)",
+              cId, ra, back, tel / 1000);
+        write("[TC %s]   1차 복구 130초 미만 / 2차 복구 130~330초 / 3차 복구 330초 이상", cId);
+        TC_Finish(2);
+        return;
+      }
+
+      write("[TC %s] 안티핀치 해소 확인 (%02X %02X / %d 초)",
+            cId, gRxNow[0], gRxNow[1], tel / 1000);
+      gPc = gPc + 1;
+      TC_RunStep();
+      return;
+    }
+
+    /* 3 : 기대와 반대 결과가 나오면 기다리지 말고 즉시 FAIL */
+    if ((ra != 0) && (ra != 4))
+    {
+      if ((gRxNow[0] == 0x87) && ((gRxNow[1] & 0x0F) == 0x02))
+      {
+        write("[TC %s] 복귀해야 하는데 고장(87 52) 으로 확정되었습니다", cId);
+        TC_Finish(2);
+      }
+    }
+    else
+    {
+      if ((gRxNow[1] & 0x0F) == 0x01)
+      {
+        tel = TC_Ms() - gTrkT0;
+        write("[TC %s] 고장(87 52) 이 나와야 하는데 %d 초만에 복귀했습니다 (%02X %02X)",
+              cId, tel / 1000, gRxNow[0], gRxNow[1]);
+        write("[TC %s]   장애물을 너무 일찍 치우셨습니다. 안내대로 다시 실행해 주십시오", cId);
+        TC_Finish(2);
+      }
+    }
+    return;
+  }
+
+  if ((op != 3) && (op != 4)) { return; }
+
+  ok = 1;
+  for (i = 0; i < 8; i++)
+  {
+    k = (gPc * 8) + i;
+    if ((gRxNow[i] & cMsk[k]) != (cDat[k] & cMsk[k])) { ok = 0; }
+  }
+
+  if (op == 3)                         /* EXPECT : 일치하면 다음 스텝 */
+  {
+    if (ok == 1)
+    {
+      gPc = gPc + 1;
+      TC_RunStep();
+    }
+  }
+  else                                 /* HOLD : 바뀌면 즉시 FAIL */
+  {
+    if (ok == 1)
+    {
+      gHoldSeen = 1;
+    }
+    else
+    {
+      write("[TC %s] HOLD 위반 - 응답이 변경됨", cId);
+      TC_Finish(2);
+    }
+  }
+}
+
+/* =====================================================================
+ * CSV 저장
+ * ===================================================================== */
+void TC_SaveCsv(void)
+{
+  dword h;
+  char  sLine[700];
+  char  sRx[40];
+  char  sRes[8];
+  char  sNeed[24];
+  byte  tmp[8];
+  int   i;
+  int   j;
+  int   keep;
+
+  h = openFileWrite("AAF_EV_TC_Result.csv", 0);
+  if (h == 0) { write("[TC] CSV 파일 열기 실패"); return; }
+
+  strncpy(sLine, "TC_ID,구번호,분류,이름,개입,판정,소요ms,실측,조작안내,확인사항\n", 700);
+  filePutString(sLine, strlen(sLine), h);
+
+  keep = gCur;
+
+  for (i = 0; i < gCnt; i++)
+  {
+    if (TC_IsHid(i) == 1) { continue; }
+    TC_Load(i);
+
+    if      (gResult[i] == 1) { strncpy(sRes, "PASS", 8); }
+    else if (gResult[i] == 2) { strncpy(sRes, "FAIL", 8); }
+    else if (gResult[i] == 3) { strncpy(sRes, "SKIP", 8); }
+    else                      { strncpy(sRes, "-",    8); }
+
+    if      (cNeed == 0) { strncpy(sNeed, "자동", 24); }
+    else if (cNeed == 1) { strncpy(sNeed, "조작", 24); }
+    else                 { strncpy(sNeed, "수동", 24); }
+
+    if (gResult[i] == 0)                 /* 미실행 : 실측/소요시간 공란 */
+    {
+      strncpy(sRx, "-", 40);
+      snprintf(sLine, 700, "=\"%s\",=\"%s\",%d,\"%s\",%s,%s,-,\"%s\",\"%s\",\"%s\"\n",
+               cId, cOld, cGroup, cName, sNeed, sRes, sRx, cGuide, cNote);
+    }
+    else
+    {
+      for (j = 0; j < 8; j++) { tmp[j] = gRxLog[(i * 8) + j]; }
+      TC_HexStr(tmp, sRx, 40);
+      snprintf(sLine, 700, "=\"%s\",=\"%s\",%d,\"%s\",%s,%s,%d,\"%s\",\"%s\",\"%s\"\n",
+               cId, cOld, cGroup, cName, sNeed, sRes, gTimeMs[i], sRx, cGuide, cNote);
+    }
+    filePutString(sLine, strlen(sLine), h);
+  }
+
+  fileClose(h);
+
+  TC_Load(keep);
+  gCur = keep;
+  gPc  = 0;
+  TC_UpdatePanel();
+
+  write("[TC] CSV 저장 완료 : AAF_EV_TC_Result.csv  (%d 항목)", gVisCnt);
+}
+
+/* =====================================================================
+ * 초기화
+ * ===================================================================== */
+void TC_Init(void)
+{
+  int i;
+  int a;
+  int b;
+  int c;
+
+  for (i = 0; i < 8; i++) { gRxNow[i] = 0; }
+
+  gCnt = 0;
+  gVisCnt = 0;
+  a = 0; b = 0; c = 0;
+  for (i = 0; i < 100; i++)
+  {
+    if (TC_Load(i) == 0) { break; }
+    gGrpOf[i]  = cGroup;
+    gNeedOf[i] = cNeed;
+    gHidOf[i]  = cHidden;
+    gResult[i] = 0;
+    gTimeMs[i] = 0;
+    gCnt = gCnt + 1;
+    if ((gShowHidden == 0) && (cHidden == 1)) { continue; }
+    gVisCnt = gVisCnt + 1;
+    if      (cNeed == 0) { a = a + 1; }
+    else if (cNeed == 1) { b = b + 1; }
+    else                 { c = c + 1; }
+  }
+
+  gCur   = TC_NextVis(0, 1);
+  if (gCur < 0) { gCur = 0; }
+  gPc    = 0;
+  gState = 0;
+  gRunTo = -1;
+  gGapMs = @TC::GapMs;
+  if (gGapMs <= 0) { gGapMs = 3000; }
+
+  TC_Load(gCur);
+  write("[TC] 테이블 로드 : %d 항목  (무인자동 %d / 조작필요 %d / 수동판정 %d)", gVisCnt, a, b, c);
+  TC_UpdatePanel();
+  setTimer(tcTick, 100);
+}
+
+int TC_GroupFirst(int grp)
+{
+  int i;
+  for (i = 0; i < gCnt; i++) { if ((gGrpOf[i] == grp) && (TC_IsHid(i) == 0)) { return i; } }
+  return -1;
+}
+
+int TC_GroupLast(int grp)
+{
+  int i;
+  int r;
+  r = -1;
+  for (i = 0; i < gCnt; i++) { if ((gGrpOf[i] == grp) && (TC_IsHid(i) == 0)) { r = i; } }
+  return r;
+}
+
+/* =====================================================================
+ * 타이머
+ * ===================================================================== */
+on timer tcTick
+{
+  long el;
+  long tel;
+  long ra;
+  long rem;
+  long qui;
+  int  rs;
+  int  nx;
+  byte op;
+  byte doRm;
+
+  /* 타이머 재무장을 맨 앞에서 먼저 한다. 어떤 분기로 빠져도 죽지 않도록. */
+  setTimer(tcTick, 100);
+
+  TC_UpdateEye();               /* 응답이 끊기면 "응답 없음" 으로 바뀐다 */
+
+  /* 연속 실행 예약분 처리
+       1단계 : 끝난 TC 결과를 gResultHold 동안 그대로 보여준다
+       2단계 : 다음 TC 를 패널에 먼저 띄우고 gGapMs 카운트다운 후 시작한다 */
+  if (gAdvance == 1)
+  {
+    el = TC_Ms() - gAdvT0;
+
+    if (gAdvPhase == 0)
+    {
+      if (el >= gResultHold)
+      {
+        nx = TC_NextVis(gCur + 1, 1);
+        if ((nx < 0) || (nx > gRunTo))
+        {
+          gAdvance = 0;
+          gRunTo   = -1;
+          write("[TC] ===== 구간 실행 완료 =====");
+          return;
+        }
+        gAdvNext  = nx;
+        gAdvPhase = 1;
+        gAdvT0    = TC_Ms();
+        gAdvLast  = -1;
+        TC_Select(nx);                         /* 다음 TC 를 패널에 먼저 표시 (실행 안 함) */
+        sysSetVariableString(sysvar::TC::State, "다음 TC 대기");
+      }
+      return;
+    }
+
+    /* 2단계 : 이전/다음/실행/STOP 등으로 연속 실행이 풀렸으면 취소 */
+    if (gRunTo < 0)
+    {
+      gAdvance  = 0;
+      gAdvPhase = 0;
+      return;
+    }
+
+    rem = ((gGapMs - el) + 999) / 1000;
+    if (rem < 0) { rem = 0; }
+    if (rem != gAdvLast)
+    {
+      gAdvLast = rem;
+      snprintf(gBuf, 400, "다음 [%s] %d초 뒤 시작", cId, rem);
+      sysSetVariableString(sysvar::TC::Guide, gBuf);
+    }
+    if (el >= gGapMs)
+    {
+      gAdvance  = 0;
+      gAdvPhase = 0;
+      TC_Start(gAdvNext);
+    }
+    return;
+  }
+
+  /* 시작 안내문 카운트다운 (버튼 없이 자동 시작) */
+  if (gState == 1)
+  {
+    el  = TC_Ms() - gT0;
+    rem = ((gStartWait - el) + 999) / 1000;
+    if (rem < 0) { rem = 0; }
+    if (rem != gRdyLast)
+    {
+      gRdyLast = rem;
+      snprintf(gBuf, 400, "[%d초] %s", rem, cGuide);
+      sysSetVariableString(sysvar::TC::Guide, gBuf);
+    }
+    if (el >= gStartWait) { TC_Fire(); }
+    return;
+  }
+
+  if (gState == 2)
+  {
+    el = TC_Ms() - gT0;
+    @TC::Elapsed = el;
+
+    if (gPc < cNs)
+    {
+      op = cOp[gPc];
+
+      if (op == 8)                     /* READY 카운트다운 */
+      {
+        rem = ((cArg[gPc] - el) + 999) / 1000;
+        if (rem < 0) { rem = 0; }
+        if (rem != gRdyLast)
+        {
+          gRdyLast = rem;
+          TC_PickMsg(cArg2[gPc]);
+          if (cArg2[gPc] == 0)
+          {
+            snprintf(gBuf, 400, "[%d초] %s", rem, gMsg);
+          }
+          else
+          {
+            snprintf(gBuf, 400, "[%d초] %s", rem, gMsg);
+          }
+          sysSetVariableString(sysvar::TC::Guide, gBuf);
+        }
+        if (el >= cArg[gPc])
+        {
+          gPc = gPc + 1;
+          TC_RunStep();
+        }
+      }
+      else if (op == 12)               /* NORESP : 실제로 통신이 끊겼는지 확인 */
+      {
+        qui = TC_Ms() - gLastRxT;
+
+        if (qui >= cArg2[gPc])
+        {
+          write("[TC %s] 통신 두절 확인 (%d.%d 초 무응답)", cId, qui / 1000, (qui % 1000) / 100);
+          gPc = gPc + 1;
+          TC_RunStep();
+        }
+        else
+        {
+          if ((qui / 500) != gRdyLast)
+          {
+            gRdyLast = qui / 500;
+            snprintf(gBuf, 400, "[통신 끊기길 대기] %s", cGuide);
+            sysSetVariableString(sysvar::TC::Guide, gBuf);
+          }
+          if (el > cArg[gPc])
+          {
+            write("[TC %s] 시간 초과 - 통신이 끊기지 않았습니다", cId);
+            TC_Finish(2);
+          }
+        }
+      }
+      else if (op == 13)               /* RESP : 통신이 복구됐는지 확인 */
+      {
+        qui = TC_Ms() - gLastRxT;
+
+        if (qui < 500)
+        {
+          write("[TC %s] 통신 복구 확인", cId);
+          gPc = gPc + 1;
+          TC_RunStep();
+        }
+        else
+        {
+          if (gRdyLast != -2)
+          {
+            gRdyLast = -2;
+            if ((strlen(cGuide4) > 0) && (gPc >= gPreN))   /* 사전 복구 중에는 TC 고유 안내 금지 */
+            {
+              snprintf(gBuf, 400, "[응답 복귀 대기] %s", cGuide4);
+            }
+            else
+            {
+              strncpy(gBuf, "Wakeup 응답 대기 - 손대지 마세요", 400);
+            }
+            sysSetVariableString(sysvar::TC::Guide, gBuf);
+          }
+          if (el > cArg[gPc])
+          {
+            write("[TC %s] 시간 초과 - 통신이 복구되지 않았습니다", cId);
+            TC_Finish(2);
+          }
+        }
+      }
+      else if (op == 2)                /* WAIT */
+      {
+        if (el >= cArg[gPc])
+        {
+          gPc = gPc + 1;
+          TC_RunStep();
+        }
+      }
+      else if (op == 3)                /* EXPECT 타임아웃 */
+      {
+        if (el > cArg[gPc])
+        {
+          write("[TC %s] TIMEOUT (step %d / %d)", cId, gPc + 1, cNs);
+          if ((gPreN > 0) && (gPc < gPreN))
+          {
+            write("[TC %s]   사전 복구 실패 - 고장 비트가 안 풀립니다. 전압 / 배선 / SW 원복 상태를 확인하십시오", cId);
+          }
+          TC_Finish(2);
+        }
+      }
+      else if (op == 4)                /* HOLD 완료 */
+      {
+        if (el >= cArg[gPc])
+        {
+          if (gHoldSeen == 1)
+          {
+            gPc = gPc + 1;
+            TC_RunStep();
+          }
+          else
+          {
+            write("[TC %s] HOLD 구간에 유효 응답 없음", cId);
+            TC_Finish(2);
+          }
+        }
+      }
+      else if (op == 7)                /* TRACK 진행 */
+      {
+        ra = cArg2[gPc];
+        rs = TC_TrkRemoveStage(ra);
+
+        if (gTrkOn == 0)
+        {
+          if (gTrkLast != -2)
+          {
+            gTrkLast = -2;
+            sysSetVariableString(sysvar::TC::Guide,
+                                 "▶ 지금 플랩을 막으세요");
+            write("[TC %s] ■ 지금 플랩을 막아 멈추십시오 ■", cId);
+          }
+          if (el > 40000)
+          {
+            write("[TC %s] 안티핀치 미발생 (87 50 미관측)", cId);
+            TC_Finish(2);
+          }
+        }
+        else
+        {
+          tel = TC_Ms() - gTrkT0;
+          gTrkStage = TC_TrkStageOf(tel);
+
+          if (gTrkStage != gTrkLast)
+          {
+            gTrkLast = gTrkStage;
+            TC_TrkNameOf(gTrkStage);
+
+            /* 0 = 계속 잡기 / 1 = 지금 치우기 / 2 = 손 떼고 복귀 대기 */
+            doRm = 0;
+            if (ra == 1)                       { doRm = 2; }   /* 87 50 즉시 손 뗌 : 이후 전 구간 손 대지 않음 */
+            else if (rs > 0)
+            {
+              if      (gTrkStage == rs) { doRm = 1; }
+              else if (gTrkStage >  rs) { doRm = 2; }   /* 이미 치운 뒤 : 다시 잡으라고 하지 않는다 */
+            }
+
+            if (doRm == 2)
+            {
+              snprintf(gBuf, 400, "[%d/10] %s - 손 떼고 대기",
+                       gTrkStage, gTrkName);
+              write("[TC %s] 손 떼고 복귀 대기  (%d/10 %s)",
+                    cId, gTrkStage, gTrkName);
+            }
+            else if (doRm == 1)
+            {
+              snprintf(gBuf, 400, "[%d/10] %s - ▶ 지금 치우세요",
+                       gTrkStage, gTrkName);
+              write("[TC %s] ■■ 지금 장애물을 치우십시오 ■■  (%d/10 %s)",
+                    cId, gTrkStage, gTrkName);
+            }
+            else
+            {
+              snprintf(gBuf, 400, "[%d/10] %s - 계속 잡기",
+                       gTrkStage, gTrkName);
+              write("[TC %s] %d/10 : %s", cId, gTrkStage, gTrkName);
+            }
+            sysSetVariableString(sysvar::TC::Guide, gBuf);
+          }
+
+          /* 진행 중에는 시간으로 FAIL 하지 않는다.
+             단계 표시는 안내용이고, 판정은 응답 전이(복귀 / 87 52)와 타임아웃으로만 한다. */
+          if (el > cArg[gPc])
+          {
+            write("[TC %s] 시간 초과 - 기대한 결과가 나오지 않았습니다 (%d/10 %s)",
+                  cId, gTrkStage, gTrkName);
+            TC_Finish(2);
+          }
+        }
+      }
+    }
+  }
+}
+
+/* =====================================================================
+ * 패널 버튼
+ * ===================================================================== */
+on sysvar TC::BtnRun
+{
+  if (@TC::BtnRun != 1) { return; }
+  gRunTo = -1;
+  TC_Start(gCur);
+}
+
+on sysvar TC::BtnRunGroup
+{
+  int g;
+  int a;
+  int b;
+
+  if (@TC::BtnRunGroup != 1) { return; }
+
+  g = @TC::GroupSel;
+  a = TC_GroupFirst(g);
+  b = TC_GroupLast(g);
+  if (a < 0) { write("[TC] 분류 %d 항목 없음", g); return; }
+
+  gRunTo = b;
+  write("[TC] ===== 분류 %d 실행 시작 =====", g);
+  TC_Start(a);
+}
+
+on sysvar TC::BtnRunAll
+{
+  if (@TC::BtnRunAll != 1) { return; }
+  gRunTo = TC_NextVis(gCnt - 1, -1);
+  write("[TC] ===== 전체 실행 시작 (%d 항목) =====", gVisCnt);
+  TC_Start(TC_NextVis(0, 1));
+}
+
+on sysvar TC::BtnStop
+{
+  if (@TC::BtnStop != 1) { return; }
+  gRunTo    = -1;
+  gState    = 0;
+  gAdvance  = 0;
+  gAdvPhase = 0;
+  gSayCur  = -1;
+  TC_RestoreBus(1);
+  write("[TC] 중지");
+  TC_UpdatePanel();
+  sysSetVariableString(sysvar::TC::Guide, "중지됨 - 조작한 것 원상태로");
+}
+
+on sysvar TC::BtnOpDone
+{
+  if (@TC::BtnOpDone != 1) { return; }
+  /* 카운트다운을 기다리지 않고 바로 시작하고 싶을 때만 쓰는 선택 버튼 */
+  if (gState == 1) { write("[TC] 카운트다운 생략하고 시작"); TC_Fire(); return; }
+
+  if (gState == 2)
+  {
+    if (gPc < cNs)
+    {
+      if (cOp[gPc] == 8)
+      {
+        write("[TC] 카운트다운 생략");
+        gPc = gPc + 1;
+        TC_RunStep();
+        return;
+      }
+    }
+  }
+  write("[TC] 지금은 건너뛸 대기 구간이 아닙니다");
+}
+
+on sysvar TC::BtnPass { if (@TC::BtnPass == 1) { TC_Finish(1); } }
+on sysvar TC::BtnFail { if (@TC::BtnFail == 1) { TC_Finish(2); } }
+on sysvar TC::BtnSkip { if (@TC::BtnSkip == 1) { TC_Finish(3); } }
+
+on sysvar TC::BtnPrev { if (@TC::BtnPrev == 1) { gRunTo = -1; TC_Select(TC_NextVis(gCur - 1, -1)); } }
+on sysvar TC::BtnNext { if (@TC::BtnNext == 1) { gRunTo = -1; TC_Select(TC_NextVis(gCur + 1,  1)); } }
+
+on sysvar TC::BtnSaveCsv { if (@TC::BtnSaveCsv == 1) { TC_SaveCsv(); } }
+
+on sysvar TC::BtnResetAll
+{
+  int i;
+  if (@TC::BtnResetAll != 1) { return; }
+  for (i = 0; i < gCnt; i++) { gResult[i] = 0; gTimeMs[i] = 0; }
+  gRunTo = -1;
+  TC_Select(TC_NextVis(0, 1));
+  write("[TC] 결과 초기화");
+}
+
+on sysvar TC::Index
+{
+  int nx;
+
+  if (@TC::Index == gCur) { return; }
+  gRunTo = -1;
+
+  /* 숨김 번호를 입력하면 진행 방향의 다음 보이는 TC 로 넘긴다 */
+  if (@TC::Index > gCur) { nx = TC_NextVis(@TC::Index,  1); }
+  else                   { nx = TC_NextVis(@TC::Index, -1); }
+  if (nx < 0) { nx = gCur; }
+  TC_Select(nx);
+  @TC::Index = gCur;
+}
+
+on sysvar TC::GapMs
+{
+  gGapMs = @TC::GapMs;
+  if (gGapMs < 0)     { gGapMs = 0; }
+  if (gGapMs > 10000) { gGapMs = 10000; }
+  write("[TC] TC 간 간격 = %d ms", gGapMs);
+}

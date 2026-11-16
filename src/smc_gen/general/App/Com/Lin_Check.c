@@ -1,6 +1,7 @@
 #include "Lin_Check.h"
 #include "Service.h"
 #include "HighSpeed_Mode.h"
+#include "Dbg_Log.h"   /* [DBG] */
 
 #ifdef ENABLE_TORQUE_TEST
 /***********************************************************************************************************************
@@ -516,6 +517,7 @@ void Lin_BusCheck(void)
     if ((G_Timer1ms.LinBusInactive >= LIN_BUS_CHK_TIME_4_SEC) && (lin_bus_inactive_flag == OFF) && (antipinch_action_on == OFF))
     {
         lin_bus_inactive_flag = ON;
+        Dbg_BusOff();   /* [DBG] */
         lin_sleep_step = 0U;
 
         Drv8889_Off2();                           // drv off

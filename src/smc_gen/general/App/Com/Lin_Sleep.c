@@ -1,5 +1,6 @@
 #include "Lin_Sleep.h"
 #include "Service.h"
+#include "Dbg_Log.h"   /* [DBG] */
 
 static uint8_t Sleep_Stall = OFF;
 
@@ -647,6 +648,8 @@ static void LinSleep_Cycle2(void)
  ***********************************************************************************************************************/
 void Lin_Sleep(void)
 {
+    Dbg_SleepStep(lin_sleep_step);   /* [DBG] */
+
     // Step 0 ~ 2: 준비 및 명령 수신 단계
     if (lin_sleep_step <= 2U)
     {
@@ -671,14 +674,18 @@ void Lin_Sleep(void)
  ***********************************************************************************************************************/
 void MCU_Sleep(void)
 {
+    Dbg_McuSleepIn();   /* [DBG] */
+
     if (power_chk == Normal_Shutdown)
     {
+        Dbg_McuSleepRetPwr();   /* [DBG] */
         return;
     }
 
     if (lin_nrst_low_flag == ON)
     {
         lin_sleep_step = 9U;      /* 저전압 가드 한번 더*/
+        Dbg_McuSleepRetNrst();   /* [DBG] */
         return;
     }
 
@@ -693,6 +700,7 @@ void MCU_Sleep(void)
     }
 
     // 3. 외부 하드웨어 전원 차단
+    Dbg_McuSleepOff();   /* [DBG] */
     McuSleep_ExternalOff();
 
     // 4. 슬립 대비 포트 설정 (누설 전류 방지)

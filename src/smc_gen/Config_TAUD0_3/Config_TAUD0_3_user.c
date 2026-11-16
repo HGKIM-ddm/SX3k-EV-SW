@@ -37,6 +37,7 @@ Includes
 #include "r_cg_userdefine.h"
 #include "Config_TAUD0_3.h"
 #include "Config.h"
+#include "Dbg_Log.h"   /* [DBG] */
 /* Start user code for include. Do not edit comment generated here */
 #ifdef UDS
 extern char uds_1ms;
@@ -110,6 +111,7 @@ void r_Config_TAUD0_3_interrupt(void)
     #endif
 
     G_Timer1ms.LinBusInactive++;
+    Dbg_Tick1ms();   /* [DBG] */
 
     if(G_Timer1msFlag.Timer3minuteFlag == 1)
     {

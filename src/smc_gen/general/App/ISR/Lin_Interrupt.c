@@ -1,4 +1,5 @@
 #include "Lin_Interrupt.h"
+#include "Dbg_Log.h"   /* [DBG] */
 
 /***********************************************************************************************************************
  * Function Name: Lin_ReceiveComplete_Interrupt
@@ -11,6 +12,8 @@ void Lin_ReceiveComplete_Interrupt(void)
 {
     uint8_t receive_header_flag;
     uint8_t receive_response_flag;
+
+    Dbg_RxIsr();   /* [DBG] */
 
     // 1. Get Status Flags
     receive_header_flag = (uint8_t)(RLN30.LST & 0x80U);  /* 1: Header transmission completed */
@@ -73,6 +76,7 @@ void Lin_Interrupt(void)
 #pragma ghs interrupt
 void Lin_Status_Interrupt(void)
 {
+	Dbg_LinErrIn();   /* [DBG] 레지스터 건드리기 전 */
 	NOP();
 	error_status = RLN30.LEST; // check status
 	g_lin_error_flag = 1U;
@@ -80,6 +84,7 @@ void Lin_Status_Interrupt(void)
 #if 1 // LEST Clear
 	while (1)
 	{
+		Dbg_LinErrLoop();   /* [DBG] */
 		if ((RLN30.LTRC & 0x01U) == 1U)
 		{
 			RLN30.LEST = 0U;
@@ -109,4 +114,5 @@ void Lin_Status_Interrupt(void)
 		}
 	}
 #endif
+	Dbg_LinErrOut();   /* [DBG] */
 }

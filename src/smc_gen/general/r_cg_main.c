@@ -36,6 +36,7 @@ Includes
 #include "target.h"
 #include "Service.h"
 #include "Lin_Interrupt.h"
+#include "Dbg_Log.h"   /* [DBG] */
 
 #ifdef UDS
 #include "cpu.h"
@@ -123,6 +124,8 @@ void r_main_userinit(void)
  ***********************************************************************************************************************/
 static void AAF_Init(void) 
 {
+	Dbg_Boot();   /* [DBG] */
+
 	/* Unlock protection & Release I/O hold state */
 	protected_write(WPROTR.PROTCMD0, WPROTR.PROTS0, STBC_IOHOLD.IOHOLD, 0x00u); 
 

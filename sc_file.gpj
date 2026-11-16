@@ -86,6 +86,8 @@ src/smc_gen/general/App/Logic/Re_Init.c
 src/smc_gen/general/App/Logic/Re_Init.h
 src/smc_gen/general/App/Service/Service.c
 src/smc_gen/general/App/Service/Service.h
+src/smc_gen/general/App/Service/Dbg_Log.c
+src/smc_gen/general/App/Service/Dbg_Log.h
 src/smc_gen/general/App/Safety/Limp_Home.c
 src/smc_gen/general/App/Safety/Limp_Home.h
 src/smc_gen/general/App/Safety/AntiPinch.c

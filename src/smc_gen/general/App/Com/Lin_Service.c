@@ -1,5 +1,6 @@
 #include "Lin_Service.h"
 #include "Service.h"
+#include "Dbg_Log.h"   /* [DBG] */
 
 #ifdef UDS
 #include "cpu.h"
@@ -35,6 +36,7 @@ static void Lin_Wakeup(void)
     {
         /* LIN Bus가 다시 살아났으므로 inactive 상태 해제 */
         lin_bus_inactive_flag = OFF;
+        Dbg_Wake();   /* [DBG] */
 
         /* LIN inactive counter 초기화 */
         G_Timer1ms.LinBusInactive = 0U;

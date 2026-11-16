@@ -62,7 +62,8 @@ MEMORY
   iROM_0         : ORIGIN = 0x0000F100,  LENGTH = 452k
   iROM_1         : ORIGIN = 0x01000000,  LENGTH = 32k
   iRAM_0         : ORIGIN = 0xFEBF0000,  LENGTH = 32k
-  iRAM_R         : ORIGIN = 0xFEBF8000,  LENGTH = 32k
+  iRAM_R         : ORIGIN = 0xFEBF8000,  LENGTH = 31k    /* [DBG] 32k -> 31k */
+  iRAM_DBG       : ORIGIN = 0xFEBFFC00,  LENGTH = 1k     /* [DBG] 리셋 후에도 유지되는 디버그 기록 */
  }
 
 SECTIONS
@@ -130,6 +131,7 @@ SECTIONS
 
   .rdata    align(4)                    :>iRAM_R     /* user defined segment for for initialized data located in retention RAM  */
   .rbss     align(4)                    :>.          /* user defined segment for zero initialized data located in retention RAM */
+  .dbglog   align(4) NOCLEAR            :>iRAM_DBG   /* [DBG] Dbg_Log.c g_dbg */
 /*  Symbols for compiler references */
 
   ___ghs_romstart   = MEMADDR(iROM_0);
