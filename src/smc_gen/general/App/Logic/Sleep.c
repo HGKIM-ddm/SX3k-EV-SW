@@ -425,33 +425,8 @@ static void Sleep_Execute(void)
     }
     else
     {
-        /* MCU 전원 차단 전 LIN 재개 : 리셋 없이 복귀하므로 위치 미확정이면 초기화 재시작 */
-        lin_bus_inactive_flag = OFF;
-        sleep_step = 0U;
-
-        G_Timer1msFlag.LinSleepModeFlag = 0U;
-        G_Timer1ms.LinSleepMode = 0U;
-
-        /* Sleep 방어 타이머 초기화 */
-        G_Timer1msFlag.SleepGuardFlag = 0U;
-        G_Timer1ms.SleepGuard = 0U;
-
-        aaf_action = FLAP_STOP;
-        aaf_action_complete_chk = FLAP_STOP;
-
-        if (AAFx_InitStatus != NORMAL_FINISHED_INITIALIZATION)
-        {
-            aaf_step      = AAF_INITIALIZATION;
-            aaf_init_step = START_INITIALIZATION;
-        }
-        else if (aaf_step != AAF_INITIALIZATION) 
-        {
-            aaf_step = AAF_WAITING; 
-        }
-        else
-        {
-            /* invalid */
-        }
+        /* MCU 전원 차단 전 LIN 재개 */
+        Sleep_Wakeup();
     }
 }
 
@@ -693,59 +668,80 @@ void MCU_Sleep(void)
 
 /***********************************************************************************************************************
  * Function Name: Sleep_Wakeup
- * Description  : LIN Sleep 상태에서 LIN 프레임이 다시 수신되었을 때 Sleep 상태를 해제함
- *                - LIN Bus Inactive flag 해제
- *                - Sleep 상태머신 초기화
- *                - Sleep 관련 타이머 초기화
- *                - Sleep 중 모터가 구동 중이었다면 모터 정지
- * Called By    : Lin_ReceiveComplete_Interrupt
+ * Description  : LIN Bus Inactive 상태에서 LIN 프레임 재수신 시 Sleep 해제 (Wake 단일 경로)
+ *                - 기존 Lin_Wakeup(헤더 수신 시 선호출)과 이중화되어 본 함수가 실행되지 않던 문제 수정
+ *                  -> 위치 미확정 상태가 WAIT_INITIALIZATION 에 머물러 87 50 (Unknown / During Init) 고착
+ *                - 모터 구동 단계(sleep_step 3~7) 중에는 Wake 보류 : 최종 제어 수행 후 처리 (사양 5.3.12, ICE 동일)
+ *                - 위치 미확정 시 Initial value 송신 + 마스터 명령 무시, LDCRdy = 1 수신 후 Re_Init (Step_InitAndCheck)
+ *                  (사양 3.6 / 5.2.6 / 5.3.12)
+ * Called By    : Lin_ReceiveComplete_Interrupt, Sleep_Execute
  * Arguments    : void
  * Return Value : void
  ***********************************************************************************************************************/
 void Sleep_Wakeup(void)
 {
-    if (lin_bus_inactive_flag == ON)
+    if ((lin_bus_inactive_flag == ON) && ((sleep_step <= 2U) || (sleep_step >= 8U)))
     {
-        /* LIN 프레임이 다시 들어왔으므로 Sleep 상태 해제 */
+        /* 1. Sleep 상태 해제 */
         lin_bus_inactive_flag = OFF;
+        G_Timer1ms.LinBusInactive = 0U;
 
-        /* LIN Sleep 상태머신 초기화 */
-        sleep_step = 0U;
+        /* 2. Sleep 상태머신 / 타이머 초기화 */
+        sleep_step  = 0U;
+        Sleep_Stall = OFF;
 
-        power_chk = Shutdown_Check;
-        
-        /* LIN Sleep 대기 타이머 초기화 */
         G_Timer1msFlag.LinSleepModeFlag = 0U;
         G_Timer1ms.LinSleepMode = 0U;
 
-        /* Sleep 방어 타이머 초기화 */
         G_Timer1msFlag.SleepGuardFlag = 0U;
         G_Timer1ms.SleepGuard = 0U;
 
-        /* Sleep 중 모터 구동 중일 수 있으므로 안전하게 정지 */
-        Motor_Off();
-
-        /* Init fail check 타이머 초기화 */
         G_Timer1msFlag.InitFailCheckFlag = 0U;
         G_Timer1ms.InitFailCheck = 0U;
 
-        /* 수정된 부분: 초기화가 완전히 끝나지 않았다면 무조건 초기화 루프로 진입 */
-        if (AAFx_InitStatus != NORMAL_FINISHED_INITIALIZATION)
+        /* 3. 이번 사이클 미종료 상태로 복귀 */
+        power_chk = Shutdown_Check;
+
+        /* 4. 모터 정지 및 동작 상태 초기화 */
+        Motor_Off();
+        motor_stall_flag        = MOTOR_NORMAL;
+        aaf_action              = FLAP_STOP;
+        aaf_action_complete_chk = FLAP_STOP;
+
+        /* 5. [Q10] LIN 두절 후 복귀 시 진단 창 재시작 : 첫 LDCRdy 0->1 후 500ms 부터 진단 */
+        IGN_Chk_On = 0U;
+        G_Timer1msFlag.IgnCheckFlag = 0U;
+        G_Timer1ms.IgnCheck = 0U;
+
+        /* 6. 위치 확정 여부에 따른 복귀 (상태 기반 판단) */
+        if ((AAFx_InitStatus      != NORMAL_FINISHED_INITIALIZATION) ||
+            (AAFx_Position_Status == Unknown_Status)                 ||
+            (AAFx_Position_Status == FlapMoving_Status)              ||
+            (AAF_Tx_Position      == UNKOWN_POSITION))
         {
-            aaf_step = AAF_INITIALIZATION;
-            aaf_init_step = START_INITIALIZATION; // 0U
+            /* 위치 미확정 : Initial value 송신, 마스터 명령 무시 */
+            aaf_step      = AAF_INITIALIZATION;
+            aaf_init_step = WAIT_INITIALIZATION;
+
+            AAF_Tx_Position      = UNKOWN_POSITION;
+            AAFx_Position_Status = Unknown_Status;
+            AAFx_InitStatus      = DURING_INITIALIZATION;
+
+            /* 이번 사이클 Step_Check 완료 이후면 재초기화 요청.
+               (step_check_flag == 0 이면 기존 IG ON 경로(Step_InitAndCheck -> Step_Check)가 처리) */
+            if (step_check_flag != 0U)
+            {
+                lin_wake_reinit_flag = ON;
+            }
         }
-        /* Sleep sequence 중 이동 중이었다면 일반 동작 대기로 복귀 */
-        else if (AAFx_Position_Status == FlapMoving_Status)
+        else if (aaf_step != AAF_INITIALIZATION)
         {
-            aaf_step = AAF_OPERATE;
+            /* 위치 확정 : 일반 명령 대기 */
+            aaf_step = AAF_WAITING;
         }
         else
         {
-            if (aaf_step != AAF_INITIALIZATION) 
-            {
-                aaf_step = AAF_WAITING; 
-            }
+            /* invalid */
         }
     }
 }

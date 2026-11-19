@@ -127,7 +127,8 @@ void Re_Init(void)
  ***********************************************************************************************************************/
 void Step_InitAndCheck(void)
 {
-    if ((IGN_Chk == 2U) && (LDCRdy == 0x01U))
+    /* Sleep 시퀀스 진행 중(Wake 보류)에는 복원 금지 : Wake 판단 전 위치 미확정 정보 보존 */
+    if ((IGN_Chk == 2U) && (LDCRdy == 0x01U) && (lin_bus_inactive_flag == OFF))
     {
         Position_Temporary_read();
         G_Timer1msFlag.IGNOffCheckFlag = 0U;
@@ -192,4 +193,12 @@ void Step_InitAndCheck(void)
 		FDL_Write();
 		step_check_flag = 2U;
 	}
+
+    /* 리셋 없는 Wake 후 위치 미확정 : LDCRdy = 1 수신 시 위치 초기화 (사양 3.6 / 5.2.6 / 5.3.12)
+       Sleep 시퀀스 진행 중(Wake 보류)에는 수행 금지 : step_position 리셋으로 Sleep 구동 오동작 방지 */
+    if ((lin_wake_reinit_flag == ON) && (LDCRdy == 0x01U) && (lin_bus_inactive_flag == OFF))
+    {
+        lin_wake_reinit_flag = OFF;
+        Re_Init();
+    }
 }
