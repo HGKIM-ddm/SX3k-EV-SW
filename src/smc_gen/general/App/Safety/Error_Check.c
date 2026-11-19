@@ -330,7 +330,7 @@ static void Error_CheckOpen(void)
 void Error_CheckAfterIGN(void)
 {
 
-    if ((LDCRdy == 0x00u))
+    if ((LDCRdy == 0x00u) && (IGN_Chk_On == 0U))
     {
         G_Timer1ms.IgnCheck = 0U;
         G_Timer1msFlag.IgnCheckFlag = 0U;
