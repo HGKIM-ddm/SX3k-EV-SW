@@ -121,7 +121,7 @@ extern volatile uint8_t g_lin_error_flag;
 
 extern char ret;
 extern unsigned int lin_bus_inactive_flag;
-extern volatile unsigned int lin_wake_reinit_flag;
+extern volatile unsigned int ldc_reinit_wait_flag;
 extern unsigned int sleep_step;
 extern unsigned int lin_nrst_low_flag;
 extern unsigned int lin_nrst_debounce_count;

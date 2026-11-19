@@ -731,7 +731,7 @@ void Sleep_Wakeup(void)
                (step_check_flag == 0 이면 기존 IG ON 경로(Step_InitAndCheck -> Step_Check)가 처리) */
             if (step_check_flag != 0U)
             {
-                lin_wake_reinit_flag = ON;
+                ldc_reinit_wait_flag = ON;
             }
         }
         else if (aaf_step != AAF_INITIALIZATION)

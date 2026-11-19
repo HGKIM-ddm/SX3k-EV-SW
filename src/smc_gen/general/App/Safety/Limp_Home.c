@@ -63,7 +63,21 @@ void Limp_Home(void)
 	{
 		LIMP_HOME_Count = 0U;
 		LIMP_HOME_step = 0U;
-		Re_Init();
+
+		if (LDCRdy == 0x01U)
+		{
+			Re_Init();
+		}
+		else
+		{
+			/* LDCRdy 0 에서 해제(카운트 초기화) : Initial value 유지, 위치 초기화는 LDCRdy 1 수신 후 (Step_InitAndCheck) */
+			aaf_step             = AAF_INITIALIZATION;
+			aaf_init_step        = WAIT_INITIALIZATION;
+			AAF_Tx_Position      = UNKOWN_POSITION;
+			AAFx_Position_Status = Unknown_Status;
+			AAFx_InitStatus      = DURING_INITIALIZATION;
+			ldc_reinit_wait_flag = ON;
+		}
 	}
 	switch (LIMP_HOME_step)
 	{

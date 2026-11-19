@@ -196,9 +196,9 @@ void Step_InitAndCheck(void)
 
     /* 리셋 없는 Wake 후 위치 미확정 : LDCRdy = 1 수신 시 위치 초기화 (사양 3.6 / 5.2.6 / 5.3.12)
        Sleep 시퀀스 진행 중(Wake 보류)에는 수행 금지 : step_position 리셋으로 Sleep 구동 오동작 방지 */
-    if ((lin_wake_reinit_flag == ON) && (LDCRdy == 0x01U) && (lin_bus_inactive_flag == OFF))
+    if ((ldc_reinit_wait_flag == ON) && (LDCRdy == 0x01U) && (lin_bus_inactive_flag == OFF))
     {
-        lin_wake_reinit_flag = OFF;
+        ldc_reinit_wait_flag = OFF;
         Re_Init();
     }
 }
