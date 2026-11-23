@@ -708,7 +708,7 @@ void Sleep_Wakeup(void)
         aaf_action              = FLAP_STOP;
         aaf_action_complete_chk = FLAP_STOP;
 
-        /* 5. [Q10] LIN 두절 후 복귀 시 진단 창 재시작 : 첫 LDCRdy 0->1 후 500ms 부터 진단 */
+        /*  첫 LDCRdy 0->1 후 500ms 부터 진단 */
         IGN_Chk_On = 0U;
         G_Timer1msFlag.IgnCheckFlag = 0U;
         G_Timer1ms.IgnCheck = 0U;
