@@ -129,6 +129,7 @@ volatile uint8_t g_lin_error_flag = 0U;
 
 char ret = 0;
 unsigned int lin_bus_inactive_flag = 0;
+volatile unsigned int ldc_reinit_wait_flag = 0U; /* 위치 초기화 대기 : LDCRdy=1 수신 시 Re_Init (리셋 없는 Wake / LDCRdy 0 중 LIMP 해제) */
 unsigned int sleep_step = 0;
 unsigned int lin_nrst_low_flag = 0;
 unsigned int lin_nrst_debounce_count = 0;

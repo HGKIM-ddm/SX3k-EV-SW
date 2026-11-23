@@ -33,7 +33,7 @@ static void Error_ClearVoltageProtection(void)
     }
     else if (protection_Mode_step == 0U)
     {
-        Re_Init();
+        Re_InitRequest();
     }
     else if ((protection_Mode_step == 3U) &&
              (motor_start == OFF))
@@ -216,7 +216,7 @@ static void Error_CheckShort(void)
         {
             if ((AAF_OverCurrent == NO_ERROR) && (Short_fault_check == 1U))
             {
-                Re_Init();
+                Re_InitRequest();
                 G_Timer1ms.MotorShortCheck = 0U;
                 G_Timer1msFlag.MotorShortCheckFlag = 0U;
                 Short_Detected = 0U;
@@ -286,7 +286,7 @@ static void Error_CheckOpen(void)
         {
             if ((AAF_OpenLoad == NO_ERROR) && (Open_fault_check == 1U))
             {
-                Re_Init();
+                Re_InitRequest();
                 G_Timer1ms.MotorOpenCheck = 0U;
                 G_Timer1msFlag.MotorOpenCheckFlag = 0U;
                 Open_Detected = 0U;
@@ -335,7 +335,15 @@ void Error_CheckAfterIGN(void)
         G_Timer1ms.IgnCheck = 0U;
         G_Timer1msFlag.IgnCheckFlag = 0U;
     }
-    
+
+    /* LDCRdy 0 : LIMP Home 진단 안 함 + 카운트 초기화 (LIMP 외 에러 진단은 계속 수행) */
+    if (LDCRdy != 0x01u)
+    {
+        LIMP_HOME_Count    = 0U;
+        g_lin_error_flag   = 0U;
+        g_lin_comm_ok_flag = 0U;
+    }
+
     if (((LDCRdy == 0x01u) && (G_Timer1ms.IgnCheck <= 500U)) || (IGN_Chk_On == 1U)) 
     {
         G_Timer1msFlag.IgnCheckFlag = 1U;
@@ -344,7 +352,10 @@ void Error_CheckAfterIGN(void)
             G_Timer1msFlag.IgnCheckFlag = 0U;
             G_Timer1ms.IgnCheck = 500U;
             IGN_Chk_On = 1U;
-            LimpHome_UpdateCount();
+            if (LDCRdy == 0x01u)
+            {
+                LimpHome_UpdateCount();
+            }
             Error_Check();
         }
     }

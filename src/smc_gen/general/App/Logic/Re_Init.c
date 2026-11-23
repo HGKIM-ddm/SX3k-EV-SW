@@ -111,6 +111,7 @@ void Re_Init(void)
 	G_Timer1msFlag.AntipinchCheckFlag = 0U;
 	G_Timer1ms.AntipinchCheck = 0U;
 	reinit_request_flag = OFF;
+	ldc_reinit_wait_flag = OFF;  /* 위치 초기화 시작 : 초기화 대기 요청 취소 (중복 Re_Init 방지) */
 
 	#ifdef ENABLE_TORQUE_LIN_COMMUNICATION
 	TRQ_OpenIndex  = 0U;
@@ -121,13 +122,40 @@ void Re_Init(void)
 }
 
 /***********************************************************************************************************************
+ * Function Name: Re_InitRequest
+ * Description  : 에러 / 보호 해제 후 위치 초기화 요청 (사양 3.6 / 5.2.6 : 위치 초기화는 LDCRdy = 1 수신 후)
+ *                - LDCRdy 1 : 즉시 Re_Init
+ *                - LDCRdy 0 : Initial value 송신 + 마스터 명령 무시 상태로 대기, LDCRdy 1 수신 시 Re_Init (Step_InitAndCheck)
+ *                  대기 중 Sleep 최종 제어로 위치가 확정되면 요청 취소 (Sleep_Wakeup)
+ * Called By    : Limp_Home, Antipinch_PrevOpen, Antipinch_PrevClose, Error_ClearVoltageProtection,
+ *                Error_CheckShort, Error_CheckOpen, Protection_WaitOff
+ ***********************************************************************************************************************/
+void Re_InitRequest(void)
+{
+	if (LDCRdy == 0x01U)
+	{
+		Re_Init();
+	}
+	else
+	{
+		aaf_step             = AAF_INITIALIZATION;
+		aaf_init_step        = WAIT_INITIALIZATION;
+		AAF_Tx_Position      = UNKOWN_POSITION;
+		AAFx_Position_Status = Unknown_Status;
+		AAFx_InitStatus      = DURING_INITIALIZATION;
+		ldc_reinit_wait_flag = ON;
+	}
+}
+
+/***********************************************************************************************************************
  * Function Name: Step_InitAndCheck
  * Description  : Handles step position initialization and flash memory sync upon Ignition ON.
  * Called By    : App_SwLogic
  ***********************************************************************************************************************/
 void Step_InitAndCheck(void)
 {
-    if ((IGN_Chk == 2U) && (LDCRdy == 0x01U))
+    /* Sleep 시퀀스 진행 중(Wake 보류)에는 복원 금지 : Wake 판단 전 위치 미확정 정보 보존 */
+    if ((IGN_Chk == 2U) && (LDCRdy == 0x01U) && (lin_bus_inactive_flag == OFF))
     {
         Position_Temporary_read();
         G_Timer1msFlag.IGNOffCheckFlag = 0U;
@@ -145,7 +173,11 @@ void Step_InitAndCheck(void)
             G_Timer1msFlag.IGNOffCheckFlag = 0U;
             G_Timer1ms.IGNOffCheck = LDC_OFF_IGNORE_TIME;   /* 포화 : 재진입 방지 */
 
+            /* Sleep 시퀀스 중(lin_bus_inactive_flag ON)에는 보류 : Sleep 최종 제어로 확정된 위치를
+               Sleep_Wakeup 이 판단하기 전에 Initial value 로 덮어 위치 미확정 -> 불필요한 Re_Init 되는 것 방지.
+               (MCU 전원 차단 시에는 Sleep_Execute 가 저장, 리셋 없는 Wake 시에는 Wake 후 다음 루프에서 저장) */
             if ((motor_start == OFF) &&
+                (lin_bus_inactive_flag == OFF) &&
                 (AAFx_Position_Status != FlapMoving_Status) &&
                 (AAFx_InitStatus != DURING_INITIALIZATION))
             {
@@ -192,4 +224,12 @@ void Step_InitAndCheck(void)
 		FDL_Write();
 		step_check_flag = 2U;
 	}
+
+    /* 리셋 없는 Wake 후 위치 미확정 : LDCRdy = 1 수신 시 위치 초기화 (사양 3.6 / 5.2.6 / 5.3.12)
+       Sleep 시퀀스 진행 중(Wake 보류)에는 수행 금지 : step_position 리셋으로 Sleep 구동 오동작 방지 */
+    if ((ldc_reinit_wait_flag == ON) && (LDCRdy == 0x01U) && (lin_bus_inactive_flag == OFF))
+    {
+        ldc_reinit_wait_flag = OFF;
+        Re_Init();
+    }
 }

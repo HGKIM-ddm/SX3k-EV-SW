@@ -34,9 +34,10 @@ static void Antipinch_PrevOpen(void)
             G_Timer1msFlag.InitCheckFlag = 0U;
             G_Timer1ms.InitCheck = 0U;
 
-            if (step_position <= step_position_open)
+            /* Close 방향 탈출 : Close 스토퍼 스톨 중 초과 카운트 보정 */
+            if (step_position >= step_position_close)
             {
-                step_position = step_position_open;
+                step_position = step_position_close;
             }
 
             antipinch_step = 2U;
@@ -135,10 +136,18 @@ static void Antipinch_PrevOpen(void)
             antipinch_previous_action = INITIALIZATION;
             antipinch_action_on = OFF;
 
-            if (Diag_Mode != 0U)
+            if (LDCRdy != 0x01U)
             {
+                /* 사양 5.2.7 : LDCRdy 0 이면 FS / Abnormal 없이 LIN Bus Inactive 를 따른다 (오류 신호 미송신)
+                   Initial value 유지, 위치 초기화는 LDCRdy 1 수신 후 (Step_InitAndCheck) */
+                Diag_Mode      = 0U;
+                antipinch_step = 0U;
+                Re_InitRequest();
+            }
+            else if (Diag_Mode != 0U)
+            {
+                /* 진단 모드 안티핀치 실패 : Abnormal 만 송신 (Motor Fault 미송신, P05A3 모터 고장은 단선 조건만) */
                 AAFx_InitStatus = ABNORMAL_FINISHED_INITIALIZATION;
-                motor_fault_chk = 1U;
                 Diag_Mode = 0U;
             }
             else
@@ -327,10 +336,18 @@ static void Antipinch_PrevClose(void)
             G_Timer1ms.StallCheck = 0U;      
             G_Timer1msFlag.StallCheckFlag = 0U; 
 
-            if (Diag_Mode != 0U)
+            if (LDCRdy != 0x01U)
             {
+                /* 사양 5.2.7 : LDCRdy 0 이면 FS / Abnormal 없이 LIN Bus Inactive 를 따른다 (오류 신호 미송신)
+                   Initial value 유지, 위치 초기화는 LDCRdy 1 수신 후 (Step_InitAndCheck) */
+                Diag_Mode      = 0U;
+                antipinch_step = 0U;
+                Re_InitRequest();
+            }
+            else if (Diag_Mode != 0U)
+            {
+                /* 진단 모드 안티핀치 실패 : Abnormal 만 송신 (Motor Fault 미송신, P05A3 모터 고장은 단선 조건만) */
                 AAFx_InitStatus = ABNORMAL_FINISHED_INITIALIZATION;
-                motor_fault_chk = 1U;
                 Diag_Mode = 0U;
             }
             else

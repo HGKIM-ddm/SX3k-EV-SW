@@ -22,74 +22,6 @@ void RLIN_Slave_uds_Transmit(uint8_t* databuf,uint8_t Data_length)
 #endif
 
 /***********************************************************************************************************************
- * Function Name: Lin_Wakeup
- * Description  : Wake up in sleep mode when LIN communication is detected and initialize the associated variables
- * Called By    : Lin_HandleReceivedHeader
- * Arguments    : void
- * Return Value : void
- ***********************************************************************************************************************/
-static void Lin_Wakeup(void)
-{
-    /* Sleep 상태에서 LIN 프레임이 다시 수신되면 Sleep 상태 해제 */
-    if (lin_bus_inactive_flag == ON)
-    {
-        /* LIN Bus가 다시 살아났으므로 inactive 상태 해제 */
-        lin_bus_inactive_flag = OFF;
-
-        /* LIN inactive counter 초기화 */
-        G_Timer1ms.LinBusInactive = 0U;
-
-        /* Sleep 상태머신 초기화 */
-        sleep_step = 0U;
-
-        /* Sleep delay timer 초기화 */
-        G_Timer1msFlag.LinSleepModeFlag = 0U;
-        G_Timer1ms.LinSleepMode = 0U;
-
-        /* Sleep 방어 타이머 정지 (Sleep_Wakeup 은 이 함수 뒤에 불려 flag OFF 라 실행 안 됨) */
-        G_Timer1msFlag.SleepGuardFlag = 0U;
-        G_Timer1ms.SleepGuard = 0U;
-        
-        /* Sleep 중 모터가 동작하고 있었을 수 있으므로 모터 정지 */
-        Motor_Off();
-
-        /* Init fail check timer 초기화 */
-        G_Timer1msFlag.InitFailCheckFlag = 0U;
-        G_Timer1ms.InitFailCheck = 0U;
-
-     
-        /* Sleep 중 진행하던 동작은 중단 처리 */
-        aaf_action = FLAP_STOP;
-        aaf_action_complete_chk = FLAP_STOP;
-
-        /* 
-         * Sleep sequence 중 모터가 이동 중이었다면 실제 위치가 목표 위치가 아닐 수 있음.
-         * 이 경우 위치 신뢰성이 떨어질 수 있으므로 초기화 대기 상태로 둔다.
-         *
-         * 단, 기존 정책이 "LIN Wake 시 이전 명령을 이어서 수행"이라면
-         * 아래 블록은 AAF_OPERATE 복귀 방식으로 조정해야 한다.
-         */
-        if (AAFx_Position_Status == FlapMoving_Status)
-        {
-            aaf_step = AAF_INITIALIZATION;
-            aaf_init_step = WAIT_INITIALIZATION;
-
-            AAF_Tx_Position = UNKOWN_POSITION;
-            AAFx_Position_Status = Unknown_Status;
-            AAFx_InitStatus = DURING_INITIALIZATION;
-        }
-        else
-        {
-            /* 이동 중이 아니었다면 일반 명령 대기 상태로 복귀 */
-           if (aaf_step != AAF_INITIALIZATION) 
-            {
-                aaf_step = AAF_WAITING; 
-            }
-        }
-    }
-}
-
-/***********************************************************************************************************************
  * Function Name: Lin_HandleReceivedHeader
  * Description  : Check ID on LIN header reception and set send/receive mode (EV Specification)
  * Called By    : Lin_ReceiveComplete_Interrupt
@@ -137,7 +69,7 @@ void Lin_HandleReceivedHeader(void)
         Lin_SlaveNoResponse();
     }
 
-    Lin_Wakeup();
+    /* Sleep 해제는 Lin_ReceiveComplete_Interrupt 의 Sleep_Wakeup() 단일 경로에서 처리 */
 }
 
 /***********************************************************************************************************************

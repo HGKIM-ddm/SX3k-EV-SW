@@ -42,7 +42,7 @@
 
 /* 펌웨어 버전 : 상위 니블 Major / 하위 니블 Minor */
 #define FW_VER_MAJOR  1        // 0.x : drv8889, 1.x : drv8434a
-#define FW_VER_MINOR  0
+#define FW_VER_MINOR  1
 #define FW_VER_PATCH  0        // ECU_VER 표기 전용 (미사용 0 고정)
 #define FW_VERSION    ((uint8_t)(((FW_VER_MAJOR) << 4U) | (FW_VER_MINOR)))
 

@@ -63,7 +63,9 @@ void Limp_Home(void)
 	{
 		LIMP_HOME_Count = 0U;
 		LIMP_HOME_step = 0U;
-		Re_Init();
+
+		/* LDCRdy 0 에서 해제(카운트 초기화) 시 위치 초기화는 LDCRdy 1 수신 후 */
+		Re_InitRequest();
 	}
 	switch (LIMP_HOME_step)
 	{
