@@ -738,6 +738,9 @@ void Sleep_Wakeup(void)
         {
             /* 위치 확정 : 일반 명령 대기 */
             aaf_step = AAF_WAITING;
+
+            /* 위치 확정 : 이전 초기화 대기 요청 취소 (Sleep 최종 제어로 위치 확정 후 리셋 없는 Wake 시 불필요한 Re_Init 방지) */
+            ldc_reinit_wait_flag = OFF;
         }
         else
         {

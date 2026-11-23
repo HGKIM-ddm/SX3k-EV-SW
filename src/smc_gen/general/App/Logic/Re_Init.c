@@ -111,6 +111,7 @@ void Re_Init(void)
 	G_Timer1msFlag.AntipinchCheckFlag = 0U;
 	G_Timer1ms.AntipinchCheck = 0U;
 	reinit_request_flag = OFF;
+	ldc_reinit_wait_flag = OFF;  /* 위치 초기화 시작 : 초기화 대기 요청 취소 (중복 Re_Init 방지) */
 
 	#ifdef ENABLE_TORQUE_LIN_COMMUNICATION
 	TRQ_OpenIndex  = 0U;
@@ -146,7 +147,11 @@ void Step_InitAndCheck(void)
             G_Timer1msFlag.IGNOffCheckFlag = 0U;
             G_Timer1ms.IGNOffCheck = LDC_OFF_IGNORE_TIME;   /* 포화 : 재진입 방지 */
 
+            /* Sleep 시퀀스 중(lin_bus_inactive_flag ON)에는 보류 : Sleep 최종 제어로 확정된 위치를
+               Sleep_Wakeup 이 판단하기 전에 Initial value 로 덮어 위치 미확정 -> 불필요한 Re_Init 되는 것 방지.
+               (MCU 전원 차단 시에는 Sleep_Execute 가 저장, 리셋 없는 Wake 시에는 Wake 후 다음 루프에서 저장) */
             if ((motor_start == OFF) &&
+                (lin_bus_inactive_flag == OFF) &&
                 (AAFx_Position_Status != FlapMoving_Status) &&
                 (AAFx_InitStatus != DURING_INITIALIZATION))
             {
