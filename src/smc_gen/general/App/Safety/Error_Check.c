@@ -33,7 +33,7 @@ static void Error_ClearVoltageProtection(void)
     }
     else if (protection_Mode_step == 0U)
     {
-        Re_Init();
+        Re_InitRequest();
     }
     else if ((protection_Mode_step == 3U) &&
              (motor_start == OFF))
@@ -216,7 +216,7 @@ static void Error_CheckShort(void)
         {
             if ((AAF_OverCurrent == NO_ERROR) && (Short_fault_check == 1U))
             {
-                Re_Init();
+                Re_InitRequest();
                 G_Timer1ms.MotorShortCheck = 0U;
                 G_Timer1msFlag.MotorShortCheckFlag = 0U;
                 Short_Detected = 0U;
@@ -286,7 +286,7 @@ static void Error_CheckOpen(void)
         {
             if ((AAF_OpenLoad == NO_ERROR) && (Open_fault_check == 1U))
             {
-                Re_Init();
+                Re_InitRequest();
                 G_Timer1ms.MotorOpenCheck = 0U;
                 G_Timer1msFlag.MotorOpenCheckFlag = 0U;
                 Open_Detected = 0U;

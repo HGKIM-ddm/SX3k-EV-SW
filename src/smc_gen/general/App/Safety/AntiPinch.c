@@ -140,14 +140,9 @@ static void Antipinch_PrevOpen(void)
             {
                 /* 사양 5.2.7 : LDCRdy 0 이면 FS / Abnormal 없이 LIN Bus Inactive 를 따른다 (오류 신호 미송신)
                    Initial value 유지, 위치 초기화는 LDCRdy 1 수신 후 (Step_InitAndCheck) */
-                Diag_Mode            = 0U;
-                antipinch_step       = 0U;
-                aaf_step             = AAF_INITIALIZATION;
-                aaf_init_step        = WAIT_INITIALIZATION;
-                AAF_Tx_Position      = UNKOWN_POSITION;
-                AAFx_Position_Status = Unknown_Status;
-                AAFx_InitStatus      = DURING_INITIALIZATION;
-                ldc_reinit_wait_flag = ON;
+                Diag_Mode      = 0U;
+                antipinch_step = 0U;
+                Re_InitRequest();
             }
             else if (Diag_Mode != 0U)
             {
@@ -345,14 +340,9 @@ static void Antipinch_PrevClose(void)
             {
                 /* 사양 5.2.7 : LDCRdy 0 이면 FS / Abnormal 없이 LIN Bus Inactive 를 따른다 (오류 신호 미송신)
                    Initial value 유지, 위치 초기화는 LDCRdy 1 수신 후 (Step_InitAndCheck) */
-                Diag_Mode            = 0U;
-                antipinch_step       = 0U;
-                aaf_step             = AAF_INITIALIZATION;
-                aaf_init_step        = WAIT_INITIALIZATION;
-                AAF_Tx_Position      = UNKOWN_POSITION;
-                AAFx_Position_Status = Unknown_Status;
-                AAFx_InitStatus      = DURING_INITIALIZATION;
-                ldc_reinit_wait_flag = ON;
+                Diag_Mode      = 0U;
+                antipinch_step = 0U;
+                Re_InitRequest();
             }
             else if (Diag_Mode != 0U)
             {

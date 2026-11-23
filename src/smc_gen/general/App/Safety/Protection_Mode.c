@@ -127,7 +127,7 @@ static void Protection_UpdateFinal(void)
 
 static void Protection_WaitOff(void)
 {
-    Re_Init();
+    Re_InitRequest();
     protection_Mode_step = 0U;
 }
 
