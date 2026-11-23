@@ -150,8 +150,8 @@ static void Antipinch_PrevOpen(void)
             }
             else if (Diag_Mode != 0U)
             {
+                /* 진단 모드 안티핀치 실패 : Abnormal 만 송신 (Motor Fault 미송신, P05A3 모터 고장은 단선 조건만) */
                 AAFx_InitStatus = ABNORMAL_FINISHED_INITIALIZATION;
-                motor_fault_chk = 1U;
                 Diag_Mode = 0U;
             }
             else
@@ -355,8 +355,8 @@ static void Antipinch_PrevClose(void)
             }
             else if (Diag_Mode != 0U)
             {
+                /* 진단 모드 안티핀치 실패 : Abnormal 만 송신 (Motor Fault 미송신, P05A3 모터 고장은 단선 조건만) */
                 AAFx_InitStatus = ABNORMAL_FINISHED_INITIALIZATION;
-                motor_fault_chk = 1U;
                 Diag_Mode = 0U;
             }
             else

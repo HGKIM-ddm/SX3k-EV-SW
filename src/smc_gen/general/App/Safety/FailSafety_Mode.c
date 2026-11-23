@@ -115,7 +115,7 @@ static void FS_FinalErrorSet(void)
     AAF_Tx_Position = UNKOWN_POSITION;
     AAFx_Position_Status = Unknown_Status;
     AAFx_InitStatus = ABNORMAL_FINISHED_INITIALIZATION;
-    motor_fault_chk = 1U;
+    /* FS 최종 실패 : Abnormal 만 송신 (Motor Fault 미송신, P05A3 모터 고장은 단선 조건만) */
 }
  
 /* =========================================================================================
