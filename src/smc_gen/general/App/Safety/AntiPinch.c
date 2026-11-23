@@ -34,9 +34,10 @@ static void Antipinch_PrevOpen(void)
             G_Timer1msFlag.InitCheckFlag = 0U;
             G_Timer1ms.InitCheck = 0U;
 
-            if (step_position <= step_position_open)
+            /* Close 방향 탈출 : Close 스토퍼 스톨 중 초과 카운트 보정 */
+            if (step_position >= step_position_close)
             {
-                step_position = step_position_open;
+                step_position = step_position_close;
             }
 
             antipinch_step = 2U;
