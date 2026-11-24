@@ -169,11 +169,9 @@ static uint8_t Error_CheckVoltage(void)
 static void Error_CheckMotorFault(void)
 {
     // 초기화가 비정상적으로 종료되었거나 모터 하드웨어 Fault가 감지된 경우
-    if ((AAFx_InitStatus == ABNORMAL_FINISHED_INITIALIZATION) && (motor_fault_chk == 1))
+    if ((AAFx_InitStatus == ABNORMAL_FINISHED_INITIALIZATION))
     {
         Motor_Sleep();        // 모터 드라이버 보호를 위해 슬립 모드 진입
-        AAFx_Motor_Fault = 1U;   // 모터 고장 상태 플래그 세팅
-        DTC_Status |= 0x10u;     // 모터 관련 고장 코드(DTC) 기록
     }
 }
 

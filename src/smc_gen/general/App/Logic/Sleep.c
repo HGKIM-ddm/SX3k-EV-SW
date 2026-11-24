@@ -5,7 +5,13 @@ static uint8_t Sleep_Stall = OFF;
 
 static uint8_t Sleep_AbortOnFault(void)
 {
+    /* 초기화 최종 실패(Abnormal) : Sleep 최종 구동 없이 위치 미확정 저장 -> 다음 시동 재초기화
+       시동 OFF 초기값 송신 중(IGN_Chk 2)이면 InitStatus 가 덮여 있으므로 보관값으로 판단 */
+    uint8_t abnormal = ((AAFx_InitStatus == ABNORMAL_FINISHED_INITIALIZATION) ||
+                        ((IGN_Chk == 2U) && (AAFx_InitStatus_Temporary == ABNORMAL_FINISHED_INITIALIZATION))) ? 1U : 0U;
+
     if ((AAFx_Motor_Fault   == 0U)       &&
+        (abnormal           == 0U)       &&
         (AAFx_Circuit_Short == NO_ERROR) &&
         (AAFx_Circuit_Open  == NO_ERROR))
     {
