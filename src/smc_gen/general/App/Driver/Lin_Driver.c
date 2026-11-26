@@ -74,7 +74,7 @@ void Lin_SlaveInit(void)
 
 	RLN30.LIE = 0x0fU; // enable all interrupt
 	// Enables error detection
-	RLN30.LEDE = 0xddU; // enable all error
+	RLN30.LEDE = 0xd9U; // enable all error
 
 	// Sets frame configuration parameters
 	RLN30.LBFC = 0x00U; // Reception break of 9.5/10 or more Tbits
